@@ -16,3 +16,6 @@ Projet en phase de planification technique. Le concept, le modèle de données e
 ## Contexte
 
 Projet solo, développé sur du temps libre (~1-2 jours/semaine). Un pilote manuel (sans code) avait été envisagé pour valider l'intérêt du concept avant de coder, mais cette étape a été écartée — on part directement sur la réalisation technique.
+
+## à ajouter au projet
+Permettre aux utilisateurs qui créent une question d'ajouter une image (photo d'archive) et/ou un enregistrement audio (témoignage de la personne concernée)
