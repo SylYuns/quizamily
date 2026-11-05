@@ -13,14 +13,14 @@
 9. Révélation automatique à la deadline, calcul des scores (4 états) + validation des réponses libres par l'auteur (notifications, révélation différée, prise de main).
 10. Réactions/commentaires sur les faits révélés.
 11. Mécanisme de correction + recalcul rétroactif des scores.
-12. Archive familiale consultable + score de contribution + relances.
+12. Archive familiale enrichie (catégories, filtres, recherche) + score de contribution + relances. La version simple des archives fait partie du MVP.
 13. Polish, puis phase 2 : push notifications + builds iOS/Android.
 
 ## Scope du premier MVP partageable (test avec 2-3 personnes)
 
 Volontairement réduit par rapport à la liste complète ci-dessus :
 
-**Inclus** : auth + création famille + invite, création des personnes centrales (relations simplifiées), un catalogue réduit de ~15-20 templates codés en dur (pas de back-office d'édition), ajout de faits, pioche + session de quiz (version simple au début, pas besoin du roulement pondéré sophistiqué dès le jour 1), réponse, validation des réponses libres par l'auteur (écran de validation + emails de rappel à l'auteur et d'attente aux joueurs ; la prise de main peut attendre), révélation (scores + contexte), emails (nouvelle question + résultats).
+**Inclus** : auth + création famille + invite, création des personnes centrales (relations simplifiées), un catalogue réduit de ~15-20 templates codés en dur (pas de back-office d'édition), ajout de faits, pioche + session de quiz (version simple au début, pas besoin du roulement pondéré sophistiqué dès le jour 1), réponse, validation des réponses libres par l'auteur (écran de validation + emails de rappel à l'auteur et d'attente aux joueurs ; la prise de main peut attendre), révélation (scores + contexte), emails (nouvelle question + résultats), archives en version simple (liste des questions révélées concernant une personne centrale).
 
 **Reporté après le premier test** : réactions/commentaires, mécanisme de correction, relances de contribution, vue arbre familial, notifications push, builds natifs iOS/Android (le web suffit pour tester avec 2-3 personnes).
 
