@@ -4,16 +4,21 @@ Quel est le nom de jeune fille de la mère de <sujet> : saisie libre
 A quelle adresse <sujet> vivait à la naissance : adresse
 Quel âge l'aîné de ses frères/soeurs avait lorsque <sujet> est né : ans
 Jusqu'à quel âge <sujet> est allé à l'école : ans
+Quel animal de compagnie <sujet> a eu pendant son enfance : liste (chien, chat, lapin, oiseau, aucun…)
 
 Quel était le sport favori de <sujet> pendant son enfance : sport
 Quelle a été la première voiture que <sujet> a conduit (en dehors de l'apprentissage) : modèle de voiture
 En quelle année <sujet> a obtenu son permis de conduire : année
 Quel a été le premier métier rémunéré de <sujet> : profession
+À quel âge <sujet> a appris à nager : ans
+Quel métier <sujet> rêvait-il de faire quand il était enfant : profession
 
+À quel âge <sujet> a quitté le domicile de ses parents : ans
 En quelle année <sujet> a rencontré <conjoint> : année
 Quelle est la date de mariage de <sujet> : date
 Dans quelle commune est-ce que <sujet> s'est marié : ville
 Où <sujet> et <conjoint> sont partis en voyage de noces : ville
+Quelle voiture a conduit les mariés le jour du mariage de <sujet> : modèle de voiture
 Dans quelle ville est-ce que <sujet> a fait son service militaire : ville
 En quelle année <sujet> a emménagé à son adresse actuelle : année
 
@@ -21,9 +26,11 @@ En quelle année <sujet> est allé voir un concert pour la première fois : ann�
 Pour quel artiste <sujet> est allé pour la première fois voir un concert : personnalité
 En quelle année <sujet> a eu une télévision à la maison : année
 Quel film <sujet> a vu la première fois qu'il est allé au cinéma : titre de film
+À quel âge <sujet> a utilisé un ordinateur pour la première fois : ans
 
 A quelle date <sujet> a été officiellement à la retraite : date
 Quel pays étranger <sujet> a visité la première fois qu'il a voyagé hors de France : pays
 En quelle année est-ce que <sujet> a pris l'avion pour la première fois : année
 En quelle année <sujet> a effectué son voyage en <pays> : année
+Quel est le dernier pays étranger que <sujet> a visité : pays
 Quel est le nom du club associatif dont <sujet> fait partie : saisie libre
