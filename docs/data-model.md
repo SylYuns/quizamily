@@ -9,6 +9,7 @@ persons
   kind                   -- 'player' | 'profile' (sans compte) | 'referenced' (juste mentionnée)
   user_id                -- nullable, rempli si kind='player'
   display_name, relationship_label
+  gender                   -- 'homme' | 'femme' ; nullable (pas toujours connu, ex: personne juste référencée)
   is_central              -- true si "personne centrale"
   is_deceased
   created_by, created_at
@@ -34,8 +35,12 @@ facts
   author_person_id
   answer_value, answer_history           -- jsonb: historique des corrections
   pending_correction                      -- jsonb nullable: proposition en attente de validation
-  context_text, context_media_url
+  context_text
   status, created_at
+
+fact_attachments
+  id, fact_id, kind        -- 'image' | 'audio'
+  url, author_person_id, created_at
 
 quiz_sessions
   id, family_id, status, opens_at, closes_at
@@ -69,3 +74,5 @@ fact_comments
 - **Destinataires** : `question_recipients` n'inclut jamais l'auteur du fait ; il inclut le sujet s'il a un compte (`kind='player'`).
 - **`answer_value_snapshot`** sur `quiz_questions` permet de recalculer le résultat de chaque `question_recipients` après une correction : comparer `answer_given` à la fois à l'ancienne valeur (snapshot) et à la nouvelle valeur (`facts.answer_value` courant).
 - **`contribution_stats`** (score de contribution par membre) est une vue calculée à partir de `facts.author_person_id`, pas une table dédiée.
+- **`gender`** sert à filtrer les templates à condition (`femme`/`homme`) et à l'accord grammatical des questions (solution technique à définir, voir `question-templates.toml`). Si non renseigné, un template conditionné par le genre n'est simplement pas proposé (défaut permissif, pas de blocage).
+- **`fact_attachments`** : un fait peut avoir plusieurs pièces jointes (photo d'archive, enregistrement audio), affichées à la révélation comme le contexte texte. Fonctionnalité repoussée après le MVP (voir `roadmap.md`), mais le modèle de données la supporte dès maintenant.

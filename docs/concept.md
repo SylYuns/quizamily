@@ -27,6 +27,8 @@ Piste V2 : laisser l'auteur choisir, au moment d'ajouter un fait, de le poser en
 
 Certaines informations ne peuvent être saisies que librement (ex : un nom de jeune fille). Pour ces templates de type **saisie libre**, les joueurs répondent eux aussi par saisie libre, et les réponses sont validées par l'auteur du fait (voir Validation des réponses libres).
 
+Un fait peut aussi inclure une ou plusieurs **pièces jointes** (photo d'archive, enregistrement audio), affichées à la révélation en complément du contexte texte. Fonctionnalité repoussée après le MVP (voir roadmap), mais déjà prévue dans le modèle de données.
+
 ## Arbre familial léger
 
 Un fait peut porter sur une personne seule, ou sur une **relation entre deux personnes** (mariage, filiation...). On modélise donc de vraies "Personnes" (joueur, personne centrale passive, ou simplement référencée/décédée) reliées par des relations simples (parent / conjoint / enfant), réutilisables entre plusieurs faits, avec une mini vue arbre dans l'archive. On reste volontairement à ce niveau "léger" (pas de moteur généalogique complet avec génération automatique de questions de parenté — gardé pour une v2 éventuelle).

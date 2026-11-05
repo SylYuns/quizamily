@@ -22,7 +22,7 @@ Volontairement réduit par rapport à la liste complète ci-dessus :
 
 **Inclus** : auth + création famille + invite, création des personnes centrales (relations simplifiées), un catalogue réduit de ~15-20 templates codés en dur (pas de back-office d'édition), ajout de faits, pioche + session de quiz (version simple au début, pas besoin du roulement pondéré sophistiqué dès le jour 1), réponse, validation des réponses libres par l'auteur (écran de validation + emails de rappel à l'auteur et d'attente aux joueurs ; la prise de main peut attendre), révélation (scores + contexte), emails (nouvelle question + résultats), archives en version simple (liste des questions révélées concernant une personne centrale).
 
-**Reporté après le premier test** : réactions/commentaires, mécanisme de correction, relances de contribution, vue arbre familial, notifications push, builds natifs iOS/Android (le web suffit pour tester avec 2-3 personnes).
+**Reporté après le premier test** : réactions/commentaires, mécanisme de correction, relances de contribution, vue arbre familial, pièces jointes (photo/audio) sur les faits, notifications push, builds natifs iOS/Android (le web suffit pour tester avec 2-3 personnes).
 
 ## Estimation de charge (solo, ~1-2 jours/semaine, dev généraliste mais nouveau sur Expo/Supabase)
 

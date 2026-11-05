@@ -118,7 +118,7 @@ Actions :
 3. Si la question implique une personne liée (`<conjoint>`) : la choisir, ou la créer si elle n'existe pas encore
 4. Si la question a un élément à choisir (`<pays>`) : le choisir
 5. Saisir la réponse avec le champ du type de la question
-6. Ajouter une anecdote ou un contexte (facultatif), affiché à la révélation
+6. Ajouter une anecdote ou un contexte, et/ou une pièce jointe (photo, audio) (facultatif), affichés à la révélation — pièces jointes hors MVP (roadmap)
 → Confirmation, puis « Ajouter un autre fait » ou retour à l'accueil
 
 Cas particuliers :
@@ -173,7 +173,7 @@ But : découvrir la bonne réponse et les résultats d'une question.
 
 Affiche :
 - la question et la bonne réponse
-- l'auteur du fait et son anecdote ou contexte
+- l'auteur du fait, son anecdote ou contexte, et ses pièces jointes le cas échéant (hors MVP)
 - qui a eu juste, qui a eu faux, qui n'a pas répondu
 - la réponse donnée par chaque joueur, y compris les fausses (souvent drôles, elles lancent la discussion)
 - les scores de la session et le score cumulé (« X bonnes / Y posées »)

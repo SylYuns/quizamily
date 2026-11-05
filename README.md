@@ -12,10 +12,9 @@ Projet en phase de planification technique. Le concept, le modèle de données e
 - [docs/data-model.md](docs/data-model.md) — le modèle de données.
 - [docs/stack.md](docs/stack.md) — la stack technique choisie.
 - [docs/roadmap.md](docs/roadmap.md) — les étapes de réalisation et les hypothèses encore ouvertes.
+- [docs/ecrans.md](docs/ecrans.md) — description fonctionnelle des écrans du MVP.
+- [docs/question-templates.toml](docs/question-templates.toml) — le catalogue des templates de questions.
 
 ## Contexte
 
 Projet solo, développé sur du temps libre (~1-2 jours/semaine). Un pilote manuel (sans code) avait été envisagé pour valider l'intérêt du concept avant de coder, mais cette étape a été écartée — on part directement sur la réalisation technique.
-
-## à ajouter au projet
-Permettre aux utilisateurs qui créent une question d'ajouter une image (photo d'archive) et/ou un enregistrement audio (témoignage de la personne concernée)
