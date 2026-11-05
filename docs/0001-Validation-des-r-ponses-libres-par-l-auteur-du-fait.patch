@@ -1,0 +1,155 @@
+From 1c3a78f1bb9dd258a14c27b45295f8dcab341312 Mon Sep 17 00:00:00 2001
+From: SylYuns <schardaire@gmail.com>
+Date: Thu, 5 Nov 2026 11:57:14 +0100
+Subject: [PATCH] =?UTF-8?q?Validation=20des=20r=C3=A9ponses=20libres=20par?=
+ =?UTF-8?q?=20l'auteur=20du=20fait?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- Type de réponse free_text : saisie libre aussi pour les joueurs
+- Validation auto après normalisation, sinon validation par l'auteur
+- Révélation différée, notifications, prise de main après 7 jours
+- L'auteur ne reçoit jamais la question ; le sujet la reçoit s'il a un compte
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_018Ws95NkrMjaWnkZKFUUamF
+---
+ docs/concept.md    | 32 ++++++++++++++++++++++++++------
+ docs/data-model.md | 12 +++++++++---
+ docs/roadmap.md    |  4 ++--
+ 3 files changed, 37 insertions(+), 11 deletions(-)
+
+diff --git a/docs/concept.md b/docs/concept.md
+index d79f067..79c29df 100644
+--- a/docs/concept.md
++++ b/docs/concept.md
+@@ -14,12 +14,14 @@ N'importe quel joueur peut ajouter/modifier une info sur n'importe qui — pas d
+ 
+ ## Catalogue de questions
+ 
+-Les questions ne sont pas libres : elles viennent d'un **catalogue de templates** édité par nous (pas par les familles), avec un type de réponse déjà défini par template (date, année, pays, ville, prénom, nombre, liste personnalisée). Avantages :
++Les questions ne sont pas libres : elles viennent d'un **catalogue de templates** édité par nous (pas par les familles), avec un type de réponse déjà défini par template (date, année, pays, ville, prénom, nombre, liste personnalisée, saisie libre). Avantages :
+ - Résout le problème de la page blanche au démarrage (prompts suggérés plutôt que formulaire vide).
+ - Évite les questions gênantes (filtrage en amont, pas de modération a posteriori nécessaire).
+-- Simplifie la saisie : champ guidé (date picker, dropdown, autocomplétion) plutôt que texte libre, donc la correction automatique est fiable.
++- Simplifie la saisie : champ guidé (date picker, dropdown, autocomplétion) quand le type s'y prête, donc la correction automatique est fiable.
+ - Facilite la génération de leurres pour les QCM (piochés parmi les valeurs déjà utilisées dans la famille pour ce type de champ).
+ 
++Certaines informations ne peuvent être saisies que librement (ex : un nom de jeune fille). Pour ces templates de type **saisie libre**, les joueurs répondent eux aussi par saisie libre, et les réponses sont validées par l'auteur du fait (voir Validation des réponses libres).
++
+ ## Arbre familial léger
+ 
+ Un fait peut porter sur une personne seule, ou sur une **relation entre deux personnes** (mariage, filiation...). On modélise donc de vraies "Personnes" (joueur, personne centrale passive, ou simplement référencée/décédée) reliées par des relations simples (parent / conjoint / enfant), réutilisables entre plusieurs faits, avec une mini vue arbre dans l'archive. On reste volontairement à ce niveau "léger" (pas de moteur généalogique complet avec génération automatique de questions de parenté — gardé pour une v2 éventuelle).
+@@ -29,9 +31,10 @@ Un fait peut porter sur une personne seule, ou sur une **relation entre deux per
+ ```
+ Catalogue de prompts (centré sur les personnes centrales) → ajout d'une info (champ guidé)
+    → pioche hebdomadaire pondérée (fraîcheur + répartition par auteur)
+-   → questions envoyées aux joueurs (jamais au sujet lui-même)
++   → questions envoyées aux joueurs (jamais à l'auteur du fait)
+    → réponses pendant ~7 jours
+-   → révélation automatique à la deadline : scores + anecdote + réactions/commentaires ouverts
++   → saisie libre uniquement : validation des réponses par l'auteur du fait
++   → révélation à la deadline (ou dès la fin des validations) : scores + anecdote + réactions/commentaires ouverts
+    → l'archive et l'arbre familial s'enrichissent
+ ```
+ 
+@@ -41,7 +44,24 @@ Priorité : jamais posé > posé il y a longtemps > posé récemment (fraîcheur
+ 
+ ## Scoring
+ 
+-4 états par joueur/question : **juste / faux / pas répondu / annulée**. Le sujet d'une question n'est jamais lui-même destinataire de cette question. La révélation est automatique à la deadline, peu importe qui n'a pas répondu (pas de blocage par les retardataires).
++4 états par joueur/question : **juste / faux / pas répondu / annulée**, plus un état transitoire **en attente de validation** pour les réponses libres (voir ci-dessous).
++
++Destinataires : l'**auteur du fait** ne reçoit jamais la question. Le **sujet** la reçoit comme les autres joueurs s'il a un compte et n'est pas l'auteur du fait.
++
++La révélation est automatique à la deadline, peu importe qui n'a pas répondu (pas de blocage par les retardataires). Seule exception : une question en saisie libre n'est révélée qu'une fois toutes ses réponses validées.
++
++## Validation des réponses libres
++
++Pour les templates de type saisie libre :
++1. Chaque réponse est comparée à la bonne réponse **après normalisation** (majuscules, accents, espaces, tirets, apostrophes). Si elle est identique, elle est validée automatiquement comme juste.
++2. Les autres réponses passent **en attente de validation** : l'auteur du fait accepte (juste) ou refuse (faux) chacune d'elles. Il peut valider au fil de l'eau, dès qu'une réponse arrive.
++3. **Notifications à l'auteur**, tant qu'il reste des réponses à valider :
++   - dès que tous les destinataires ont répondu, ou au plus tard 24 h avant la deadline ;
++   - 24 h après la deadline ;
++   - 6 jours après la deadline, pour le prévenir que les autres joueurs pourront prendre la main s'il ne valide pas.
++4. La question **n'est pas révélée** tant que des réponses restent à valider. Les autres questions de la session sont révélées normalement à la deadline.
++5. **1 h après la deadline**, s'il reste des validations, les joueurs sont prévenus que la révélation attend l'auteur (ce qui les incite à le relancer eux-mêmes).
++6. **7 jours après la deadline**, les joueurs sont prévenus qu'ils peuvent **prendre la main** : le premier qui le fait peut valider les réponses à la place de l'auteur. Tout joueur peut prendre la main, y compris s'il a lui-même répondu à la question. Il ne devient pas l'auteur du fait : la prise de main ne porte que sur la validation de cette question.
+ 
+ Les scores sont affichés en "X bonnes / Y posées" (ou en %) plutôt qu'en chiffre brut cumulé, pour absorber les écarts créés par les annulations (voir Corrections).
+ 
+@@ -87,4 +107,4 @@ Le terme officiel retenu pour désigner la ou les personnes autour de qui le jeu
+ 
+ - Pas de maximum technique strict sur le nombre de personnes centrales (juste une recommandation UI de rester à 1-4).
+ - Ajouter une nouvelle personne centrale en cours de route est possible à tout moment, sans gatekeeper, via les réglages de la famille.
+-- Les templates du catalogue sont gérés par nous (contenu éditorial), pas par les familles elles-mêmes, en V1.
++- Les templates du catalogue sont gérés par nous (contenu éditorial), pas par les familles elles-mêmes, en V1.
+\ No newline at end of file
+diff --git a/docs/data-model.md b/docs/data-model.md
+index ff1b53e..879ce68 100644
+--- a/docs/data-model.md
++++ b/docs/data-model.md
+@@ -23,7 +23,7 @@ invites
+ 
+ question_templates         -- catalogue global, édité par nous (pas par les familles)
+   id, category, template_text, slot_config, answer_input_kind
+-  -- answer_input_kind: 'date' | 'year' | 'number' | 'country' | 'city' | 'first_name' | 'custom_list'
++  -- answer_input_kind: 'date' | 'year' | 'number' | 'country' | 'city' | 'first_name' | 'custom_list' | 'free_text'
+ 
+ facts
+   id, family_id, template_id
+@@ -40,11 +40,15 @@ quiz_sessions
+ quiz_questions
+   id, session_id, fact_id
+   answer_value_snapshot    -- valeur correcte au moment de la pioche (sert au recalcul si correction ultérieure)
++  validator_person_id      -- free_text : auteur du fait, ou membre ayant pris la main
++  validation_completed_at  -- nullable ; free_text : la question n'est révélée qu'une fois rempli
++  taken_over_at            -- nullable, rempli si un autre membre a pris la main
+ 
+ question_recipients
+   id, quiz_question_id, person_id
+-  answer_given, result      -- 'correct' | 'incorrect' | 'unanswered' | 'voided'
++  answer_given, result      -- 'correct' | 'incorrect' | 'unanswered' | 'voided' | 'pending_validation'
+   answered_at
++  validated_by_person_id, validated_at   -- nullable ; null si validation automatique (réponse identique après normalisation)
+ 
+ fact_reactions
+   id, fact_id, person_id, emoji, created_at
+@@ -55,7 +59,9 @@ fact_comments
+ 
+ ## Notes de conception
+ 
+-- **`answer_input_kind`** détermine le widget de saisie (date picker, dropdown pays, autocomplétion ville/prénom basée sur `SELECT DISTINCT answer_value` de la famille, etc.) — pas de texte libre, donc pas besoin de normalisation complexe pour la validation automatique.
++- **`answer_input_kind`** détermine le widget de saisie (date picker, dropdown pays, autocomplétion ville/prénom basée sur `SELECT DISTINCT answer_value` de la famille, etc.). Pour les types guidés, la validation est entièrement automatique.
++- **`free_text`** : l'auteur du fait et les joueurs saisissent librement. Une réponse identique à la bonne réponse après normalisation (minuscules, sans accents, sans espaces superflus, tirets ni apostrophes) est validée automatiquement ; les autres passent en `pending_validation` jusqu'à la décision du validateur. Pas de leurres QCM pour ce type.
++- **Destinataires** : `question_recipients` n'inclut jamais l'auteur du fait ; il inclut le sujet s'il a un compte (`kind='player'`).
+ - **`answer_value_snapshot`** sur `quiz_questions` permet de recalculer le résultat de chaque `question_recipients` après une correction : comparer `answer_given` à la fois à l'ancienne valeur (snapshot) et à la nouvelle valeur (`facts.answer_value` courant).
+ - **`contribution_stats`** (score de contribution par membre) est une vue calculée à partir de `facts.author_person_id`, pas une table dédiée.
+ - Les leurres de QCM sont piochés parmi les `answer_value` déjà utilisées dans la famille pour le même `answer_input_kind` — pas de génération manuelle.
+diff --git a/docs/roadmap.md b/docs/roadmap.md
+index 4ea2928..b5c89d1 100644
+--- a/docs/roadmap.md
++++ b/docs/roadmap.md
+@@ -10,7 +10,7 @@
+ 6. Logique de pioche pondérée (fraîcheur + répartition auteurs) + Edge Function de création de session.
+ 7. Emails (nouvelle session, rappel, résultats).
+ 8. Écran de réponse au quiz + logique du seuil de déclenchement du premier quiz.
+-9. Révélation automatique à la deadline, calcul des scores (4 états).
++9. Révélation automatique à la deadline, calcul des scores (4 états) + validation des réponses libres par l'auteur (notifications, révélation différée, prise de main).
+ 10. Réactions/commentaires sur les faits révélés.
+ 11. Mécanisme de correction + recalcul rétroactif des scores.
+ 12. Archive familiale consultable + score de contribution + relances.
+@@ -20,7 +20,7 @@
+ 
+ Volontairement réduit par rapport à la liste complète ci-dessus :
+ 
+-**Inclus** : auth + création famille + invite, création des personnes centrales (relations simplifiées), un catalogue réduit de ~15-20 templates codés en dur (pas de back-office d'édition), ajout de faits, pioche + session de quiz (version simple au début, pas besoin du roulement pondéré sophistiqué dès le jour 1), réponse, révélation (scores + contexte), emails (nouvelle question + résultats).
++**Inclus** : auth + création famille + invite, création des personnes centrales (relations simplifiées), un catalogue réduit de ~15-20 templates codés en dur (pas de back-office d'édition), ajout de faits, pioche + session de quiz (version simple au début, pas besoin du roulement pondéré sophistiqué dès le jour 1), réponse, validation des réponses libres par l'auteur (écran de validation + emails de rappel à l'auteur et d'attente aux joueurs ; la prise de main peut attendre), révélation (scores + contexte), emails (nouvelle question + résultats).
+ 
+ **Reporté après le premier test** : réactions/commentaires, mécanisme de correction, relances de contribution, vue arbre familial, notifications push, builds natifs iOS/Android (le web suffit pour tester avec 2-3 personnes).
+ 
+-- 
+2.43.0
+
