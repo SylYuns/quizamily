@@ -30,6 +30,7 @@ question_templates         -- catalogue global, édité par nous (pas par les fa
 facts
   id, family_id, template_id
   subject_person_id, related_person_id   -- related_person_id nullable (si le template implique une relation)
+  slot_values                             -- jsonb nullable : éléments choisis par l'auteur (ex : {"pays": "Italie"})
   author_person_id
   answer_value, answer_history           -- jsonb: historique des corrections
   pending_correction                      -- jsonb nullable: proposition en attente de validation
@@ -64,6 +65,7 @@ fact_comments
 - **`answer_input_kind`** détermine le widget de saisie (date picker, dropdown pays, autocomplétion ville/prénom basée sur `SELECT DISTINCT answer_value` de la famille, etc.). Pour les types guidés, la validation est entièrement automatique.
 - **`free_text`** : l'auteur du fait et les joueurs saisissent librement. Une réponse identique à la bonne réponse après normalisation (minuscules, sans accents, sans espaces superflus, tirets ni apostrophes) est validée automatiquement ; les autres passent en `pending_validation` jusqu'à la décision du validateur.
 - **Réponse des joueurs** : les joueurs répondent avec le même widget que l'auteur du fait (déterminé par `answer_input_kind`), pas de QCM en V1.
+- **Unicité des faits** : un seul fait par combinaison (`template_id`, `subject_person_id`, `related_person_id`, valeur des éléments choisis comme `<pays>`). Les éléments choisis doivent donc être stockés sur `facts` (ex : colonne jsonb `slot_values`).
 - **Destinataires** : `question_recipients` n'inclut jamais l'auteur du fait ; il inclut le sujet s'il a un compte (`kind='player'`).
 - **`answer_value_snapshot`** sur `quiz_questions` permet de recalculer le résultat de chaque `question_recipients` après une correction : comparer `answer_given` à la fois à l'ancienne valeur (snapshot) et à la nouvelle valeur (`facts.answer_value` courant).
 - **`contribution_stats`** (score de contribution par membre) est une vue calculée à partir de `facts.author_person_id`, pas une table dédiée.

@@ -29,9 +29,11 @@ Affiche :
 - le message « Un lien de connexion vous a été envoyé » après envoi
 
 Actions :
-- Recevoir le lien → clic dans l'email → Accueil - choix de famille, ou directement Accueil - famille s'il n'a qu'une famille
+- Recevoir le lien → clic dans l'email → Accueil - famille (dernière famille consultée), ou Accueil - choix de famille s'il a des questions en attente dans une autre famille (voir écran 3)
 - Arrivée par un lien d'invitation → connexion, puis rejoindre la famille (écran 2)
 - Aucune famille → Création de famille (écran 2)
+
+Une personne centrale qui a un compte passe par le même parcours que les autres joueurs.
 
 
 ## 2. Créer ou rejoindre une famille
@@ -43,7 +45,7 @@ But : démarrer une famille, ou rejoindre celle où l'on a été invité.
 Étapes :
 1. Nom de la famille
 2. Ses propres infos de base (prénom, nom)
-3. La ou les personnes centrales (1 à 4) : prénom, nom, vivante ou décédée, lien de parenté avec soi
+3. La ou les personnes centrales (1 à 4) : prénom, nom, vivante ou décédée, lien de parenté avec soi (choisi dans une liste : grand-mère, petit-fils, gendre…)
 4. Pour chaque personne centrale : l'inviter (si elle peut utiliser l'app) ou créer un profil sans compte
 5. Lien d'invitation à partager aux autres membres
 → Accueil - famille
@@ -53,12 +55,8 @@ But : démarrer une famille, ou rejoindre celle où l'on a été invité.
 Étapes :
 1. « Vous êtes invité dans la famille X »
 2. Ses infos de base
-3. Son lien de parenté avec chaque personne centrale
+3. Son lien de parenté avec chaque personne centrale, qu'il renseigne lui-même (choisi dans une liste)
 → Accueil - famille
-
-**À décider** :
-- Le lien de parenté : texte libre (« petit-fils ») ou liste ?
-- Le joueur qui rejoint ajoute-t-il ses liens avec les personnes centrales lui-même, ou est-ce le créateur qui les a définis à l'invitation ?
 
 
 ## 3. Accueil - choix de famille
@@ -73,7 +71,9 @@ Actions :
 - Choisir une famille → Accueil - famille
 - Créer une nouvelle famille → écran 2
 
-**À décider** : ouvrir directement la dernière famille utilisée, ou toujours passer par cet écran ?
+À la connexion :
+- par défaut, le joueur arrive directement sur la dernière famille consultée ;
+- s'il a des questions en attente de réponse dans une autre famille, il arrive sur cet écran de choix.
 
 
 ## 4. Accueil - famille
@@ -84,7 +84,8 @@ Affiche :
 - les questions de la session en cours auxquelles il n'a pas encore répondu, avec la deadline
 - les réponses en attente de sa validation (s'il est auteur d'un fait en saisie libre, ou s'il a pris la main)
 - les révélations récentes
-- son score de contribution (« Vous avez ajouté 5 souvenirs »)
+- son score de réponses (« 12 bonnes / 18 posées ») et son score de contribution (« Vous avez ajouté 5 souvenirs »)
+- quelques données sur la famille : nombre de membres, nombre de faits révélés… (liste à préciser)
 - le seuil de démarrage tant que le premier quiz n'a pas eu lieu (« 3 souvenirs ajoutés, encore 1 joueur à inviter »)
 
 Actions :
@@ -95,8 +96,6 @@ Actions :
 - Consulter les archives → écran 9
 - Inviter un membre → partage du lien d'invitation
 - Changer de famille → écran 3 (si au moins 2 familles)
-
-**À décider** : afficher les scores (« X bonnes / Y posées ») sur cet écran, ou seulement à la révélation ?
 
 
 ## 5. Ajouter un fait
@@ -115,7 +114,7 @@ Actions :
 
 Étapes :
 1. Choisir la personne centrale (étape sautée s'il n'y en a qu'une)
-2. Choisir une question dans le catalogue, filtrée selon les conditions (femme, homme, vivant, a un conjoint…)
+2. Choisir une question dans le catalogue, présentée par catégorie et filtrée selon les conditions (femme, homme, vivant, a un conjoint…). Les questions déjà renseignées pour cette personne centrale, par n'importe quel membre, sont masquées : on ne peut pas créer deux fois la même question.
 3. Si la question implique une personne liée (`<conjoint>`) : la choisir, ou la créer si elle n'existe pas encore
 4. Si la question a un élément à choisir (`<pays>`) : le choisir
 5. Saisir la réponse avec le champ du type de la question
@@ -126,9 +125,9 @@ Cas particuliers :
 - Type liste : l'entrée n'existe pas → « Ajouter » (visible tout de suite dans la famille, base globale après validation)
 - Type lieu : choix entre pays et commune
 
-**À décider** :
-- Une question déjà renseignée pour cette personne centrale : la masquer, ou l'afficher comme « déjà renseignée » (et renvoyer vers une correction) ?
-- Ordre des questions proposées : par catégorie, ou les plus « faciles » en premier pour lancer les nouveaux ?
+**À travailler** : la présentation du catalogue, pour que l'utilisateur trouve le plus facilement possible la question qu'il veut créer.
+
+**Unicité** : une question ne peut être créée qu'une fois pour la combinaison question + personne centrale + personne liée ou élément choisi. Par exemple, « voyage en <pays> » peut être créée une fois par pays, et « date de mariage » une fois par conjoint en cas de remariage.
 
 
 ## 6. Répondre
@@ -140,34 +139,32 @@ Affiche :
 - le champ de réponse du type de la question
 - la deadline (« Il reste 3 jours »)
 
+L'auteur du fait n'est pas affiché : il n'est dévoilé qu'à la révélation.
+
 Actions :
 - Valider la réponse → question suivante de la session, ou retour à l'accueil
 - Passer → la question reste « pas répondu » jusqu'à la deadline
+- Modifier sa réponse jusqu'à la deadline. Exception : pour une question en saisie libre, si tout le monde a répondu avant la deadline et que l'auteur a validé les réponses, elles sont verrouillées.
 
 Cas particuliers :
 - Type liste : l'entrée n'existe pas → « Ajouter »
-- Le joueur est le sujet de la question (personne centrale avec un compte)
-
-**À décider** :
-- Afficher l'auteur du fait avant de répondre, ou seulement à la révélation ?
-- Pouvoir modifier sa réponse jusqu'à la deadline ?
-- Quand le joueur est le sujet : formuler la question à la 2e personne (« En quelle année avez-vous pris l'avion… ») ?
+- Le joueur est le sujet de la question (personne centrale avec un compte) : dans l'idéal, la question est formulée à la 2e personne (« En quelle année avez-vous pris l'avion… »). Pas prioritaire, même chantier technique que l'accord au féminin.
 
 
 ## 7. Valider les réponses libres
 
 But : pour l'auteur d'un fait en saisie libre (ou celui qui a pris la main), accepter ou refuser les réponses non identiques.
 
+La validation est **anonyme** : le validateur ne voit pas qui a donné chaque réponse.
+
 Affiche :
 - la question et la bonne réponse
-- les réponses à valider, **regroupées par valeur identique** (« Durant » : 3 joueurs), pour ne valider qu'une fois
+- les réponses à valider, **regroupées par valeur identique** (« Durant » : 3 réponses), pour ne valider qu'une fois
 - les réponses déjà validées automatiquement, pour information
 
 Actions :
 - Accepter ou refuser chaque réponse (ou groupe de réponses)
 - Une fois tout validé → la question sera révélée à la deadline, ou tout de suite si la deadline est passée
-
-**À décider** : le validateur voit-il le nom des joueurs derrière chaque réponse, ou seulement les réponses (validation anonyme, plus impartiale) ?
 
 
 ## 8. Révélation
@@ -178,13 +175,12 @@ Affiche :
 - la question et la bonne réponse
 - l'auteur du fait et son anecdote ou contexte
 - qui a eu juste, qui a eu faux, qui n'a pas répondu
+- la réponse donnée par chaque joueur, y compris les fausses (souvent drôles, elles lancent la discussion)
 - les scores de la session et le score cumulé (« X bonnes / Y posées »)
 
 Actions :
 - Question suivante de la session
 - Retour à l'accueil
-
-**À décider** : afficher les réponses fausses de chacun ? Elles sont souvent drôles et lancent la discussion, mais certains peuvent ne pas aimer.
 
 Hors MVP (roadmap) : réactions et commentaires, correction d'un fait.
 
