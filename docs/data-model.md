@@ -23,7 +23,9 @@ invites
 
 question_templates         -- catalogue global, édité par nous (pas par les familles)
   id, category, template_text, slot_config, answer_input_kind
-  -- answer_input_kind: 'date' | 'year' | 'number' | 'country' | 'city' | 'first_name' | 'custom_list' | 'free_text'
+  -- answer_input_kind: 'date' | 'year' | 'age' | 'number' | 'country' | 'city' | 'place' | 'first_name' | 'list' | 'free_text'
+  -- 'place' : l'auteur du fait choisit entre pays et commune ; 'list' : liste de référence enrichissable
+  -- catalogue source : docs/question-templates.toml
 
 facts
   id, family_id, template_id

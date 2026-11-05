@@ -1,0 +1,292 @@
+# Catalogue des templates de questions Quizamily
+#
+# Champs obligatoires :
+#   id        identifiant stable (ne jamais le modifier une fois en production)
+#   category  naissance-enfance | jeunesse | couple-installation | culture-premieres-fois | retraite-voyages-loisirs
+#   status    mvp | plus_tard | a_trancher | ecartee
+#   text      texte de la question
+#   kind      type de réponse (voir ci-dessous)
+#
+# Champs optionnels :
+#   list       nom de la liste de référence (si kind = "list")
+#   related    personne liée nécessaire (ex : "conjoint")
+#   slots      autres éléments à choisir par l'auteur du fait (ex : ["pays"])
+#   condition  condition sur le sujet pour que la question soit proposée
+#   note       remarque libre
+#
+# Types de réponse (kind) :
+#   date        date complète (sélecteur de date)
+#   year        année
+#   age         âge en années
+#   number      nombre
+#   country     pays (liste fixe)
+#   city        commune (autocomplétion)
+#   place       lieu : l'auteur du fait choisit entre la liste des pays et celle des communes
+#   list       liste de référence enrichissable : si l'entrée manque, l'utilisateur l'ajoute ;
+#               l'ajout est visible tout de suite dans la famille, et n'entre dans la base globale
+#               qu'après validation par nous
+#   free_text   saisie libre, réponses des joueurs validées par l'auteur du fait
+#
+# Listes de référence : animaux, sports, voitures, metiers, films, personnalites
+#
+# Les textes sont écrits au masculin. L'accord au féminin selon le sujet
+# (« est-il allé » → « est-elle allée ») sera géré automatiquement (solution technique à définir).
+
+
+# ---------- Naissance et enfance ----------
+
+[[template]]
+id = "naissance-date"
+category = "naissance-enfance"
+status = "mvp"
+text = "Quelle est la date de naissance de <sujet> ?"
+kind = "date"
+
+[[template]]
+id = "nom-jeune-fille"
+category = "naissance-enfance"
+status = "mvp"
+text = "Quel est le nom de jeune fille de <sujet> ?"
+kind = "free_text"
+condition = "femme"
+
+[[template]]
+id = "nom-jeune-fille-mere"
+category = "naissance-enfance"
+status = "mvp"
+text = "Quel est le nom de jeune fille de la mère de <sujet> ?"
+kind = "free_text"
+
+[[template]]
+id = "naissance-adresse"
+category = "naissance-enfance"
+status = "mvp"
+text = "À quelle adresse vivait <sujet> à sa naissance ?"
+kind = "free_text"
+
+[[template]]
+id = "naissance-age-aine"
+category = "naissance-enfance"
+status = "mvp"
+text = "Quel âge avait l'aîné de ses frères et sœurs à la naissance de <sujet> ?"
+kind = "age"
+condition = "a des frères ou sœurs plus âgés"
+
+[[template]]
+id = "ecole-age-fin"
+category = "naissance-enfance"
+status = "mvp"
+text = "Jusqu'à quel âge <sujet> est-il allé à l'école ?"
+kind = "age"
+
+[[template]]
+id = "enfance-animal"
+category = "naissance-enfance"
+status = "mvp"
+text = "Quel animal de compagnie <sujet> a-t-il eu pendant son enfance ?"
+kind = "list"
+list = "animaux"
+note = "la liste doit contenir « aucun »"
+
+
+# ---------- Jeunesse ----------
+
+[[template]]
+id = "enfance-sport"
+category = "jeunesse"
+status = "mvp"
+text = "Quel était le sport favori de <sujet> pendant son enfance ?"
+kind = "list"
+list = "sports"
+
+[[template]]
+id = "premiere-voiture-conduite"
+category = "jeunesse"
+status = "mvp"
+text = "Quelle a été la première voiture conduite par <sujet> (en dehors de l'apprentissage) ?"
+kind = "list"
+list = "voitures"
+
+[[template]]
+id = "permis-annee"
+category = "jeunesse"
+status = "mvp"
+text = "En quelle année <sujet> a-t-il obtenu son permis de conduire ?"
+kind = "year"
+
+[[template]]
+id = "premier-metier"
+category = "jeunesse"
+status = "mvp"
+text = "Quel a été le premier métier rémunéré de <sujet> ?"
+kind = "list"
+list = "metiers"
+
+[[template]]
+id = "nage-age"
+category = "jeunesse"
+status = "mvp"
+text = "À quel âge <sujet> a-t-il appris à nager ?"
+kind = "age"
+
+[[template]]
+id = "metier-reve"
+category = "jeunesse"
+status = "mvp"
+text = "Quel métier <sujet> rêvait-il de faire quand il était enfant ?"
+kind = "list"
+list = "metiers"
+
+
+# ---------- Couple et installation ----------
+
+[[template]]
+id = "depart-domicile-age"
+category = "couple-installation"
+status = "mvp"
+text = "À quel âge <sujet> a-t-il quitté le domicile de ses parents ?"
+kind = "age"
+
+[[template]]
+id = "rencontre-annee"
+category = "couple-installation"
+status = "mvp"
+text = "En quelle année <sujet> a-t-il rencontré <conjoint> ?"
+kind = "year"
+related = "conjoint"
+
+[[template]]
+id = "mariage-date"
+category = "couple-installation"
+status = "mvp"
+text = "Quelle est la date de mariage de <sujet> ?"
+kind = "date"
+related = "conjoint"
+
+[[template]]
+id = "mariage-commune"
+category = "couple-installation"
+status = "mvp"
+text = "Dans quelle commune <sujet> s'est-il marié ?"
+kind = "city"
+related = "conjoint"
+
+[[template]]
+id = "voyage-noces"
+category = "couple-installation"
+status = "mvp"
+text = "Où <sujet> et <conjoint> sont-ils partis en voyage de noces ?"
+kind = "place"
+related = "conjoint"
+
+[[template]]
+id = "mariage-voiture"
+category = "couple-installation"
+status = "mvp"
+text = "Quelle voiture a conduit les mariés le jour du mariage de <sujet> ?"
+kind = "list"
+list = "voitures"
+related = "conjoint"
+
+[[template]]
+id = "service-militaire-ville"
+category = "couple-installation"
+status = "mvp"
+text = "Dans quelle ville <sujet> a-t-il fait son service militaire ?"
+kind = "city"
+condition = "homme"
+
+[[template]]
+id = "adresse-actuelle-annee"
+category = "couple-installation"
+status = "mvp"
+text = "En quelle année <sujet> a-t-il emménagé à son adresse actuelle ?"
+kind = "year"
+condition = "vivant"
+
+
+# ---------- Culture et premières fois ----------
+
+[[template]]
+id = "premier-concert-annee"
+category = "culture-premieres-fois"
+status = "mvp"
+text = "En quelle année <sujet> est-il allé voir un concert pour la première fois ?"
+kind = "year"
+
+[[template]]
+id = "premier-concert-artiste"
+category = "culture-premieres-fois"
+status = "mvp"
+text = "Quel artiste <sujet> est-il allé voir lors de son premier concert ?"
+kind = "list"
+list = "personnalites"
+
+[[template]]
+id = "television-annee"
+category = "culture-premieres-fois"
+status = "mvp"
+text = "En quelle année <sujet> a-t-il eu une télévision à la maison ?"
+kind = "year"
+
+[[template]]
+id = "premier-film-cinema"
+category = "culture-premieres-fois"
+status = "mvp"
+text = "Quel film <sujet> a-t-il vu la première fois qu'il est allé au cinéma ?"
+kind = "list"
+list = "films"
+
+[[template]]
+id = "ordinateur-age"
+category = "culture-premieres-fois"
+status = "mvp"
+text = "À quel âge <sujet> a-t-il utilisé un ordinateur pour la première fois ?"
+kind = "age"
+
+
+# ---------- Retraite, voyages et loisirs ----------
+
+[[template]]
+id = "retraite-date"
+category = "retraite-voyages-loisirs"
+status = "mvp"
+text = "À quelle date <sujet> a-t-il officiellement pris sa retraite ?"
+kind = "date"
+
+[[template]]
+id = "premier-pays-etranger"
+category = "retraite-voyages-loisirs"
+status = "mvp"
+text = "Quel pays étranger <sujet> a-t-il visité lors de son premier voyage hors de France ?"
+kind = "country"
+
+[[template]]
+id = "avion-annee"
+category = "retraite-voyages-loisirs"
+status = "mvp"
+text = "En quelle année <sujet> a-t-il pris l'avion pour la première fois ?"
+kind = "year"
+
+[[template]]
+id = "voyage-pays-annee"
+category = "retraite-voyages-loisirs"
+status = "mvp"
+text = "En quelle année <sujet> a-t-il effectué son voyage en <pays> ?"
+kind = "year"
+slots = ["pays"]
+note = "l'auteur choisit le pays au moment d'ajouter le fait"
+
+[[template]]
+id = "dernier-pays-etranger"
+category = "retraite-voyages-loisirs"
+status = "mvp"
+text = "Quel est le dernier pays étranger que <sujet> a visité ?"
+kind = "country"
+
+[[template]]
+id = "club-associatif"
+category = "retraite-voyages-loisirs"
+status = "mvp"
+text = "Quel est le nom du club associatif dont <sujet> fait partie ?"
+kind = "free_text"
