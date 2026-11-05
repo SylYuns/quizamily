@@ -23,7 +23,7 @@ invites
 
 question_templates         -- catalogue global, édité par nous (pas par les familles)
   id, category, template_text, slot_config, answer_input_kind
-  -- answer_input_kind: 'date' | 'year' | 'number' | 'country' | 'city' | 'first_name' | 'custom_list'
+  -- answer_input_kind: 'date' | 'year' | 'number' | 'country' | 'city' | 'first_name' | 'custom_list' | 'free_text'
 
 facts
   id, family_id, template_id
@@ -40,11 +40,15 @@ quiz_sessions
 quiz_questions
   id, session_id, fact_id
   answer_value_snapshot    -- valeur correcte au moment de la pioche (sert au recalcul si correction ultérieure)
+  validator_person_id      -- free_text : auteur du fait, ou membre ayant pris la main
+  validation_completed_at  -- nullable ; free_text : la question n'est révélée qu'une fois rempli
+  taken_over_at            -- nullable, rempli si un autre membre a pris la main
 
 question_recipients
   id, quiz_question_id, person_id
-  answer_given, result      -- 'correct' | 'incorrect' | 'unanswered' | 'voided'
+  answer_given, result      -- 'correct' | 'incorrect' | 'unanswered' | 'voided' | 'pending_validation'
   answered_at
+  validated_by_person_id, validated_at   -- nullable ; null si validation automatique (réponse identique après normalisation)
 
 fact_reactions
   id, fact_id, person_id, emoji, created_at
@@ -55,7 +59,9 @@ fact_comments
 
 ## Notes de conception
 
-- **`answer_input_kind`** détermine le widget de saisie (date picker, dropdown pays, autocomplétion ville/prénom basée sur `SELECT DISTINCT answer_value` de la famille, etc.) — pas de texte libre, donc pas besoin de normalisation complexe pour la validation automatique.
+- **`answer_input_kind`** détermine le widget de saisie (date picker, dropdown pays, autocomplétion ville/prénom basée sur `SELECT DISTINCT answer_value` de la famille, etc.). Pour les types guidés, la validation est entièrement automatique.
+- **`free_text`** : l'auteur du fait et les joueurs saisissent librement. Une réponse identique à la bonne réponse après normalisation (minuscules, sans accents, sans espaces superflus, tirets ni apostrophes) est validée automatiquement ; les autres passent en `pending_validation` jusqu'à la décision du validateur. Pas de leurres QCM pour ce type.
+- **Destinataires** : `question_recipients` n'inclut jamais l'auteur du fait ; il inclut le sujet s'il a un compte (`kind='player'`).
 - **`answer_value_snapshot`** sur `quiz_questions` permet de recalculer le résultat de chaque `question_recipients` après une correction : comparer `answer_given` à la fois à l'ancienne valeur (snapshot) et à la nouvelle valeur (`facts.answer_value` courant).
 - **`contribution_stats`** (score de contribution par membre) est une vue calculée à partir de `facts.author_person_id`, pas une table dédiée.
 - Les leurres de QCM sont piochés parmi les `answer_value` déjà utilisées dans la famille pour le même `answer_input_kind` — pas de génération manuelle.

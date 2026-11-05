@@ -10,7 +10,7 @@
 6. Logique de pioche pondérée (fraîcheur + répartition auteurs) + Edge Function de création de session.
 7. Emails (nouvelle session, rappel, résultats).
 8. Écran de réponse au quiz + logique du seuil de déclenchement du premier quiz.
-9. Révélation automatique à la deadline, calcul des scores (4 états).
+9. Révélation automatique à la deadline, calcul des scores (4 états) + validation des réponses libres par l'auteur (notifications, révélation différée, prise de main).
 10. Réactions/commentaires sur les faits révélés.
 11. Mécanisme de correction + recalcul rétroactif des scores.
 12. Archive familiale consultable + score de contribution + relances.
@@ -20,7 +20,7 @@
 
 Volontairement réduit par rapport à la liste complète ci-dessus :
 
-**Inclus** : auth + création famille + invite, création des personnes centrales (relations simplifiées), un catalogue réduit de ~15-20 templates codés en dur (pas de back-office d'édition), ajout de faits, pioche + session de quiz (version simple au début, pas besoin du roulement pondéré sophistiqué dès le jour 1), réponse, révélation (scores + contexte), emails (nouvelle question + résultats).
+**Inclus** : auth + création famille + invite, création des personnes centrales (relations simplifiées), un catalogue réduit de ~15-20 templates codés en dur (pas de back-office d'édition), ajout de faits, pioche + session de quiz (version simple au début, pas besoin du roulement pondéré sophistiqué dès le jour 1), réponse, validation des réponses libres par l'auteur (écran de validation + emails de rappel à l'auteur et d'attente aux joueurs ; la prise de main peut attendre), révélation (scores + contexte), emails (nouvelle question + résultats).
 
 **Reporté après le premier test** : réactions/commentaires, mécanisme de correction, relances de contribution, vue arbre familial, notifications push, builds natifs iOS/Android (le web suffit pour tester avec 2-3 personnes).
 
