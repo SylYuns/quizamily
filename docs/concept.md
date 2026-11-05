@@ -14,11 +14,14 @@ N'importe quel joueur peut ajouter/modifier une info sur n'importe qui — pas d
 
 ## Catalogue de questions
 
-Les questions ne sont pas libres : elles viennent d'un **catalogue de templates** édité par nous (pas par les familles), avec un type de réponse déjà défini par template (date, année, pays, ville, prénom, nombre, liste personnalisée, saisie libre). Avantages :
+Les questions ne sont pas libres : elles viennent d'un **catalogue de templates** édité par nous (pas par les familles), avec un type de réponse déjà défini par template (date, année, âge, nombre, pays, commune, lieu, prénom, liste de référence, saisie libre — détail dans `question-templates.toml`). Avantages :
 - Résout le problème de la page blanche au démarrage (prompts suggérés plutôt que formulaire vide).
 - Évite les questions gênantes (filtrage en amont, pas de modération a posteriori nécessaire).
 - Simplifie la saisie : champ guidé (date picker, dropdown, autocomplétion) quand le type s'y prête, donc la correction automatique est fiable.
-- Facilite la génération de leurres pour les QCM (piochés parmi les valeurs déjà utilisées dans la famille pour ce type de champ).
+
+Les joueurs répondent avec **le même champ que l'auteur du fait** (même sélecteur de date, même liste, même autocomplétion). Il n'y a donc pas de QCM ni de leurres à générer en V1.
+
+Piste V2 : laisser l'auteur choisir, au moment d'ajouter un fait, de le poser en QCM en saisissant lui-même les fausses réponses. Il dose ainsi la difficulté, puisqu'il connaît sa famille mieux que nous. Ce choix doit rester optionnel : certains se sentiront bloqués s'ils doivent inventer de fausses réponses.
 
 Certaines informations ne peuvent être saisies que librement (ex : un nom de jeune fille). Pour ces templates de type **saisie libre**, les joueurs répondent eux aussi par saisie libre, et les réponses sont validées par l'auteur du fait (voir Validation des réponses libres).
 

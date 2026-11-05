@@ -192,8 +192,8 @@ related = "conjoint"
 id = "service-militaire-ville"
 category = "couple-installation"
 status = "mvp"
-text = "Dans quelle ville <sujet> a-t-il fait son service militaire ?"
-kind = "city"
+text = "Où <sujet> a-t-il fait son service militaire ?"
+kind = "place"
 condition = "homme"
 
 [[template]]
