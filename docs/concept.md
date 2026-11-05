@@ -10,6 +10,8 @@ Les joueurs (enfants, petits-enfants...) s'amusent à deviner et enrichir leur c
 - **Personnes centrales** : 1 à 4 personnes désignées par le créateur de la famille, autour de qui tournent (exclusivement, pour l'instant) toutes les questions. Souvent sans compte (profil géré par les autres membres).
 - **Personnes référencées** : mentionnées via une relation (ex: la mère décédée d'une personne centrale), sans profil complet nécessaire.
 
+Un joueur peut appartenir à **plusieurs familles** (famille recomposée, belle-famille…). Il a une fiche par famille, avec un lien de parenté propre à chacune, et ses scores sont séparés par famille. S'il appartient à plusieurs familles, il choisit d'abord la famille dans un accueil dédié. Sinon, il arrive directement dans sa famille. La famille active est rappelée sur tous les écrans et dans l'objet des emails.
+
 N'importe quel joueur peut ajouter/modifier une info sur n'importe qui — pas de validation préalable requise, les questions viennent d'un catalogue filtré en amont pour éviter le sensible (donc pas besoin d'un système de consentement explicite).
 
 ## Catalogue de questions
