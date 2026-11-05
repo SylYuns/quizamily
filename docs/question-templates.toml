@@ -103,7 +103,7 @@ list = "sports"
 id = "premiere-voiture-conduite"
 category = "jeunesse"
 status = "mvp"
-text = "Quelle a été la première voiture conduite par <sujet> (en dehors de l'apprentissage) ?"
+text = "Quelle a été la première voiture conduite par <sujet> après avoir passé son permis ?"
 kind = "list"
 list = "voitures"
 
