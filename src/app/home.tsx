@@ -1,3 +1,4 @@
+import * as Clipboard from "expo-clipboard";
 import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable } from "react-native";
@@ -16,6 +17,8 @@ type MyFamily = {
 export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [families, setFamilies] = useState<MyFamily[]>([]);
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -43,6 +46,20 @@ export default function HomeScreen() {
               displayName: row.display_name,
             })),
           );
+
+          const firstFamilyId = data[0]?.family_id;
+          if (firstFamilyId) {
+            const { data: inviteRow } = await supabase
+              .from("invites")
+              .select("token")
+              .eq("family_id", firstFamilyId)
+              .limit(1)
+              .maybeSingle();
+            if (inviteRow && !cancelled) {
+              const origin = typeof window !== "undefined" ? window.location.origin : "";
+              setInviteLink(`${origin}/join/${inviteRow.token}`);
+            }
+          }
         }
         setLoading(false);
       }
@@ -53,6 +70,12 @@ export default function HomeScreen() {
       cancelled = true;
     };
   }, []);
+
+  async function copyInviteLink() {
+    if (!inviteLink) return;
+    await Clipboard.setStringAsync(inviteLink);
+    setCopied(true);
+  }
 
   if (loading) {
     return (
@@ -78,6 +101,39 @@ export default function HomeScreen() {
     >
       <ThemedText type="title">{families[0].familyName}</ThemedText>
       <ThemedText themeColor="textSecondary">Bienvenue, {families[0].displayName}</ThemedText>
+
+      {inviteLink && (
+        <ThemedView style={{ gap: Spacing.two, alignItems: "center" }}>
+          <ThemedText themeColor="textSecondary" style={{ textAlign: "center", maxWidth: 320 }}>
+            Invite d&apos;autres membres de la famille avec ce lien :
+          </ThemedText>
+          <ThemedText
+            selectable
+            style={{
+              borderWidth: 1,
+              borderColor: "#999999",
+              borderRadius: 8,
+              padding: Spacing.three,
+              maxWidth: 320,
+            }}
+          >
+            {inviteLink}
+          </ThemedText>
+          <Pressable
+            onPress={copyInviteLink}
+            style={{
+              borderWidth: 1,
+              borderColor: "#999999",
+              borderRadius: 8,
+              paddingVertical: Spacing.three,
+              paddingHorizontal: Spacing.four,
+            }}
+          >
+            <ThemedText>{copied ? "Copié !" : "Copier le lien"}</ThemedText>
+          </Pressable>
+        </ThemedView>
+      )}
+
       <ThemedText themeColor="textSecondary" style={{ textAlign: "center", maxWidth: 320 }}>
         (Accueil famille complet à construire — pour l&apos;instant, juste la confirmation que la famille existe.)
       </ThemedText>
