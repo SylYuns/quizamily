@@ -70,7 +70,8 @@ category = "naissance-enfance"
 status = "mvp"
 text = "Quel âge avait l'aîné de ses frères et sœurs à la naissance de <sujet> ?"
 kind = "age"
-condition = "a des frères ou sœurs plus âgés"
+condition = "a des frères ou sœurs"
+note = "la condition ne vérifie que l'existence d'un frère/sœur enregistré, pas l'ordre de naissance (l'auteur du fait connaît la vraie réponse)"
 
 [[template]]
 id = "ecole-age-fin"
