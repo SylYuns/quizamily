@@ -28,6 +28,12 @@ question_templates         -- catalogue global, édité par nous (pas par les fa
   -- 'place' : l'auteur du fait choisit entre pays et commune ; 'list' : liste de référence enrichissable
   -- catalogue source : docs/question-templates.toml
 
+list_items                 -- valeurs des listes de référence enrichissables (animaux, sports, voitures, metiers, films, personnalites)
+  id, list_name, value
+  status                    -- 'pending' (visible seulement dans la famille qui l'a ajoutée) | 'approved' (global, visible de toutes les familles)
+  family_id                 -- rempli si status='pending' ; null une fois 'approved'
+  created_by_person_id, created_at
+
 facts
   id, family_id, template_id
   subject_person_id, related_person_id   -- related_person_id nullable (si le template implique une relation)
