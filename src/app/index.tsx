@@ -1,98 +1,129 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import type { Session } from "@supabase/supabase-js";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Pressable, TextInput } from "react-native";
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { Spacing } from "@/constants/theme";
+import { supabase } from "@/lib/supabase";
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
+type SendStatus = "idle" | "sending" | "sent" | "error";
+
+export default function ConnexionScreen() {
+  const [session, setSession] = useState<Session | null>(null);
+  const [checkingSession, setCheckingSession] = useState(true);
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<SendStatus>("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setCheckingSession(false);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+    });
+
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  async function sendMagicLink() {
+    setStatus("sending");
+    setErrorMessage("");
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: {
+        emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
+      },
+    });
+    if (error) {
+      setStatus("error");
+      setErrorMessage(error.message);
+    } else {
+      setStatus("sent");
+    }
   }
-  if (Device.isDevice) {
+
+  if (checkingSession) {
     return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
+      <ThemedView style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <ActivityIndicator />
+      </ThemedView>
     );
   }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+
+  if (session) {
+    return (
+      <ThemedView
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          gap: Spacing.three,
+          padding: Spacing.four,
+        }}
+      >
+        <ThemedText type="title">Connecté</ThemedText>
+        <ThemedText themeColor="textSecondary">{session.user.email}</ThemedText>
+        <Pressable onPress={() => supabase.auth.signOut()}>
+          <ThemedText type="linkPrimary">Se déconnecter</ThemedText>
+        </Pressable>
+      </ThemedView>
+    );
+  }
+
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+    <ThemedView
+      style={{
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        gap: Spacing.three,
+        padding: Spacing.four,
+      }}
+    >
+      <ThemedText type="title">Quizamily</ThemedText>
 
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
+      {status === "sent" ? (
+        <ThemedText>Un lien de connexion vous a été envoyé par email.</ThemedText>
+      ) : (
+        <>
+          <TextInput
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Votre email"
+            autoCapitalize="none"
+            autoComplete="email"
+            keyboardType="email-address"
+            style={{
+              borderWidth: 1,
+              borderColor: "#999999",
+              borderRadius: 8,
+              padding: Spacing.three,
+              width: "100%",
+              maxWidth: 320,
+            }}
           />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
+          <Pressable
+            onPress={sendMagicLink}
+            disabled={status === "sending" || email.trim().length === 0}
+            style={{
+              backgroundColor: "#3c87f7",
+              borderRadius: 8,
+              paddingVertical: Spacing.three,
+              paddingHorizontal: Spacing.four,
+              opacity: status === "sending" || email.trim().length === 0 ? 0.6 : 1,
+            }}
+          >
+            <ThemedText style={{ color: "#ffffff" }}>
+              {status === "sending" ? "Envoi…" : "Recevoir le lien de connexion"}
+            </ThemedText>
+          </Pressable>
+          {status === "error" && <ThemedText themeColor="text">{errorMessage}</ThemedText>}
+        </>
+      )}
     </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
-});
