@@ -42,7 +42,10 @@ export default function HomeScreen() {
           setFamilies(
             data.map((row) => ({
               familyId: row.family_id,
-              familyName: (row.families as { name: string }[] | null)?.[0]?.name ?? "Famille",
+              // la relation `families` est à un seul objet à l'exécution (family_id référence
+              // une seule famille), même si supabase-js la type comme un tableau faute de
+              // schéma généré - on force donc le vrai type ici plutôt que de l'indexer en [0]
+              familyName: (row.families as unknown as { name: string } | null)?.name ?? "Famille",
               displayName: row.display_name,
             })),
           );
