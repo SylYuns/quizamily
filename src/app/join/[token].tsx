@@ -11,6 +11,13 @@ import { supabase } from "@/lib/supabase";
 
 type Gender = "homme" | "femme" | null;
 
+type UnclaimedPerson = {
+  id: string;
+  display_name: string;
+  is_central: boolean;
+  parent_names: string[];
+};
+
 export default function JoinFamilyScreen() {
   const { token } = useLocalSearchParams<{ token: string }>();
 
@@ -18,7 +25,12 @@ export default function JoinFamilyScreen() {
   const [checkingSession, setCheckingSession] = useState(true);
 
   const [familyName, setFamilyName] = useState<string | null>(null);
+  const [unclaimed, setUnclaimed] = useState<UnclaimedPerson[]>([]);
   const [loadingPreview, setLoadingPreview] = useState(false);
+  const [previewError, setPreviewError] = useState("");
+
+  const [mode, setMode] = useState<"choose" | "create">("choose");
+  const [claimingId, setClaimingId] = useState<string | null>(null);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -43,21 +55,42 @@ export default function JoinFamilyScreen() {
     if (!session || !token) return;
     let cancelled = false;
     setLoadingPreview(true);
-    supabase
-      .rpc("get_invite_family_name", { p_token: token })
-      .then(({ data, error: rpcError }) => {
-        if (cancelled) return;
-        if (rpcError || !data) {
-          setError("Ce lien d'invitation est invalide ou a expiré.");
-        } else {
-          setFamilyName(data as string);
-        }
-        setLoadingPreview(false);
-      });
+
+    Promise.all([
+      supabase.rpc("get_invite_family_name", { p_token: token }),
+      supabase.rpc("get_invite_unclaimed_persons", { p_token: token }),
+    ]).then(([nameResult, personsResult]) => {
+      if (cancelled) return;
+      if (nameResult.error || !nameResult.data) {
+        setPreviewError("Ce lien d'invitation est invalide ou a expiré.");
+      } else {
+        setFamilyName(nameResult.data as string);
+        const persons = (personsResult.data as UnclaimedPerson[] | null) ?? [];
+        setUnclaimed(persons);
+        setMode(persons.length > 0 ? "choose" : "create");
+      }
+      setLoadingPreview(false);
+    });
+
     return () => {
       cancelled = true;
     };
   }, [session, token]);
+
+  async function claim(personId: string) {
+    setClaimingId(personId);
+    setError("");
+    const { error: rpcError } = await supabase.rpc("claim_person_with_invite", {
+      p_token: token,
+      p_person_id: personId,
+    });
+    if (rpcError) {
+      setError(rpcError.message);
+      setClaimingId(null);
+      return;
+    }
+    router.replace("/home");
+  }
 
   async function join() {
     setJoining(true);
@@ -109,7 +142,49 @@ export default function JoinFamilyScreen() {
         style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: Spacing.three, padding: Spacing.four }}
       >
         <ThemedText type="title">Lien invalide</ThemedText>
-        <ThemedText themeColor="textSecondary">{error}</ThemedText>
+        <ThemedText themeColor="textSecondary">{previewError}</ThemedText>
+      </ThemedView>
+    );
+  }
+
+  if (mode === "choose") {
+    return (
+      <ThemedView style={{ flex: 1 }}>
+        <View style={{ padding: Spacing.four, gap: Spacing.three, maxWidth: 480, width: "100%", alignSelf: "center" }}>
+          <ThemedText type="title">Vous êtes invité(e) dans la famille {familyName}</ThemedText>
+          <ThemedText themeColor="textSecondary">Es-tu l&apos;une de ces personnes ?</ThemedText>
+
+          {unclaimed.map((person) => (
+            <Pressable
+              key={person.id}
+              onPress={() => claim(person.id)}
+              disabled={claimingId !== null}
+              style={{
+                borderWidth: 1,
+                borderColor: "#999999",
+                borderRadius: 8,
+                padding: Spacing.three,
+                opacity: claimingId !== null && claimingId !== person.id ? 0.5 : 1,
+              }}
+            >
+              <ThemedText type="smallBold">{person.display_name}</ThemedText>
+              <ThemedText themeColor="textSecondary">
+                {person.is_central
+                  ? "Personne centrale"
+                  : person.parent_names.length > 0
+                    ? `Enfant de ${person.parent_names.join(" et ")}`
+                    : ""}
+              </ThemedText>
+              {claimingId === person.id && <ThemedText>Connexion…</ThemedText>}
+            </Pressable>
+          ))}
+
+          {error.length > 0 && <ThemedText themeColor="text">{error}</ThemedText>}
+
+          <Pressable onPress={() => setMode("create")}>
+            <ThemedText type="linkPrimary">Je ne suis pas dans cette liste</ThemedText>
+          </Pressable>
+        </View>
       </ThemedView>
     );
   }
@@ -159,6 +234,12 @@ export default function JoinFamilyScreen() {
       >
         <ThemedText style={{ color: "#ffffff" }}>{joining ? "Connexion…" : "Rejoindre la famille"}</ThemedText>
       </Pressable>
+
+      {unclaimed.length > 0 && (
+        <Pressable onPress={() => setMode("choose")}>
+          <ThemedText type="linkPrimary">Retour à la liste</ThemedText>
+        </Pressable>
+      )}
     </ThemedView>
   );
 }

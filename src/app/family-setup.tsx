@@ -36,6 +36,17 @@ function emptyCentralPerson(): CentralPerson {
   return { firstName: "", lastName: "", gender: null, isDeceased: false, relationshipLabel: "" };
 }
 
+type ChildPerson = {
+  firstName: string;
+  lastName: string;
+  gender: Gender;
+  isDeceased: boolean;
+};
+
+function emptyChild(): ChildPerson {
+  return { firstName: "", lastName: "", gender: null, isDeceased: false };
+}
+
 export default function FamilySetupScreen() {
   const [userId, setUserId] = useState<string | null>(null);
   const [step, setStep] = useState(0);
@@ -45,6 +56,7 @@ export default function FamilySetupScreen() {
   const [myLastName, setMyLastName] = useState("");
   const [myGender, setMyGender] = useState<Gender>(null);
   const [centralPersons, setCentralPersons] = useState<CentralPerson[]>([emptyCentralPerson()]);
+  const [children, setChildren] = useState<ChildPerson[]>([]);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -66,6 +78,18 @@ export default function FamilySetupScreen() {
 
   function removeCentralPerson(index: number) {
     setCentralPersons((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function updateChild(index: number, patch: Partial<ChildPerson>) {
+    setChildren((prev) => prev.map((c, i) => (i === index ? { ...c, ...patch } : c)));
+  }
+
+  function addChild() {
+    setChildren((prev) => [...prev, emptyChild()]);
+  }
+
+  function removeChild(index: number) {
+    setChildren((prev) => prev.filter((_, i) => i !== index));
   }
 
   async function createFamily() {
@@ -91,17 +115,51 @@ export default function FamilySetupScreen() {
       });
       if (meError) throw meError;
 
+      const centralPersonIds: string[] = [];
       for (const cp of centralPersons) {
-        const { error: cpError } = await supabase.from("persons").insert({
-          family_id: familyId,
-          kind: "profile",
-          display_name: `${cp.firstName.trim()} ${cp.lastName.trim()}`.trim(),
-          relationship_label: cp.relationshipLabel,
-          gender: cp.gender,
-          is_central: true,
-          is_deceased: cp.isDeceased,
-        });
+        const { data: cpRow, error: cpError } = await supabase
+          .from("persons")
+          .insert({
+            family_id: familyId,
+            kind: "profile",
+            display_name: `${cp.firstName.trim()} ${cp.lastName.trim()}`.trim(),
+            relationship_label: cp.relationshipLabel,
+            gender: cp.gender,
+            is_central: true,
+            is_deceased: cp.isDeceased,
+          })
+          .select()
+          .single();
         if (cpError) throw cpError;
+        centralPersonIds.push(cpRow.id as string);
+      }
+
+      for (const child of children) {
+        if (child.firstName.trim().length === 0 || child.lastName.trim().length === 0) continue;
+
+        const { data: childRow, error: childError } = await supabase
+          .from("persons")
+          .insert({
+            family_id: familyId,
+            kind: "profile",
+            display_name: `${child.firstName.trim()} ${child.lastName.trim()}`.trim(),
+            gender: child.gender,
+            is_central: false,
+            is_deceased: child.isDeceased,
+          })
+          .select()
+          .single();
+        if (childError) throw childError;
+
+        for (const centralPersonId of centralPersonIds) {
+          const { error: relError } = await supabase.from("relationships").insert({
+            family_id: familyId,
+            person_a_id: centralPersonId,
+            person_b_id: childRow.id,
+            relation_type: "parent_of",
+          });
+          if (relError) throw relError;
+        }
       }
 
       const { data: inviteRow, error: inviteError } = await supabase
@@ -113,7 +171,7 @@ export default function FamilySetupScreen() {
 
       const origin = typeof window !== "undefined" ? window.location.origin : "";
       setInviteLink(`${origin}/join/${inviteRow.token}`);
-      setStep(4);
+      setStep(5);
     } catch (e) {
       const message = typeof e === "object" && e !== null && "message" in e ? String(e.message) : null;
       setError(message || "Une erreur est survenue.");
@@ -133,6 +191,13 @@ export default function FamilySetupScreen() {
   const canGoNextFromStep2 = centralPersons.every(
     (cp) => cp.firstName.trim().length > 0 && cp.lastName.trim().length > 0 && cp.relationshipLabel.length > 0,
   );
+  const canGoNextFromStep3 = children.every(
+    (c) => c.firstName.trim().length > 0 && c.lastName.trim().length > 0,
+  );
+  const centralPersonsNames = centralPersons
+    .map((cp) => cp.firstName.trim())
+    .filter((n) => n.length > 0)
+    .join(" et ");
 
   return (
     <ThemedView style={{ flex: 1 }}>
@@ -220,6 +285,45 @@ export default function FamilySetupScreen() {
 
         {step === 3 && (
           <>
+            <ThemedText type="title">Ses enfants</ThemedText>
+            <ThemedText themeColor="textSecondary">
+              Ajoute les enfants de {centralPersonsNames || "la personne centrale"} (facultatif, mais ça aide les
+              bonnes personnes à se reconnaître en rejoignant la famille).
+            </ThemedText>
+            {children.map((child, index) => (
+              <View key={index} style={styles.centralPersonCard}>
+                <LabeledInput
+                  value={child.firstName}
+                  onChangeText={(v) => updateChild(index, { firstName: v })}
+                  placeholder="Prénom"
+                />
+                <LabeledInput
+                  value={child.lastName}
+                  onChangeText={(v) => updateChild(index, { lastName: v })}
+                  placeholder="Nom"
+                />
+                <GenderPicker value={child.gender} onChange={(g) => updateChild(index, { gender: g })} />
+                <View style={styles.switchRow}>
+                  <ThemedText>Décédé(e)</ThemedText>
+                  <Switch value={child.isDeceased} onValueChange={(v) => updateChild(index, { isDeceased: v })} />
+                </View>
+                <Pressable onPress={() => removeChild(index)}>
+                  <ThemedText type="linkPrimary">Retirer cette personne</ThemedText>
+                </Pressable>
+              </View>
+            ))}
+            <Pressable onPress={addChild}>
+              <ThemedText type="linkPrimary">+ Ajouter un enfant</ThemedText>
+            </Pressable>
+            <View style={styles.row}>
+              <BackButton onPress={() => setStep(2)} />
+              <NextButton disabled={!canGoNextFromStep3} onPress={() => setStep(4)} />
+            </View>
+          </>
+        )}
+
+        {step === 4 && (
+          <>
             <ThemedText type="title">Récapitulatif</ThemedText>
             <ThemedText>Famille : {familyName}</ThemedText>
             <ThemedText>
@@ -231,9 +335,14 @@ export default function FamilySetupScreen() {
                 {cp.isDeceased ? " (décédé·e)" : ""}
               </ThemedText>
             ))}
+            {children.map((child, index) => (
+              <ThemedText key={index}>
+                {child.firstName} {child.lastName} (enfant de {centralPersonsNames})
+              </ThemedText>
+            ))}
             {error.length > 0 && <ThemedText themeColor="text">{error}</ThemedText>}
             <View style={styles.row}>
-              <BackButton onPress={() => setStep(2)} />
+              <BackButton onPress={() => setStep(3)} />
               <Pressable
                 onPress={createFamily}
                 disabled={submitting}
@@ -247,7 +356,7 @@ export default function FamilySetupScreen() {
           </>
         )}
 
-        {step === 4 && inviteLink && (
+        {step === 5 && inviteLink && (
           <>
             <ThemedText type="title">Famille créée 🎉</ThemedText>
             <ThemedText themeColor="textSecondary">
