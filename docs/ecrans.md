@@ -44,19 +44,20 @@ But : démarrer une famille, ou rejoindre celle où l'on a été invité.
 
 Étapes :
 1. Nom de la famille
-2. Ses propres infos de base (prénom, nom)
-3. La ou les personnes centrales (1 à 4) : prénom, nom, vivante ou décédée, lien de parenté avec soi (choisi dans une liste : grand-mère, petit-fils, gendre…)
-4. Pour chaque personne centrale : l'inviter (si elle peut utiliser l'app) ou créer un profil sans compte
-5. Lien d'invitation à partager aux autres membres
+2. Ses propres infos de base (prénom, nom, genre — ajouté à l'implémentation, nécessaire pour les conditions femme/homme du catalogue)
+3. La ou les personnes centrales (1 à 4) : prénom, nom, genre, vivante ou décédée, lien de parenté avec soi (choisi dans une liste : grand-mère, petit-fils, gendre…)
+4. Pour chaque personne centrale : créer un profil sans compte. (**Simplifié pour l'implémentation initiale** : l'option "l'inviter directement" est repoussée — elle demande un mécanisme de rattachement d'un compte à un profil déjà créé, pas encore conçu.)
+5. Lien d'invitation à partager aux autres membres — un seul lien, réutilisable par plusieurs personnes (pas à usage unique)
 → Accueil - famille
 
 ### Rejoindre une famille (depuis un lien d'invitation)
 
 Étapes :
 1. « Vous êtes invité dans la famille X »
-2. Ses infos de base
-3. Son lien de parenté avec chaque personne centrale, qu'il renseigne lui-même (choisi dans une liste)
+2. Ses infos de base (prénom, nom, genre)
 → Accueil - famille
+
+**Simplifié pour l'implémentation initiale** : l'étape "son lien de parenté avec chaque personne centrale" est repoussée — `relationship_label` n'est aujourd'hui qu'un champ simple posé par le créateur de la famille (sa propre perception), pas une relation par paire (créateur, joueur, personne centrale). Une vraie capture par paire attend l'étape "mini arbre familial".
 
 
 ## 3. Accueil - choix de famille

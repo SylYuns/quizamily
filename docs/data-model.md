@@ -20,7 +20,8 @@ relationships
   created_by, created_at
 
 invites
-  id, family_id, token, created_by, expires_at, used_by_person_id, used_at
+  id, family_id, token, created_by, expires_at
+  -- lien partagé avec plusieurs membres (pas à usage unique), donc pas de suivi "utilisé par X"
 
 question_templates         -- catalogue global, édité par nous (pas par les familles)
   id, category, template_text, slot_config, answer_input_kind
@@ -85,3 +86,6 @@ fact_comments
 - **RLS en place, mais incomplet par design pour l'instant** (voir `supabase/migrations/20261106130000_rls_policies.sql`) : l'accès est scopé par famille partout, mais deux points sont volontairement laissés pour l'étape des écrans concernés plutôt que résolus au niveau RLS générique :
   - rien ne masque encore `facts.answer_value` / `quiz_questions.answer_value_snapshot` avant la révélation d'une question (la RLS filtre par ligne, pas par colonne) — à traiter avec l'écran "répondre"/"révélation" (vue ou fonction dédiée) ;
   - `question_recipients` ne laisse chacun voir que sa propre réponse, même après révélation (pas encore élargi aux autres joueurs) ; `quiz_questions`/`question_recipients` n'ont pas encore de policy d'écriture (validation des réponses libres, prise de main) — à ajouter avec l'écran "valider les réponses".
+- **Rejoindre une famille** se fait via deux fonctions `security definer` (`supabase/migrations/20261106150000_invite_join_flow.sql`), pas directement par des policies sur `invites`/`families` : un visiteur pas encore membre ne peut pas les lire via RLS normale.
+  - `get_invite_family_name(token)` : aperçu du nom de la famille avant de rejoindre.
+  - `join_family_with_invite(token, display_name, gender)` : crée la fiche `persons` (`kind='player'`) du nouvel arrivant. Ne redemande pas son lien de parenté avec chaque personne centrale : `relationship_label` reste pour l'instant un champ simple posé par le créateur de la famille sur sa propre perception (ex: "Grand-mère" = grand-mère du créateur), pas une relation par paire (créateur, joueur, personne centrale) — un vrai arbre par paires est repoussé à l'étape "mini arbre familial" (`relationships`).
