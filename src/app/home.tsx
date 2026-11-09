@@ -1,3 +1,4 @@
+import { FunctionsHttpError } from "@supabase/supabase-js";
 import * as Clipboard from "expo-clipboard";
 import { Redirect, router } from "expo-router";
 import { useEffect, useState } from "react";
@@ -20,6 +21,8 @@ export default function HomeScreen() {
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [noSession, setNoSession] = useState(false);
+  const [creatingSession, setCreatingSession] = useState(false);
+  const [sessionMessage, setSessionMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -82,6 +85,37 @@ export default function HomeScreen() {
     if (!inviteLink) return;
     await Clipboard.setStringAsync(inviteLink);
     setCopied(true);
+  }
+
+  async function createQuizSession() {
+    const familyId = families[0]?.familyId;
+    if (!familyId) return;
+    setCreatingSession(true);
+    setSessionMessage(null);
+
+    const { data, error } = await supabase.functions.invoke("create-quiz-session", {
+      body: { family_id: familyId },
+    });
+
+    if (error) {
+      // supabase-js ne renseigne pas le corps JSON de l'erreur sur `error.message` pour les
+      // réponses non-2xx : il faut le relire sur `error.context` pour afficher notre vrai
+      // message ("session déjà en cours", etc.) plutôt qu'un message générique.
+      let message = error.message;
+      if (error instanceof FunctionsHttpError) {
+        try {
+          const body = await error.context.json();
+          if (body?.error) message = body.error;
+        } catch {
+          // corps non-JSON : on garde le message générique
+        }
+      }
+      setSessionMessage(`Erreur : ${message}`);
+    } else {
+      setSessionMessage(`Session créée : ${data.questionsCreated} question(s), ${data.recipientsCreated} réponse(s) attendue(s).`);
+    }
+
+    setCreatingSession(false);
   }
 
   if (loading) {
@@ -160,6 +194,28 @@ export default function HomeScreen() {
       <Pressable onPress={() => router.push("/my-facts")}>
         <ThemedText type="linkPrimary">Mes faits</ThemedText>
       </Pressable>
+
+      <ThemedView style={{ gap: Spacing.two, alignItems: "center" }}>
+        <Pressable
+          onPress={createQuizSession}
+          disabled={creatingSession}
+          style={{
+            borderWidth: 1,
+            borderColor: "#999999",
+            borderRadius: 8,
+            paddingVertical: Spacing.three,
+            paddingHorizontal: Spacing.four,
+            opacity: creatingSession ? 0.6 : 1,
+          }}
+        >
+          <ThemedText>{creatingSession ? "Création…" : "Créer une session de quiz (déclenchement manuel)"}</ThemedText>
+        </Pressable>
+        {sessionMessage && (
+          <ThemedText themeColor="textSecondary" style={{ textAlign: "center", maxWidth: 320 }}>
+            {sessionMessage}
+          </ThemedText>
+        )}
+      </ThemedView>
 
       <ThemedText themeColor="textSecondary" style={{ textAlign: "center", maxWidth: 320 }}>
         (Accueil famille complet à construire — pour l&apos;instant, juste la confirmation que la famille existe.)

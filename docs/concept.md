@@ -53,6 +53,8 @@ Catalogue de prompts (centré sur les personnes centrales) → ajout d'une info 
 
 Priorité : jamais posé > posé il y a longtemps > posé récemment (fraîcheur), avec répartition entre auteurs différents pour que la contribution de chacun ait une vraie chance d'être jouée. **Les personnes centrales restent prioritaires, mais ne sont plus les seuls sujets possibles** (règle assouplie le 2026-11-09 : au départ, on avait prévu 100% personnes centrales ; on autorise maintenant des faits — et donc des questions — sur n'importe quel membre, avec une pondération qui privilégie les personnes centrales).
 
+Implémentée (2026-11-09) dans l'Edge Function `create-quiz-session` (détail technique dans `docs/ecrans.md`, section « Pioche et création de session ») : jusqu'à 8 faits par session, pondérés par fraîcheur + bonus personne centrale (×1.5) + pénalité cumulative par auteur déjà pioché. Déclenchement manuel pour l'instant (pas de tâche planifiée hebdomadaire).
+
 ## Scoring
 
 4 états par joueur/question : **juste / faux / pas répondu / annulée**, plus un état transitoire **en attente de validation** pour les réponses libres (voir ci-dessous).
