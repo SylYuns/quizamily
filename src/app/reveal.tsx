@@ -1,12 +1,15 @@
 import { Redirect, router } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 
+import { AnswerInput } from "@/components/answer-input";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Spacing } from "@/constants/theme";
+import { parseAnswerValue } from "@/lib/answer-value";
 import { formatAnswerDisplay } from "@/lib/format-answer";
 import { supabase } from "@/lib/supabase";
+import { Template } from "@/types/question-template";
 
 type RevealParticipant = {
   displayName: string;
@@ -24,6 +27,21 @@ type RevealData = {
   participants: RevealParticipant[];
 };
 
+type PendingCorrection = {
+  proposedValue: string | number;
+  comment: string | null;
+  proposedByPersonId: string;
+  proposedAt: string;
+  status: "pending" | "refused";
+};
+
+type HistoryEntry = {
+  oldValue: string | number;
+  newValue: string | number;
+  correctedAt: string;
+  note: string | null;
+};
+
 function resultLabel(result: RevealParticipant["result"]): string {
   if (result === "correct") return "✓ Juste";
   if (result === "incorrect") return "✗ Faux";
@@ -37,6 +55,35 @@ export default function RevealScreen() {
   const [noSession, setNoSession] = useState(false);
   const [error, setError] = useState("");
   const [reveal, setReveal] = useState<RevealData | null>(null);
+
+  const [factId, setFactId] = useState<string | null>(null);
+  const [familyId, setFamilyId] = useState<string | null>(null);
+  const [myPersonId, setMyPersonId] = useState<string | null>(null);
+  const [authorPersonId, setAuthorPersonId] = useState<string | null>(null);
+  const [currentAnswerValue, setCurrentAnswerValue] = useState<string | number | null>(null);
+  const [template, setTemplate] = useState<Template | null>(null);
+  const [pendingCorrection, setPendingCorrection] = useState<PendingCorrection | null>(null);
+  const [answerHistory, setAnswerHistory] = useState<HistoryEntry[]>([]);
+
+  const [showCorrectionForm, setShowCorrectionForm] = useState(false);
+  const [correctionValue, setCorrectionValue] = useState("");
+  const [correctionComment, setCorrectionComment] = useState("");
+  const [submittingCorrection, setSubmittingCorrection] = useState(false);
+  const [decidingCorrection, setDecidingCorrection] = useState(false);
+
+  async function loadFactExtras(fId: string) {
+    const { data: fact } = await supabase
+      .from("facts")
+      .select("author_person_id, answer_value, pending_correction, answer_history, question_templates (*)")
+      .eq("id", fId)
+      .maybeSingle();
+    if (!fact) return;
+    setAuthorPersonId(fact.author_person_id);
+    setCurrentAnswerValue(fact.answer_value);
+    setTemplate(fact.question_templates as unknown as Template);
+    setPendingCorrection((fact.pending_correction as PendingCorrection | null) ?? null);
+    setAnswerHistory((fact.answer_history as HistoryEntry[] | null) ?? []);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -58,6 +105,8 @@ export default function RevealScreen() {
         .maybeSingle();
 
       if (!me || cancelled) return;
+      setMyPersonId(me.id);
+      setFamilyId(me.family_id);
 
       const { data: session } = await supabase
         .from("quiz_sessions")
@@ -76,7 +125,7 @@ export default function RevealScreen() {
 
       const { data: quizQuestion } = await supabase
         .from("quiz_questions")
-        .select("id")
+        .select("id, fact_id")
         .eq("session_id", session.id)
         .limit(1)
         .maybeSingle();
@@ -85,10 +134,12 @@ export default function RevealScreen() {
         setReady(true);
         return;
       }
+      setFactId(quizQuestion.fact_id);
 
-      const { data, error: rpcError } = await supabase.rpc("get_revealed_question", {
-        p_quiz_question_id: quizQuestion.id,
-      });
+      const [{ data, error: rpcError }] = await Promise.all([
+        supabase.rpc("get_revealed_question", { p_quiz_question_id: quizQuestion.id }),
+        loadFactExtras(quizQuestion.fact_id),
+      ]);
 
       if (cancelled) return;
       if (rpcError) {
@@ -104,6 +155,75 @@ export default function RevealScreen() {
       cancelled = true;
     };
   }, []);
+
+  async function submitCorrection() {
+    if (!factId || !template) return;
+    setSubmittingCorrection(true);
+    setError("");
+
+    try {
+      const parsed = parseAnswerValue(template.answer_input_kind, correctionValue);
+      if (!parsed.ok) throw new Error(parsed.error);
+
+      const { error: rpcError } = await supabase.rpc("propose_correction", {
+        p_fact_id: factId,
+        p_proposed_value: parsed.value,
+        p_comment: correctionComment.trim() || null,
+      });
+      if (rpcError) throw rpcError;
+
+      await loadFactExtras(factId);
+      setShowCorrectionForm(false);
+      setCorrectionValue("");
+      setCorrectionComment("");
+    } catch (e) {
+      const message = typeof e === "object" && e !== null && "message" in e ? String(e.message) : null;
+      setError(message || "Une erreur est survenue.");
+    } finally {
+      setSubmittingCorrection(false);
+    }
+  }
+
+  async function decideCorrection(accept: boolean) {
+    if (!factId) return;
+    setDecidingCorrection(true);
+    setError("");
+
+    const { error: rpcError } = await supabase.rpc("validate_correction", {
+      p_fact_id: factId,
+      p_accept: accept,
+    });
+
+    if (rpcError) {
+      setError(rpcError.message);
+      setDecidingCorrection(false);
+      return;
+    }
+
+    // Les scores peuvent avoir changé (recalcul rétroactif) : on recharge tout.
+    await loadFactExtras(factId);
+    const { data: session } = await supabase
+      .from("quiz_sessions")
+      .select("id")
+      .eq("family_id", familyId!)
+      .eq("status", "closed")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (session) {
+      const { data: quizQuestion } = await supabase
+        .from("quiz_questions")
+        .select("id")
+        .eq("session_id", session.id)
+        .limit(1)
+        .maybeSingle();
+      if (quizQuestion) {
+        const { data } = await supabase.rpc("get_revealed_question", { p_quiz_question_id: quizQuestion.id });
+        setReveal(data as RevealData);
+      }
+    }
+    setDecidingCorrection(false);
+  }
 
   if (noSession) {
     return <Redirect href="/" />;
@@ -132,6 +252,8 @@ export default function RevealScreen() {
   }
 
   const questionText = reveal.questionText.replace("<sujet>", reveal.subjectName);
+  const isAuthor = myPersonId !== null && myPersonId === authorPersonId;
+  const displayedAnswer = currentAnswerValue !== null ? currentAnswerValue : reveal.correctAnswer;
 
   return (
     <ThemedView style={{ flex: 1 }}>
@@ -143,10 +265,92 @@ export default function RevealScreen() {
         </View>
 
         <ThemedText>
-          Bonne réponse : {formatAnswerDisplay(reveal.answerInputKind, reveal.correctAnswer)}
+          Bonne réponse : {formatAnswerDisplay(reveal.answerInputKind, displayedAnswer)}
         </ThemedText>
         <ThemedText themeColor="textSecondary">Posée par {reveal.authorName}</ThemedText>
         {reveal.contextText && <ThemedText themeColor="textSecondary">{reveal.contextText}</ThemedText>}
+
+        {answerHistory.length > 0 && (
+          <View style={{ gap: Spacing.one }}>
+            {answerHistory.map((h, i) => (
+              <ThemedText key={i} themeColor="textSecondary" style={styles.smallText}>
+                Corrigé le {new Date(h.correctedAt).toLocaleDateString("fr-FR")} :{" "}
+                {formatAnswerDisplay(reveal.answerInputKind, h.oldValue)} →{" "}
+                {formatAnswerDisplay(reveal.answerInputKind, h.newValue)}
+                {h.note ? ` (${h.note})` : ""}
+              </ThemedText>
+            ))}
+          </View>
+        )}
+
+        {error.length > 0 && <ThemedText themeColor="text">{error}</ThemedText>}
+
+        {pendingCorrection?.status === "pending" && (
+          <View style={styles.card}>
+            <ThemedText type="smallBold">Correction proposée</ThemedText>
+            <ThemedText>
+              Nouvelle valeur : {formatAnswerDisplay(reveal.answerInputKind, pendingCorrection.proposedValue)}
+            </ThemedText>
+            {pendingCorrection.comment && <ThemedText themeColor="textSecondary">{pendingCorrection.comment}</ThemedText>}
+            {isAuthor ? (
+              <View style={styles.actionsRow}>
+                <Pressable onPress={() => decideCorrection(true)} disabled={decidingCorrection}>
+                  <ThemedText type="linkPrimary">Accepter</ThemedText>
+                </Pressable>
+                <Pressable onPress={() => decideCorrection(false)} disabled={decidingCorrection}>
+                  <ThemedText type="linkPrimary">Refuser</ThemedText>
+                </Pressable>
+              </View>
+            ) : (
+              <ThemedText themeColor="textSecondary">En attente de validation par l&apos;auteur.</ThemedText>
+            )}
+          </View>
+        )}
+
+        {pendingCorrection?.status === "refused" && (
+          <ThemedText themeColor="textSecondary" style={styles.smallText}>
+            Une correction a été proposée ({formatAnswerDisplay(reveal.answerInputKind, pendingCorrection.proposedValue)}
+            ) puis refusée par l&apos;auteur.
+          </ThemedText>
+        )}
+
+        {!isAuthor && pendingCorrection?.status !== "pending" && template && familyId && (
+          <>
+            {showCorrectionForm ? (
+              <View style={{ gap: Spacing.two }}>
+                <AnswerInput
+                  template={template}
+                  familyId={familyId}
+                  value={correctionValue}
+                  onChange={setCorrectionValue}
+                />
+                <TextInput
+                  value={correctionComment}
+                  onChangeText={setCorrectionComment}
+                  placeholder="Commentaire (facultatif)"
+                  style={styles.input}
+                />
+                <View style={styles.actionsRow}>
+                  <Pressable
+                    onPress={submitCorrection}
+                    disabled={submittingCorrection || correctionValue.trim().length === 0}
+                  >
+                    <ThemedText type="linkPrimary">
+                      {submittingCorrection ? "Envoi…" : "Proposer cette correction"}
+                    </ThemedText>
+                  </Pressable>
+                  <Pressable onPress={() => setShowCorrectionForm(false)}>
+                    <ThemedText type="linkPrimary">Annuler</ThemedText>
+                  </Pressable>
+                </View>
+              </View>
+            ) : (
+              <Pressable onPress={() => setShowCorrectionForm(true)}>
+                <ThemedText type="linkPrimary">Proposer une correction</ThemedText>
+              </Pressable>
+            )}
+          </>
+        )}
 
         <View style={{ gap: Spacing.two }}>
           <ThemedText type="smallBold">Réponses</ThemedText>
@@ -183,8 +387,23 @@ const styles = StyleSheet.create({
     borderColor: "#999999",
     borderRadius: 8,
     padding: Spacing.three,
+    gap: Spacing.two,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#999999",
+    borderRadius: 8,
+    padding: Spacing.three,
+    width: "100%",
   },
   participantRow: {
     gap: Spacing.half,
+  },
+  actionsRow: {
+    flexDirection: "row",
+    gap: Spacing.three,
+  },
+  smallText: {
+    fontSize: 13,
   },
 });

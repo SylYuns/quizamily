@@ -220,7 +220,7 @@ Actions :
 - Question suivante de la session
 - Retour à l'accueil
 
-Hors MVP (roadmap) : réactions et commentaires, correction d'un fait.
+Hors MVP (roadmap) : réactions et commentaires.
 
 ### Déclenchement
 
@@ -231,6 +231,16 @@ Comme pour la pioche, **manuel pour l'instant** : un bouton « Déclencher la r�
 **Simplifié pour l'implémentation initiale** (`src/app/reveal.tsx`) : une seule question par session (voir `concept.md`), donc pas de « question suivante ». `reveal_current_question` refuse de révéler tant qu'il reste des réponses « en attente de validation » (voir écran 7) — l'auteur doit d'abord passer par `src/app/validate.tsx`. Pas de score cumulé inter-sessions (demande d'agréger plusieurs sessions passées, pas construit). Pas de réactions/commentaires (hors MVP).
 
 **Sécurité** : la bonne réponse (`quiz_questions.answer_value_snapshot`) n'est plus jamais envoyée au client avant la révélation — jusqu'ici, `respond.tsx` la recevait dans la réponse de l'API pour comparer côté client, visible par n'importe qui ouvrant les outils réseau du navigateur avant même d'avoir répondu. Le calcul juste/faux se fait maintenant entièrement côté serveur via la fonction `submit_answer` (voir `supabase/migrations/20261109190000_reveal_and_secure_answers.sql`), qui remplace l'écriture directe du joueur sur `question_recipients` (la policy correspondante a été retirée : elle aurait permis à un joueur de s'auto-attribuer « juste » sans vraiment répondre correctement). La révélation elle-même passe par `reveal_current_question` (auteur uniquement, vérifie que tout le monde a répondu, bascule `quiz_sessions.status` à `closed`) et `get_revealed_question` (lisible par toute la famille une fois la session fermée).
+
+### Corrections
+
+Affichée sur l'écran de révélation (la seule vue d'un fait posé pour l'instant, en l'absence d'archives — voir écran 9) : n'importe quel membre de la famille **sauf l'auteur du fait** peut proposer une correction (nouvelle valeur + commentaire facultatif, même champ guidé que la réponse). L'auteur accepte ou refuse :
+- **Acceptée** : la valeur canonique du fait change, l'ancienne reste visible dans l'historique (« Corrigé le [date] : ancienne → nouvelle »), et les scores de **toutes les sessions passées** ayant utilisé ce fait sont recalculés (un même fait peut être repioché plus tard, voir « Pioche et création de session ») : les joueurs ayant répondu l'ancienne valeur passent en « annulée » (ne compte ni pour ni contre), ceux ayant répondu la nouvelle passent en « juste », les autres ne changent pas.
+- **Refusée** : les deux versions restent visibles comme une note sur le fait, sans trancher qui a raison.
+
+Implémenté via `propose_correction`/`validate_correction` (`security definer`, voir `supabase/migrations/20261109220000_corrections.sql`). Une seule correction à la fois peut être en attente par fait.
+
+**Simplifié pour l'implémentation initiale** : pas de « sans réponse » automatique (la règle du concept prévoit que l'absence de réponse de l'auteur transforme aussi la proposition en note, mais ça suppose des relances/notifications, pas encore construites) — seule une décision explicite de l'auteur (accepter/refuser) fait sortir une correction de l'état « en attente ».
 
 
 ## 9. Archives

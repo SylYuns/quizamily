@@ -12,7 +12,7 @@
 8. Écran de réponse au quiz + logique du seuil de déclenchement du premier quiz. *(écran de réponse fait en version simple — `src/app/respond.tsx` — reste : seuil de déclenchement automatique du premier quiz, verrouillage après la deadline)*
 9. Révélation automatique à la deadline, calcul des scores (4 états) + validation des réponses libres par l'auteur (notifications, révélation différée, prise de main). *(fait en version simple — `src/app/reveal.tsx` + `src/app/validate.tsx`, déclenchement manuel par l'auteur une fois tout le monde répondu et toutes les réponses libres validées — reste : automatique à la deadline même si incomplet, prise de main, notifications/relances, score cumulé inter-sessions)*
 10. Réactions/commentaires sur les faits révélés.
-11. Mécanisme de correction + recalcul rétroactif des scores.
+11. Mécanisme de correction + recalcul rétroactif des scores. *(fait — `propose_correction`/`validate_correction`, voir `docs/ecrans.md` écran 8 ; reste : UI dans les archives une fois construites, pour corriger un fait au-delà de la dernière révélation)*
 12. Archive familiale enrichie (catégories, filtres, recherche) + score de contribution + relances. La version simple des archives fait partie du MVP.
 13. Polish, puis phase 2 : push notifications + builds iOS/Android.
 
