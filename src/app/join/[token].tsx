@@ -99,7 +99,8 @@ export default function JoinFamilyScreen() {
     setError("");
     const { error: rpcError } = await supabase.rpc("join_family_with_invite", {
       p_token: token,
-      p_display_name: `${firstName.trim()} ${lastName.trim()}`.trim(),
+      p_first_name: firstName.trim(),
+      p_last_name: lastName.trim(),
       p_gender: gender,
     });
     if (rpcError) {

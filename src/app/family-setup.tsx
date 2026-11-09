@@ -114,7 +114,8 @@ export default function FamilySetupScreen() {
         family_id: familyId,
         kind: "player",
         user_id: userId,
-        display_name: `${myFirstName.trim()} ${myLastName.trim()}`.trim(),
+        first_name: myFirstName.trim(),
+        last_name: myLastName.trim(),
         gender: myGender,
       });
       if (meError) throw meError;
@@ -126,7 +127,8 @@ export default function FamilySetupScreen() {
           .insert({
             family_id: familyId,
             kind: "profile",
-            display_name: `${cp.firstName.trim()} ${cp.lastName.trim()}`.trim(),
+            first_name: cp.firstName.trim(),
+            last_name: cp.lastName.trim(),
             relationship_label: cp.relationshipLabel,
             gender: cp.gender,
             is_central: true,
@@ -146,7 +148,8 @@ export default function FamilySetupScreen() {
           .insert({
             family_id: familyId,
             kind: "profile",
-            display_name: `${child.firstName.trim()} ${child.lastName.trim()}`.trim(),
+            first_name: child.firstName.trim(),
+            last_name: child.lastName.trim(),
             gender: child.gender,
             is_central: false,
             is_deceased: child.isDeceased,

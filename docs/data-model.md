@@ -8,7 +8,13 @@ persons
   id, family_id
   kind                   -- 'player' | 'profile' (sans compte) | 'referenced' (juste mentionnée)
   user_id                -- nullable, rempli si kind='player'
-  display_name, relationship_label
+  first_name, last_name   -- stockés séparément (pas juste display_name) pour rester faciles à
+                           -- corriger/trier individuellement ; last_name peut être vide ('') si
+                           -- pas encore connu, jamais null
+  display_name            -- colonne générée (first_name || ' ' || last_name, trim) : toujours
+                           -- à jour automatiquement, en lecture seule (ne pas l'écrire dans un
+                           -- insert/update, Postgres refuse)
+  relationship_label
   gender                   -- 'homme' | 'femme' ; nullable (pas toujours connu, ex: personne juste référencée)
   is_central              -- true si "personne centrale"
   is_deceased
@@ -92,4 +98,5 @@ fact_comments
   - **Résolu (2026-11-09, suite)** : corrections (écran 8, voir `ecrans.md`) via `propose_correction`/`validate_correction` (`security definer`, voir `supabase/migrations/20261109220000_corrections.sql`) — n'importe quel membre sauf l'auteur propose, l'auteur valide, et une correction acceptée recalcule rétroactivement `question_recipients.result` ('voided' pour ceux qui avaient répondu l'ancienne valeur et étaient comptés "correct", 'correct' pour ceux qui avaient répondu la nouvelle) sur **toutes** les sessions ayant utilisé ce fait, pas que la dernière. `facts.answer_value` change ; `quiz_questions.answer_value_snapshot` ne change jamais (reste la valeur affichée au moment de la pioche, sert de référence "ancienne valeur" pour le recalcul).
 - **Rejoindre une famille** se fait via deux fonctions `security definer` (`supabase/migrations/20261106150000_invite_join_flow.sql`), pas directement par des policies sur `invites`/`families` : un visiteur pas encore membre ne peut pas les lire via RLS normale.
   - `get_invite_family_name(token)` : aperçu du nom de la famille avant de rejoindre.
-  - `join_family_with_invite(token, display_name, gender)` : crée la fiche `persons` (`kind='player'`) du nouvel arrivant. Ne redemande pas son lien de parenté avec chaque personne centrale : `relationship_label` reste pour l'instant un champ simple posé par le créateur de la famille sur sa propre perception (ex: "Grand-mère" = grand-mère du créateur), pas une relation par paire (créateur, joueur, personne centrale) — un vrai arbre par paires est repoussé à l'étape "mini arbre familial" (`relationships`).
+  - `join_family_with_invite(token, first_name, last_name, gender)` : crée la fiche `persons` (`kind='player'`) du nouvel arrivant. Ne redemande pas son lien de parenté avec chaque personne centrale : `relationship_label` reste pour l'instant un champ simple posé par le créateur de la famille sur sa propre perception (ex: "Grand-mère" = grand-mère du créateur), pas une relation par paire (créateur, joueur, personne centrale) — un vrai arbre par paires existe maintenant via `relationships` (arbre familial, voir `ecrans.md`), mais `relationship_label` lui-même n'a pas été migré vers ce modèle.
+- **`persons.first_name`/`last_name` séparés (2026-11-10)** : jusqu'ici un seul champ `display_name` texte libre, rempli en concaténant prénom/nom côté client dès la création. Migré vers deux colonnes stockées (`last_name` peut être `''`, jamais `null`) + `display_name` devenu une colonne générée (`first_name || ' ' || last_name`, stored). Toute lecture existante de `display_name` continue de fonctionner sans changement ; un insert/update ne peut plus fournir `display_name` directement (Postgres le refuse), il faut écrire `first_name`/`last_name`. Permet de corriger un nom de famille manquant (ex: "Dédé") directement dans Table Editor sans retaper le prénom.

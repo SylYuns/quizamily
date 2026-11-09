@@ -311,7 +311,8 @@ export default function AddFactScreen() {
         .insert({
           family_id: familyId,
           kind: "profile",
-          display_name: `${newSpouseFirstName.trim()} ${newSpouseLastName.trim()}`.trim(),
+          first_name: newSpouseFirstName.trim(),
+          last_name: newSpouseLastName.trim(),
           gender: newSpouseGender,
           is_central: false,
           is_deceased: false,

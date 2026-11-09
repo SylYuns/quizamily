@@ -156,7 +156,8 @@ export default function FamilyTreeScreen() {
       .insert({
         family_id: familyId,
         kind: "profile",
-        display_name: `${newPersonFirstName.trim()} ${newPersonLastName.trim()}`.trim(),
+        first_name: newPersonFirstName.trim(),
+        last_name: newPersonLastName.trim(),
         gender: newPersonGender,
         is_central: false,
         is_deceased: false,
