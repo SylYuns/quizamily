@@ -42,7 +42,8 @@ export default function FamilyTreeScreen() {
   const [submitting, setSubmitting] = useState(false);
 
   const [showAddPersonForm, setShowAddPersonForm] = useState(false);
-  const [newPersonName, setNewPersonName] = useState("");
+  const [newPersonFirstName, setNewPersonFirstName] = useState("");
+  const [newPersonLastName, setNewPersonLastName] = useState("");
   const [newPersonGender, setNewPersonGender] = useState<"homme" | "femme" | null>(null);
   const [creatingPerson, setCreatingPerson] = useState(false);
 
@@ -139,13 +140,14 @@ export default function FamilyTreeScreen() {
 
   function resetPersonForm() {
     setShowAddPersonForm(false);
-    setNewPersonName("");
+    setNewPersonFirstName("");
+    setNewPersonLastName("");
     setNewPersonGender(null);
     setError("");
   }
 
   async function createPerson() {
-    if (!familyId || newPersonName.trim().length === 0) return;
+    if (!familyId || newPersonFirstName.trim().length === 0 || newPersonLastName.trim().length === 0) return;
     setCreatingPerson(true);
     setError("");
 
@@ -154,7 +156,7 @@ export default function FamilyTreeScreen() {
       .insert({
         family_id: familyId,
         kind: "profile",
-        display_name: newPersonName.trim(),
+        display_name: `${newPersonFirstName.trim()} ${newPersonLastName.trim()}`.trim(),
         gender: newPersonGender,
         is_central: false,
         is_deceased: false,
@@ -288,9 +290,15 @@ export default function FamilyTreeScreen() {
           <View style={styles.card}>
             <ThemedText type="smallBold">Ajouter une personne</ThemedText>
             <TextInput
-              value={newPersonName}
-              onChangeText={setNewPersonName}
-              placeholder="Prénom et nom"
+              value={newPersonFirstName}
+              onChangeText={setNewPersonFirstName}
+              placeholder="Prénom"
+              style={styles.input}
+            />
+            <TextInput
+              value={newPersonLastName}
+              onChangeText={setNewPersonLastName}
+              placeholder="Nom"
               style={styles.input}
             />
             <View style={styles.chipsRow}>
@@ -310,7 +318,10 @@ export default function FamilyTreeScreen() {
             {error.length > 0 && <ThemedText themeColor="text">{error}</ThemedText>}
 
             <View style={styles.actionsRow}>
-              <Pressable onPress={createPerson} disabled={creatingPerson || newPersonName.trim().length === 0}>
+              <Pressable
+                onPress={createPerson}
+                disabled={creatingPerson || newPersonFirstName.trim().length === 0 || newPersonLastName.trim().length === 0}
+              >
                 <ThemedText type="linkPrimary">{creatingPerson ? "Création…" : "Enregistrer"}</ThemedText>
               </Pressable>
               <Pressable onPress={resetPersonForm}>

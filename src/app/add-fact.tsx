@@ -120,7 +120,8 @@ export default function AddFactScreen() {
 
   const [relatedPersonId, setRelatedPersonId] = useState<string | null>(null);
   const [showSpouseCreator, setShowSpouseCreator] = useState(false);
-  const [newSpouseName, setNewSpouseName] = useState("");
+  const [newSpouseFirstName, setNewSpouseFirstName] = useState("");
+  const [newSpouseLastName, setNewSpouseLastName] = useState("");
   const [newSpouseGender, setNewSpouseGender] = useState<"homme" | "femme" | null>(null);
   const [creatingSpouse, setCreatingSpouse] = useState(false);
   const [slotValues, setSlotValues] = useState<Record<string, string>>({});
@@ -293,13 +294,14 @@ export default function AddFactScreen() {
     setFiltersCollapsed(true);
     setSlotValues({});
     setShowSpouseCreator(false);
-    setNewSpouseName("");
+    setNewSpouseFirstName("");
+    setNewSpouseLastName("");
     setNewSpouseGender(null);
     setRelatedPersonId(t.related_role && subjectId ? findRelatedPersonId(relationships, subjectId) : null);
   }
 
   async function createSpouse() {
-    if (!subjectId || !familyId || newSpouseName.trim().length === 0) return;
+    if (!subjectId || !familyId || newSpouseFirstName.trim().length === 0 || newSpouseLastName.trim().length === 0) return;
     setCreatingSpouse(true);
     setError("");
 
@@ -309,7 +311,7 @@ export default function AddFactScreen() {
         .insert({
           family_id: familyId,
           kind: "profile",
-          display_name: newSpouseName.trim(),
+          display_name: `${newSpouseFirstName.trim()} ${newSpouseLastName.trim()}`.trim(),
           gender: newSpouseGender,
           is_central: false,
           is_deceased: false,
@@ -327,7 +329,8 @@ export default function AddFactScreen() {
       ]);
       setRelatedPersonId(spouse.id);
       setShowSpouseCreator(false);
-      setNewSpouseName("");
+      setNewSpouseFirstName("");
+      setNewSpouseLastName("");
       setNewSpouseGender(null);
     } catch (e) {
       const message = typeof e === "object" && e !== null && "message" in e ? String(e.message) : null;
@@ -414,7 +417,8 @@ export default function AddFactScreen() {
     setRelatedPersonId(null);
     setSlotValues({});
     setShowSpouseCreator(false);
-    setNewSpouseName("");
+    setNewSpouseFirstName("");
+    setNewSpouseLastName("");
     setNewSpouseGender(null);
     setRefreshKey((k) => k + 1); // force a refetch so the just-created fact's template disappears
   }
@@ -650,9 +654,15 @@ export default function AddFactScreen() {
                   {showSpouseCreator && (
                     <View style={{ gap: Spacing.two }}>
                       <TextInput
-                        value={newSpouseName}
-                        onChangeText={setNewSpouseName}
-                        placeholder="Prénom et nom"
+                        value={newSpouseFirstName}
+                        onChangeText={setNewSpouseFirstName}
+                        placeholder="Prénom"
+                        style={styles.input}
+                      />
+                      <TextInput
+                        value={newSpouseLastName}
+                        onChangeText={setNewSpouseLastName}
+                        placeholder="Nom"
                         style={styles.input}
                       />
                       <View style={styles.chipsRow}>
@@ -670,10 +680,12 @@ export default function AddFactScreen() {
                       </View>
                       <Pressable
                         onPress={createSpouse}
-                        disabled={creatingSpouse || newSpouseName.trim().length === 0}
+                        disabled={creatingSpouse || newSpouseFirstName.trim().length === 0 || newSpouseLastName.trim().length === 0}
                         style={[
                           styles.secondaryButton,
-                          (creatingSpouse || newSpouseName.trim().length === 0) && { opacity: 0.6 },
+                          (creatingSpouse || newSpouseFirstName.trim().length === 0 || newSpouseLastName.trim().length === 0) && {
+                            opacity: 0.6,
+                          },
                         ]}
                       >
                         <ThemedText>{creatingSpouse ? "Création…" : "Ajouter cette personne"}</ThemedText>
