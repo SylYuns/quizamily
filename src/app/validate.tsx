@@ -19,6 +19,7 @@ export default function ValidateScreen() {
   const [error, setError] = useState("");
 
   const [quizQuestionId, setQuizQuestionId] = useState<string | null>(null);
+  const [readyToValidate, setReadyToValidate] = useState(true);
   const [autoValidated, setAutoValidated] = useState<AnswerGroup[]>([]);
   const [pending, setPending] = useState<AnswerGroup[]>([]);
   const [decidingValue, setDecidingValue] = useState<string | null>(null);
@@ -31,6 +32,7 @@ export default function ValidateScreen() {
       setError(rpcError.message);
       return;
     }
+    setReadyToValidate((data?.readyToValidate as boolean | undefined) ?? true);
     setAutoValidated((data?.autoValidated as AnswerGroup[] | undefined) ?? []);
     setPending((data?.pending as AnswerGroup[] | undefined) ?? []);
   }
@@ -148,7 +150,12 @@ export default function ValidateScreen() {
 
         {error.length > 0 && <ThemedText themeColor="text">{error}</ThemedText>}
 
-        {pending.length === 0 ? (
+        {!readyToValidate ? (
+          <ThemedText themeColor="textSecondary">
+            Pas encore assez de réponses reçues pour valider de façon anonyme. Reviens un peu plus tard, ou une fois
+            que presque tout le monde aura répondu.
+          </ThemedText>
+        ) : pending.length === 0 ? (
           <ThemedText themeColor="textSecondary">
             Tout est validé ! Tu peux retourner à l&apos;accueil pour déclencher la révélation.
           </ThemedText>
