@@ -101,7 +101,7 @@ Actions :
 
 ## 5. Ajouter un fait
 
-But : renseigner une information sur une personne centrale, et retrouver les faits qu'on a déjà créés.
+But : renseigner une information sur un membre de la famille, et retrouver les faits qu'on a déjà créés.
 
 ### Mes faits
 
@@ -113,24 +113,21 @@ Actions :
 
 ### Nouveau fait
 
-Étapes :
-1. Choisir la personne centrale (étape sautée s'il n'y en a qu'une)
-2. Choisir une question dans le catalogue, présentée par catégorie et filtrée selon les conditions (femme, homme, vivant, a un conjoint…). Les questions déjà renseignées pour cette personne centrale, par n'importe quel membre, sont masquées : on ne peut pas créer deux fois la même question.
-3. Si la question implique une personne liée (`<conjoint>`) : la choisir, ou la créer si elle n'existe pas encore
-4. Si la question a un élément à choisir (`<pays>`) : le choisir
-5. Saisir la réponse avec le champ du type de la question
-6. Ajouter une anecdote ou un contexte, et/ou une pièce jointe (photo, audio) (facultatif), affichés à la révélation — pièces jointes hors MVP (roadmap)
+Un seul écran (pas un assistant multi-étapes), avec 4 zones :
+
+1. **Choix du sujet** : des cases représentant des personnes (photo ou, par défaut, un placeholder — initiales/icône), les personnes centrales en premier. La première est présélectionnée à l'arrivée sur l'écran. Une dernière case "autre" ouvre la liste complète de la famille. Le sujet n'est plus limité aux personnes centrales (elles restent juste prioritaires, y compris pour la pioche plus tard — voir `concept.md`).
+2. **Thèmes** : des chips filtrant le catalogue par catégorie, calculées dynamiquement à partir des questions encore disponibles pour le sujet choisi (pas un nombre figé) — les plus pertinentes affichées, un "+" pour voir les autres. Optionnel : sans thème choisi, la recherche porte sur tout le catalogue éligible.
+3. **Recherche** : un champ de recherche textuelle dynamique (ex: taper "école" pour trouver les questions liées à l'école), qui filtre en direct la liste des questions (déjà filtrée par thème si un thème est choisi, et par les conditions du sujet : femme/homme/vivant/a des frères et sœurs — et par les questions déjà posées pour ce sujet, qu'on ne peut pas créer deux fois).
+4. **Question + réponse** : une fois une question choisie dans les résultats, elle s'affiche, suivie du champ de réponse adapté à son type, puis de l'anecdote/contexte optionnelle (+ pièce jointe, hors MVP).
 → Confirmation, puis « Ajouter un autre fait » ou retour à l'accueil
 
 Cas particuliers :
 - Type liste : l'entrée n'existe pas → « Ajouter » (visible tout de suite dans la famille, base globale après validation)
 - Type lieu : choix entre pays et commune
 
-**À travailler** : la présentation du catalogue, pour que l'utilisateur trouve le plus facilement possible la question qu'il veut créer.
+**Unicité** : une question ne peut être créée qu'une fois pour la combinaison question + sujet + personne liée ou élément choisi. Par exemple, « voyage en <pays> » peut être créée une fois par pays, et « date de mariage » une fois par conjoint en cas de remariage.
 
-**Unicité** : une question ne peut être créée qu'une fois pour la combinaison question + personne centrale + personne liée ou élément choisi. Par exemple, « voyage en <pays> » peut être créée une fois par pays, et « date de mariage » une fois par conjoint en cas de remariage.
-
-**Simplifié pour l'implémentation initiale** : seules les questions **sans personne liée (`<conjoint>`) et sans élément à choisir (`<pays>`)**, et pas de type `city`/`place`, sont proposées (24 des 32 templates). Les 8 restants demandent une UI de choix/création de personne liée, pas encore construite. Pas de section « Mes faits » (liste/modifier/supprimer) non plus pour l'instant — seul « Nouveau fait » est construit.
+**Simplifié pour l'implémentation initiale** : seules les questions **sans personne liée (`<conjoint>`) et sans élément à choisir (`<pays>`)**, et pas de type `city`/`place`, sont proposées (24 des 32 templates). Les 8 restants demandent une UI de choix/création de personne liée, pas encore construite. Pas de section « Mes faits » (liste/modifier/supprimer) non plus pour l'instant — seul « Nouveau fait » est construit. Photos des personnes : placeholder pour l'instant, le vrai upload est un chantier séparé.
 
 
 ## 6. Répondre

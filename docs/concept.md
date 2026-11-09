@@ -51,7 +51,7 @@ Catalogue de prompts (centré sur les personnes centrales) → ajout d'une info 
 
 ## Pioche des questions
 
-Priorité : jamais posé > posé il y a longtemps > posé récemment (fraîcheur), avec répartition entre auteurs différents pour que la contribution de chacun ait une vraie chance d'être jouée. **En V1, 100% des questions portent sur les personnes centrales** (pas de mix avec d'autres membres pour l'instant).
+Priorité : jamais posé > posé il y a longtemps > posé récemment (fraîcheur), avec répartition entre auteurs différents pour que la contribution de chacun ait une vraie chance d'être jouée. **Les personnes centrales restent prioritaires, mais ne sont plus les seuls sujets possibles** (règle assouplie le 2026-11-09 : au départ, on avait prévu 100% personnes centrales ; on autorise maintenant des faits — et donc des questions — sur n'importe quel membre, avec une pondération qui privilégie les personnes centrales).
 
 ## Scoring
 
