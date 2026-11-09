@@ -23,6 +23,7 @@ export default function HomeScreen() {
   const [noSession, setNoSession] = useState(false);
   const [creatingSession, setCreatingSession] = useState(false);
   const [sessionMessage, setSessionMessage] = useState<string | null>(null);
+  const [openSessionClosesAt, setOpenSessionClosesAt] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -69,6 +70,17 @@ export default function HomeScreen() {
               const origin = typeof window !== "undefined" ? window.location.origin : "";
               setInviteLink(`${origin}/join/${inviteRow.token}`);
             }
+
+            const { data: openSession } = await supabase
+              .from("quiz_sessions")
+              .select("closes_at")
+              .eq("family_id", firstFamilyId)
+              .eq("status", "open")
+              .limit(1)
+              .maybeSingle();
+            if (openSession && !cancelled) {
+              setOpenSessionClosesAt(openSession.closes_at);
+            }
           }
         }
         setLoading(false);
@@ -113,6 +125,7 @@ export default function HomeScreen() {
       setSessionMessage(`Erreur : ${message}`);
     } else {
       setSessionMessage(`Session créée : ${data.recipientsCreated} réponse(s) attendue(s).`);
+      setOpenSessionClosesAt(data.closesAt);
     }
 
     setCreatingSession(false);
@@ -195,27 +208,39 @@ export default function HomeScreen() {
         <ThemedText type="linkPrimary">Mes faits</ThemedText>
       </Pressable>
 
-      <ThemedView style={{ gap: Spacing.two, alignItems: "center" }}>
-        <Pressable
-          onPress={createQuizSession}
-          disabled={creatingSession}
-          style={{
-            borderWidth: 1,
-            borderColor: "#999999",
-            borderRadius: 8,
-            paddingVertical: Spacing.three,
-            paddingHorizontal: Spacing.four,
-            opacity: creatingSession ? 0.6 : 1,
-          }}
-        >
-          <ThemedText>{creatingSession ? "Création…" : "Créer une session de quiz (déclenchement manuel)"}</ThemedText>
-        </Pressable>
-        {sessionMessage && (
+      {openSessionClosesAt ? (
+        <ThemedView style={{ gap: Spacing.two, alignItems: "center" }}>
           <ThemedText themeColor="textSecondary" style={{ textAlign: "center", maxWidth: 320 }}>
-            {sessionMessage}
+            Une session est en cours, jusqu&apos;au{" "}
+            {new Date(openSessionClosesAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}.
           </ThemedText>
-        )}
-      </ThemedView>
+          <Pressable onPress={() => router.push("/respond")}>
+            <ThemedText type="linkPrimary">Répondre</ThemedText>
+          </Pressable>
+        </ThemedView>
+      ) : (
+        <ThemedView style={{ gap: Spacing.two, alignItems: "center" }}>
+          <Pressable
+            onPress={createQuizSession}
+            disabled={creatingSession}
+            style={{
+              borderWidth: 1,
+              borderColor: "#999999",
+              borderRadius: 8,
+              paddingVertical: Spacing.three,
+              paddingHorizontal: Spacing.four,
+              opacity: creatingSession ? 0.6 : 1,
+            }}
+          >
+            <ThemedText>{creatingSession ? "Création…" : "Créer une session de quiz (déclenchement manuel)"}</ThemedText>
+          </Pressable>
+          {sessionMessage && (
+            <ThemedText themeColor="textSecondary" style={{ textAlign: "center", maxWidth: 320 }}>
+              {sessionMessage}
+            </ThemedText>
+          )}
+        </ThemedView>
+      )}
 
       <ThemedText themeColor="textSecondary" style={{ textAlign: "center", maxWidth: 320 }}>
         (Accueil famille complet à construire — pour l&apos;instant, juste la confirmation que la famille existe.)

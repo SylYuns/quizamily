@@ -9,7 +9,7 @@
 5. Mini arbre familial (vue simple des personnes + relations).
 6. Logique de pioche pondérée (fraîcheur + répartition auteurs) + Edge Function de création de session. *(fait : `supabase/functions/create-quiz-session`, déclenchement manuel pour l'instant — pas encore de tâche planifiée hebdomadaire, voir `docs/ecrans.md`)*
 7. Emails (nouvelle session, rappel, résultats).
-8. Écran de réponse au quiz + logique du seuil de déclenchement du premier quiz.
+8. Écran de réponse au quiz + logique du seuil de déclenchement du premier quiz. *(écran de réponse fait en version simple — `src/app/respond.tsx` — reste : seuil de déclenchement automatique du premier quiz, verrouillage après la deadline)*
 9. Révélation automatique à la deadline, calcul des scores (4 états) + validation des réponses libres par l'auteur (notifications, révélation différée, prise de main).
 10. Réactions/commentaires sur les faits révélés.
 11. Mécanisme de correction + recalcul rétroactif des scores.

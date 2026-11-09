@@ -130,7 +130,7 @@ Actions :
 - Modifier ou supprimer un fait **pas encore posé** (réponse, anecdote) — suppression avec confirmation
 - Un fait posé ou révélé ne se modifie plus et ne se supprime plus : il passe par le mécanisme de correction (hors MVP)
 
-**Simplifié pour l'implémentation initiale** : tant que la pioche/session de quiz n'existe pas (roadmap étape 6), aucun fait n'a jamais de statut « posé » ou « révélé » — l'écran affiche donc toujours « pas encore posé ». Le vrai calcul du statut (via l'existence d'une ligne `quiz_questions` liée) viendra avec la pioche. Modifier la **personne liée** d'un fait n'est pas encore possible (dépend de la même UI que la création d'un fait avec personne liée, pas encore construite).
+**Simplifié pour l'implémentation initiale** : l'écran affiche toujours « pas encore posé », même pour un fait réellement posé dans une session (la pioche existe depuis le 2026-11-09, mais `my-facts.tsx` n'a pas encore été mis à jour pour vérifier l'existence d'une ligne `quiz_questions` liée - à corriger). Modifier la **personne liée** d'un fait n'est pas encore possible (dépend de la même UI que la création d'un fait avec personne liée, pas encore construite).
 
 ### Nouveau fait
 
@@ -170,6 +170,8 @@ Actions :
 Cas particuliers :
 - Type liste : l'entrée n'existe pas → « Ajouter »
 - Le joueur est le sujet de la question (personne centrale avec un compte) : dans l'idéal, la question est formulée à la 2e personne (« En quelle année avez-vous pris l'avion… »). Pas prioritaire, même chantier technique que l'accord au féminin.
+
+**Simplifié pour l'implémentation initiale** (`src/app/respond.tsx`) : pas de notion de « question suivante » (une session n'a qu'une seule question, voir `concept.md`) — après validation, retour à l'accueil. Type liste : pas encore de bouton « Ajouter » pour une nouvelle valeur côté réponse (le champ réutilise `AnswerInput`, qui le permet déjà — à vérifier/activer). Pas de notification ni de blocage après la deadline : rien ne ferme encore automatiquement une session passée sa `closes_at` (dépend de la révélation automatique, écran 8/roadmap étape 9) donc « modifier sa réponse jusqu'à la deadline » n'est pas encore appliqué strictement. Pas de correction de score affichée (pas de QCM, pas de retour immédiat juste/faux - la correctness n'est révélée qu'à l'écran 8, pas encore construit).
 
 
 ## 7. Valider les réponses libres
