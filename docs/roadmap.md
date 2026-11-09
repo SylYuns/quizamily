@@ -2,7 +2,7 @@
 
 ## État actuel (2026-11-10)
 
-Le MVP fonctionne de bout en bout en version simple, testé avec des comptes jetables et avec un deuxième vrai compte. Construit : auth, création/rejoindre une famille (avec « réclamer un profil existant »), ajout de faits (32/32 templates, y compris personne liée `<conjoint>` et élément choisi `<pays>`), « Mes faits » (modifier/supprimer, statut posé/révélé correct), pioche (manuelle + automatique hebdomadaire), réponse, validation des réponses libres (anonyme), révélation (manuelle + automatique à la deadline), correction d'un fait avec recalcul rétroactif des scores, et archives en version simple — étapes 1 à 4, 6 à 9, 11 et 12 (version simple) de la liste ci-dessous. Pas commencé : étapes 5, 7, 10, 13.
+Le MVP fonctionne de bout en bout en version simple, testé avec des comptes jetables et avec un deuxième vrai compte. Construit : auth, création/rejoindre une famille (avec « réclamer un profil existant »), ajout de faits (32/32 templates, y compris personne liée `<conjoint>` et élément choisi `<pays>`), « Mes faits » (modifier/supprimer, statut posé/révélé correct), mini arbre familial (lecture + ajout de relations), pioche (manuelle + automatique hebdomadaire), réponse, validation des réponses libres (anonyme), révélation (manuelle + automatique à la deadline), correction d'un fait avec recalcul rétroactif des scores, et archives en version simple — étapes 1 à 6, 8, 9, 11 et 12 (version simple) de la liste ci-dessous. Pas commencé : étapes 7, 10, 13.
 
 **Pour reprendre le travail (ex. depuis un autre ordinateur)** : voir « Points à décider » et « Prochains sujets » plus bas sur cette page.
 
@@ -12,7 +12,7 @@ Le MVP fonctionne de bout en bout en version simple, testé avec des comptes jet
 2. Auth + création famille + désignation des personnes centrales + relations de départ.
 3. Invitations (lien) + flux de rejoindre une famille.
 4. Catalogue de templates + formulaire d'ajout de fait (champs guidés par type) + « Mes faits ». *(fait — 32/32 templates, y compris la résolution d'une personne liée (`<conjoint>` : détection automatique si déjà connue, sinon choix parmi les personnes existantes ou création à la volée) et le choix d'un élément (`<pays>`), voir migration `20261109250000_linked_person_and_slot_templates.sql` ; section « Mes faits » avec modifier/supprimer et statut posé/révélé correct)*
-5. Mini arbre familial (vue simple des personnes + relations).
+5. Mini arbre familial (vue simple des personnes + relations). *(fait — `src/app/family-tree.tsx` : une carte par personne centrale avec conjoint·e/parents/frères et sœurs/enfants, liste des autres membres, et formulaire pour lier deux personnes existantes (conjoint ou parent-enfant) ; reste : vraie capture par paire du lien de parenté du créateur avec chaque personne centrale, voir écran 2 dans `docs/ecrans.md`)*
 6. Logique de pioche pondérée (fraîcheur + répartition auteurs) + Edge Function de création de session. *(fait : `supabase/functions/create-quiz-session` pour le déclenchement manuel, plus `auto_create_quiz_sessions()` + tâche `pg_cron` hebdomadaire (lundi 8h) pour le déclenchement automatique — voir étape 9 pour le détail du cron)*
 7. Emails (nouvelle session, rappel, résultats).
 8. Écran de réponse au quiz + logique du seuil de déclenchement du premier quiz. *(écran de réponse fait en version simple — `src/app/respond.tsx` ; seuil appliqué : la pioche automatique ne se déclenche que pour une famille ayant au moins 3 joueurs, voir « Décisions déjà prises » — reste : verrouillage de la réponse après la deadline, actuellement sans effet puisque la révélation auto absorbe ce cas)*
@@ -74,13 +74,13 @@ Décisions de produit ou de sécurité pas encore tranchées — à trancher ava
 - Seuil du quiz automatique : au moins 3 joueurs dans la famille, sinon la pioche automatique hebdomadaire ne se déclenche pas pour cette famille (`auto_create_quiz_sessions()`, voir migration `20261109240000_automatic_triggering.sql`).
 - Déclenchement automatique (2026-11-10) : pioche hebdomadaire (lundi 8h) et révélation à la deadline (vérifiée toutes les heures, réponses manquantes/en attente comptées fausses) tournent via `pg_cron`, en plus des boutons manuels qui restent disponibles (pioche immédiate, révélation dès que tout le monde a répondu).
 - Pas de choix entre plusieurs conjoints en cas de remariage (2026-11-10) : `<conjoint>` se résout sur la première relation `spouse_of` trouvée pour la personne centrale. Suffisant pour le MVP, à revoir si un cas réel de remariage se présente.
+- Arbre familial en lecture + ajout de relations, pas de suppression/modification (2026-11-10) : une relation ajoutée par erreur se corrige directement en base pour l'instant. Pas de création de nouvelle personne depuis cet écran non plus (ça reste via la création de famille ou, pour un conjoint, via l'ajout d'un fait).
 - Resend reste l'envoyeur d'email (sandbox, pas de domaine acheté) — ne pas reproposer de le désactiver.
 - Catalogue de templates géré par nous, pas par les familles, en V1.
 - Pas de maximum technique sur le nombre de personnes centrales (recommandation UI : 1 à 4). Une nouvelle personne centrale peut être ajoutée à tout moment, sans gatekeeper.
 
 ## Prochains sujets (à choisir, ou proposer autre chose)
 
-- Mini arbre familial (étape 5, vue simple des personnes et de leurs relations).
 - Emails/notifications (nouvelle session, rappels, résultats, relances de validation) + « prise de main ».
 - Enrichissement des archives (étape 12) : regroupement par catégorie, auteur/anecdote/date de révélation/taux de bonnes réponses par fait, recherche par mot-clé, frise chronologique.
 - Réactions/commentaires sur les faits révélés.

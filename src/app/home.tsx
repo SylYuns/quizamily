@@ -256,6 +256,10 @@ export default function HomeScreen() {
         <ThemedText type="linkPrimary">Consulter les archives</ThemedText>
       </Pressable>
 
+      <Pressable onPress={() => router.push("/family-tree")}>
+        <ThemedText type="linkPrimary">Arbre familial</ThemedText>
+      </Pressable>
+
       {openSessionClosesAt && (
         <ThemedView style={{ gap: Spacing.two, alignItems: "center" }}>
           <ThemedText themeColor="textSecondary" style={{ textAlign: "center", maxWidth: 320 }}>
