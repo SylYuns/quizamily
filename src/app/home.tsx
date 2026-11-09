@@ -1,5 +1,5 @@
 import * as Clipboard from "expo-clipboard";
-import { Redirect } from "expo-router";
+import { Redirect, router } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable } from "react-native";
 
@@ -19,6 +19,7 @@ export default function HomeScreen() {
   const [families, setFamilies] = useState<MyFamily[]>([]);
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [noSession, setNoSession] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -27,7 +28,10 @@ export default function HomeScreen() {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData.user?.id;
       if (!userId) {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setNoSession(true);
+          setLoading(false);
+        }
         return;
       }
 
@@ -88,6 +92,10 @@ export default function HomeScreen() {
     );
   }
 
+  if (noSession) {
+    return <Redirect href="/" />;
+  }
+
   if (families.length === 0) {
     return <Redirect href="/family-setup" />;
   }
@@ -136,6 +144,18 @@ export default function HomeScreen() {
           </Pressable>
         </ThemedView>
       )}
+
+      <Pressable
+        onPress={() => router.push("/add-fact")}
+        style={{
+          backgroundColor: "#3c87f7",
+          borderRadius: 8,
+          paddingVertical: Spacing.three,
+          paddingHorizontal: Spacing.four,
+        }}
+      >
+        <ThemedText style={{ color: "#ffffff" }}>Ajouter un fait</ThemedText>
+      </Pressable>
 
       <ThemedText themeColor="textSecondary" style={{ textAlign: "center", maxWidth: 320 }}>
         (Accueil famille complet à construire — pour l&apos;instant, juste la confirmation que la famille existe.)

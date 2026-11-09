@@ -54,12 +54,13 @@ export default function JoinFamilyScreen() {
   useEffect(() => {
     if (!session || !token) return;
     let cancelled = false;
-    setLoadingPreview(true);
 
-    Promise.all([
-      supabase.rpc("get_invite_family_name", { p_token: token }),
-      supabase.rpc("get_invite_unclaimed_persons", { p_token: token }),
-    ]).then(([nameResult, personsResult]) => {
+    async function loadPreview() {
+      setLoadingPreview(true);
+      const [nameResult, personsResult] = await Promise.all([
+        supabase.rpc("get_invite_family_name", { p_token: token }),
+        supabase.rpc("get_invite_unclaimed_persons", { p_token: token }),
+      ]);
       if (cancelled) return;
       if (nameResult.error || !nameResult.data) {
         setPreviewError("Ce lien d'invitation est invalide ou a expiré.");
@@ -70,8 +71,9 @@ export default function JoinFamilyScreen() {
         setMode(persons.length > 0 ? "choose" : "create");
       }
       setLoadingPreview(false);
-    });
+    }
 
+    loadPreview();
     return () => {
       cancelled = true;
     };

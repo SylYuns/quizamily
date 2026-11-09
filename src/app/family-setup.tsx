@@ -1,5 +1,5 @@
 import * as Clipboard from "expo-clipboard";
-import { router } from "expo-router";
+import { Redirect, router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from "react-native";
 
@@ -62,9 +62,13 @@ export default function FamilySetupScreen() {
   const [error, setError] = useState("");
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [checkedAuth, setCheckedAuth] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
+    supabase.auth.getUser().then(({ data }) => {
+      setUserId(data.user?.id ?? null);
+      setCheckedAuth(true);
+    });
   }, []);
 
   function updateCentralPerson(index: number, patch: Partial<CentralPerson>) {
@@ -198,6 +202,10 @@ export default function FamilySetupScreen() {
     .map((cp) => cp.firstName.trim())
     .filter((n) => n.length > 0)
     .join(" et ");
+
+  if (checkedAuth && !userId) {
+    return <Redirect href="/" />;
+  }
 
   return (
     <ThemedView style={{ flex: 1 }}>
