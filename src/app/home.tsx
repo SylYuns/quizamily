@@ -15,6 +15,34 @@ type MyFamily = {
   displayName: string;
 };
 
+async function checkIsRecipientForSession(familyId: string, userId: string, sessionId: string): Promise<boolean> {
+  const { data: myPerson } = await supabase
+    .from("persons")
+    .select("id")
+    .eq("family_id", familyId)
+    .eq("user_id", userId)
+    .eq("kind", "player")
+    .limit(1)
+    .maybeSingle();
+  if (!myPerson) return true;
+
+  const { data: quizQuestion } = await supabase
+    .from("quiz_questions")
+    .select("id")
+    .eq("session_id", sessionId)
+    .limit(1)
+    .maybeSingle();
+  if (!quizQuestion) return true;
+
+  const { data: recipient } = await supabase
+    .from("question_recipients")
+    .select("id")
+    .eq("quiz_question_id", quizQuestion.id)
+    .eq("person_id", myPerson.id)
+    .maybeSingle();
+  return !!recipient;
+}
+
 export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [families, setFamilies] = useState<MyFamily[]>([]);
@@ -24,6 +52,7 @@ export default function HomeScreen() {
   const [creatingSession, setCreatingSession] = useState(false);
   const [sessionMessage, setSessionMessage] = useState<string | null>(null);
   const [openSessionClosesAt, setOpenSessionClosesAt] = useState<string | null>(null);
+  const [isRecipient, setIsRecipient] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -73,13 +102,15 @@ export default function HomeScreen() {
 
             const { data: openSession } = await supabase
               .from("quiz_sessions")
-              .select("closes_at")
+              .select("id, closes_at")
               .eq("family_id", firstFamilyId)
               .eq("status", "open")
               .limit(1)
               .maybeSingle();
             if (openSession && !cancelled) {
               setOpenSessionClosesAt(openSession.closes_at);
+              const amIRecipient = await checkIsRecipientForSession(firstFamilyId, userId, openSession.id);
+              if (!cancelled) setIsRecipient(amIRecipient);
             }
           }
         }
@@ -105,6 +136,9 @@ export default function HomeScreen() {
     setCreatingSession(true);
     setSessionMessage(null);
 
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+
     const { data, error } = await supabase.functions.invoke("create-quiz-session", {
       body: { family_id: familyId },
     });
@@ -126,6 +160,9 @@ export default function HomeScreen() {
     } else {
       setSessionMessage(`Session créée : ${data.recipientsCreated} réponse(s) attendue(s).`);
       setOpenSessionClosesAt(data.closesAt);
+      if (userId) {
+        setIsRecipient(await checkIsRecipientForSession(familyId, userId, data.sessionId));
+      }
     }
 
     setCreatingSession(false);
@@ -215,7 +252,7 @@ export default function HomeScreen() {
             {new Date(openSessionClosesAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}.
           </ThemedText>
           <Pressable onPress={() => router.push("/respond")}>
-            <ThemedText type="linkPrimary">Répondre</ThemedText>
+            <ThemedText type="linkPrimary">{isRecipient ? "Répondre" : "Voir ma question"}</ThemedText>
           </Pressable>
         </ThemedView>
       ) : (

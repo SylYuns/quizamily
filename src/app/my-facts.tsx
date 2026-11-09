@@ -7,6 +7,7 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Spacing } from "@/constants/theme";
 import { parseAnswerValue } from "@/lib/answer-value";
+import { formatAnswerDisplay } from "@/lib/format-answer";
 import { ensureListItemExists } from "@/lib/list-items";
 import { supabase } from "@/lib/supabase";
 import { Template } from "@/types/question-template";
@@ -19,14 +20,6 @@ type Fact = {
   template: Template;
   subjectName: string;
 };
-
-function formatAnswerDisplay(kind: string, value: string | number): string {
-  if (kind === "date" && typeof value === "string") {
-    const [y, m, d] = value.split("-");
-    if (y && m && d) return `${d}/${m}/${y}`;
-  }
-  return String(value);
-}
 
 function formatCreatedAt(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });

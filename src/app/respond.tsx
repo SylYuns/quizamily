@@ -7,6 +7,7 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Spacing } from "@/constants/theme";
 import { parseAnswerValue } from "@/lib/answer-value";
+import { formatAnswerDisplay } from "@/lib/format-answer";
 import { supabase } from "@/lib/supabase";
 import { Template } from "@/types/question-template";
 
@@ -19,6 +20,12 @@ type QuestionState = {
   subjectName: string;
   currentAnswer: string | number | null;
   result: string;
+};
+
+type OwnQuestionState = {
+  questionText: string;
+  answerDisplay: string;
+  contextText: string | null;
 };
 
 function normalize(value: string): string {
@@ -47,6 +54,8 @@ export default function RespondScreen() {
   const [familyId, setFamilyId] = useState<string | null>(null);
   const [sessionClosesAt, setSessionClosesAt] = useState<string | null>(null);
   const [question, setQuestion] = useState<QuestionState | null>(null);
+  const [ownQuestion, setOwnQuestion] = useState<OwnQuestionState | null>(null);
+  const [notParticipating, setNotParticipating] = useState(false);
 
   const [answerValue, setAnswerValue] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -92,7 +101,7 @@ export default function RespondScreen() {
       const { data: quizQuestion } = await supabase
         .from("quiz_questions")
         .select(
-          "id, answer_value_snapshot, facts (subject_person_id, question_templates (*), persons:subject_person_id (display_name))",
+          "id, answer_value_snapshot, facts (author_person_id, context_text, answer_value, subject_person_id, question_templates (*), persons:subject_person_id (display_name))",
         )
         .eq("session_id", session.id)
         .limit(1)
@@ -103,6 +112,15 @@ export default function RespondScreen() {
         return;
       }
 
+      const facts = quizQuestion.facts as unknown as {
+        author_person_id: string;
+        context_text: string | null;
+        answer_value: string | number;
+        subject_person_id: string;
+        question_templates: Template;
+        persons: { display_name: string } | null;
+      };
+
       const { data: recipient } = await supabase
         .from("question_recipients")
         .select("id, answer_given, result")
@@ -112,16 +130,23 @@ export default function RespondScreen() {
 
       if (cancelled) return;
       if (!recipient) {
-        // Pas destinataire de cette question (probablement l'auteur du fait).
+        if (facts.author_person_id === me.id) {
+          const questionText = facts.question_templates.template_text.replace(
+            "<sujet>",
+            facts.persons?.display_name ?? "?",
+          );
+          setOwnQuestion({
+            questionText,
+            answerDisplay: formatAnswerDisplay(facts.question_templates.answer_input_kind, facts.answer_value),
+            contextText: facts.context_text,
+          });
+        } else {
+          // Ni destinataire, ni auteur : a rejoint la famille après la création de la session.
+          setNotParticipating(true);
+        }
         setReady(true);
         return;
       }
-
-      const facts = quizQuestion.facts as unknown as {
-        subject_person_id: string;
-        question_templates: Template;
-        persons: { display_name: string } | null;
-      };
 
       const q: QuestionState = {
         recipientId: recipient.id,
@@ -185,13 +210,37 @@ export default function RespondScreen() {
     );
   }
 
+  if (ownQuestion) {
+    return (
+      <ThemedView style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.container}>
+          <ThemedText type="title">Ma question</ThemedText>
+          <ThemedText themeColor="textSecondary">
+            C&apos;est toi qui as posé cette question : les autres joueurs y répondent en ce moment, tu ne peux pas y
+            participer toi-même.
+          </ThemedText>
+
+          <View style={styles.card}>
+            <ThemedText type="smallBold">{ownQuestion.questionText}</ThemedText>
+          </View>
+          <ThemedText>Réponse : {ownQuestion.answerDisplay}</ThemedText>
+          {ownQuestion.contextText && <ThemedText themeColor="textSecondary">{ownQuestion.contextText}</ThemedText>}
+
+          <Pressable onPress={() => router.replace("/home")}>
+            <ThemedText type="linkPrimary">Retour à l&apos;accueil</ThemedText>
+          </Pressable>
+        </ScrollView>
+      </ThemedView>
+    );
+  }
+
   if (!question) {
     return (
       <ThemedView style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: Spacing.three, padding: Spacing.four }}>
         <ThemedText type="title">Répondre</ThemedText>
         <ThemedText themeColor="textSecondary" style={{ textAlign: "center", maxWidth: 320 }}>
-          {sessionClosesAt
-            ? "Une session est en cours, mais tu n'as pas de question à répondre cette fois (tu en es probablement l'auteur)."
+          {notParticipating
+            ? "Une session est en cours, mais tu n'y participes pas cette fois."
             : "Aucune session en cours pour le moment."}
         </ThemedText>
         <Pressable onPress={() => router.replace("/home")}>
