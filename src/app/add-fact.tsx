@@ -1,7 +1,9 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Redirect, router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 
+import DateInput from "@/components/date-input";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Spacing } from "@/constants/theme";
@@ -159,12 +161,14 @@ export default function AddFactScreen() {
   const [showAllPersons, setShowAllPersons] = useState(false);
 
   const [templates, setTemplates] = useState<Template[]>([]);
+  const [answeredCount, setAnsweredCount] = useState(0);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const [filtersCollapsed, setFiltersCollapsed] = useState(false);
 
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [answerValue, setAnswerValue] = useState<string>("");
@@ -205,7 +209,24 @@ export default function AddFactScreen() {
       if (cancelled) return;
       const list = persons ?? [];
       setAllPersons(list);
-      if (list.length > 0) setSubjectId(list[0].id);
+
+      let initialSubjectId = list.length > 0 ? list[0].id : null;
+      let initialCategory: string | null = null;
+      try {
+        const stored = await AsyncStorage.getItem(`quizamily:addFact:${me.id}`);
+        if (stored) {
+          const parsed = JSON.parse(stored) as { subjectId?: string; selectedCategory?: string | null };
+          if (parsed.subjectId && list.some((p) => p.id === parsed.subjectId)) {
+            initialSubjectId = parsed.subjectId;
+          }
+          if (typeof parsed.selectedCategory === "string") initialCategory = parsed.selectedCategory;
+        }
+      } catch {
+        // préférences locales corrompues ou indisponibles : on repart des valeurs par défaut
+      }
+
+      setSubjectId(initialSubjectId);
+      setSelectedCategory(initialCategory);
       setReady(true);
     }
 
@@ -214,6 +235,17 @@ export default function AddFactScreen() {
       cancelled = true;
     };
   }, []);
+
+  // Mémorise le dernier sujet et thème choisis, en local sur l'appareil pour ce joueur
+  // (pas partagé avec le reste de la famille), pour retrouver le même contexte la prochaine fois.
+  useEffect(() => {
+    if (!myPersonId || !ready) return;
+    AsyncStorage.setItem(
+      `quizamily:addFact:${myPersonId}`,
+      JSON.stringify({ subjectId, selectedCategory })
+    ).catch(() => {});
+  }, [myPersonId, ready, subjectId, selectedCategory]);
+
 
   useEffect(() => {
     if (!subjectId || !familyId) return;
@@ -235,15 +267,19 @@ export default function AddFactScreen() {
       if (cancelled) return;
 
       const existingTemplateIds = new Set((factsRes.data ?? []).map((f) => f.template_id));
-      const eligible = (templatesRes.data ?? []).filter((t: Template) => {
-        if (existingTemplateIds.has(t.id)) return false;
+      const supportedForSubject = (templatesRes.data ?? []).filter((t: Template) => {
         if (t.related_role || (t.slots && t.slots.length > 0)) return false;
         if (!SUPPORTED_KINDS.includes(t.answer_input_kind)) return false;
         return matchesCondition(t.condition, subject, siblingRes);
       });
+      const eligible = supportedForSubject.filter((t) => !existingTemplateIds.has(t.id));
 
       setTemplates(eligible);
+      setAnsweredCount(supportedForSubject.length - eligible.length);
       setLoadingTemplates(false);
+      // Un thème restauré (préférence locale) peut ne plus correspondre au sujet courant :
+      // on l'efface plutôt que de filtrer silencieusement toutes les questions.
+      setSelectedCategory((c) => (c && !eligible.some((t) => t.category === c) ? null : c));
     }
 
     loadTemplates();
@@ -287,6 +323,19 @@ export default function AddFactScreen() {
     setAnswerValue("");
     setContextText("");
     setError("");
+    setFiltersCollapsed(true);
+  }
+
+  function resetFilters() {
+    setSelectedCategory(null);
+    setSearchText("");
+    setShowAllCategories(false);
+  }
+
+  function pickRandom() {
+    if (searchResults.length === 0) return;
+    const t = searchResults[Math.floor(Math.random() * searchResults.length)];
+    selectTemplate(t);
   }
 
   async function submitFact() {
@@ -381,110 +430,142 @@ export default function AddFactScreen() {
   const subject = allPersons.find((p) => p.id === subjectId);
   const visiblePersons = allPersons.slice(0, MAX_VISIBLE_PERSONS);
   const otherPersons = allPersons.slice(MAX_VISIBLE_PERSONS);
+  const filtersAreCollapsed = filtersCollapsed && !!selectedTemplate;
+  const answeredLabel = `${answeredCount} fait${answeredCount === 1 ? "" : "s"} ajouté${answeredCount === 1 ? "" : "s"}`;
 
   return (
     <ThemedView style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.container}>
         <ThemedText type="title">Ajouter un fait</ThemedText>
 
-        {/* 1-4 : sujet */}
-        <ThemedText type="smallBold">Sur qui ?</ThemedText>
-        <View style={styles.personsRow}>
-          {visiblePersons.map((p) => (
-            <Pressable
-              key={p.id}
-              onPress={() => selectSubject(p.id)}
-              style={[styles.personCard, subjectId === p.id && styles.personCardSelected]}
-            >
-              <View style={styles.avatarPlaceholder}>
-                <ThemedText style={{ color: "#ffffff" }} type="smallBold">
-                  {initials(p.display_name)}
-                </ThemedText>
-              </View>
-              <ThemedText style={{ textAlign: "center" }}>{p.display_name}</ThemedText>
-            </Pressable>
-          ))}
-          {otherPersons.length > 0 && (
-            <Pressable
-              onPress={() => setShowAllPersons((v) => !v)}
-              style={[styles.personCard, styles.otherPersonCard]}
-            >
-              <View style={[styles.avatarPlaceholder, { backgroundColor: "#999999" }]}>
-                <ThemedText style={{ color: "#ffffff" }} type="smallBold">
-                  …
-                </ThemedText>
-              </View>
-              <ThemedText style={{ textAlign: "center" }}>Autre</ThemedText>
-            </Pressable>
-          )}
-        </View>
-
-        {showAllPersons && (
-          <View style={styles.chipsRow}>
-            {otherPersons.map((p) => (
-              <Pressable
-                key={p.id}
-                onPress={() => selectSubject(p.id)}
-                style={[styles.chip, subjectId === p.id && styles.chipSelected]}
-              >
-                <ThemedText style={subjectId === p.id ? { color: "#ffffff" } : undefined}>
-                  {p.display_name}
-                </ThemedText>
-              </Pressable>
-            ))}
-          </View>
-        )}
-
-        {/* 5-9 : thèmes */}
-        {templates.length > 0 && (
+        {filtersAreCollapsed ? (
+          <Pressable onPress={() => setFiltersCollapsed(false)} style={styles.filtersSummary}>
+            <ThemedText type="linkPrimary">
+              {subject?.display_name}
+              {selectedCategory ? ` · ${CATEGORY_LABELS[selectedCategory]}` : ""} — Modifier les filtres
+            </ThemedText>
+          </Pressable>
+        ) : (
           <>
-            <ThemedText type="smallBold">Thème</ThemedText>
-            <View style={styles.chipsRow}>
-              {visibleCategories.map((cat) => (
+            {/* 1-4 : sujet */}
+            <ThemedText type="smallBold">Sur qui ?</ThemedText>
+            <View style={styles.personsRow}>
+              {visiblePersons.map((p) => (
                 <Pressable
-                  key={cat}
-                  onPress={() => setSelectedCategory((c) => (c === cat ? null : cat))}
-                  style={[styles.chip, selectedCategory === cat && styles.chipSelected]}
+                  key={p.id}
+                  onPress={() => selectSubject(p.id)}
+                  style={[styles.personCard, subjectId === p.id && styles.personCardSelected]}
                 >
-                  <ThemedText style={selectedCategory === cat ? { color: "#ffffff" } : undefined}>
-                    {CATEGORY_LABELS[cat]}
-                  </ThemedText>
+                  <View style={styles.avatarPlaceholder}>
+                    <ThemedText style={{ color: "#ffffff" }} type="smallBold">
+                      {initials(p.display_name)}
+                    </ThemedText>
+                  </View>
+                  <ThemedText style={{ textAlign: "center" }}>{p.display_name}</ThemedText>
                 </Pressable>
               ))}
-              {hasMoreCategories && !showAllCategories && (
-                <Pressable onPress={() => setShowAllCategories(true)} style={styles.chip}>
-                  <ThemedText>+</ThemedText>
+              {otherPersons.length > 0 && (
+                <Pressable
+                  onPress={() => setShowAllPersons((v) => !v)}
+                  style={[styles.personCard, styles.otherPersonCard]}
+                >
+                  <View style={[styles.avatarPlaceholder, { backgroundColor: "#999999" }]}>
+                    <ThemedText style={{ color: "#ffffff" }} type="smallBold">
+                      …
+                    </ThemedText>
+                  </View>
+                  <ThemedText style={{ textAlign: "center" }}>Autre</ThemedText>
                 </Pressable>
               )}
             </View>
-          </>
-        )}
 
-        {/* 10 : recherche */}
-        {loadingTemplates ? (
-          <ActivityIndicator />
-        ) : templates.length === 0 ? (
-          <ThemedText themeColor="textSecondary">
-            Plus de questions disponibles pour {subject?.display_name} dans cette première version.
-          </ThemedText>
-        ) : (
-          <>
-            <TextInput
-              value={searchText}
-              onChangeText={setSearchText}
-              placeholder="Rechercher une question (ex: école, voyage...)"
-              style={styles.input}
-            />
+            {showAllPersons && (
+              <View style={styles.chipsRow}>
+                {otherPersons.map((p) => (
+                  <Pressable
+                    key={p.id}
+                    onPress={() => selectSubject(p.id)}
+                    style={[styles.chip, subjectId === p.id && styles.chipSelected]}
+                  >
+                    <ThemedText style={subjectId === p.id ? { color: "#ffffff" } : undefined}>
+                      {p.display_name}
+                    </ThemedText>
+                  </Pressable>
+                ))}
+              </View>
+            )}
 
-            {/* 11 : résultats / question sélectionnée */}
-            {!selectedTemplate &&
-              searchResults.map((t) => (
-                <Pressable key={t.id} onPress={() => selectTemplate(t)} style={styles.card}>
-                  <ThemedText>{t.template_text.replace("<sujet>", subject?.display_name ?? "")}</ThemedText>
-                </Pressable>
-              ))}
-            {!selectedTemplate && searchResults.length === 0 && (
-              <ThemedText themeColor="textSecondary">Aucune question ne correspond.</ThemedText>
+            {/* 5-9 : thèmes */}
+            {templates.length > 0 && (
+              <>
+                <ThemedText type="smallBold">Thème</ThemedText>
+                <View style={styles.chipsRow}>
+                  {visibleCategories.map((cat) => (
+                    <Pressable
+                      key={cat}
+                      onPress={() => setSelectedCategory((c) => (c === cat ? null : cat))}
+                      style={[styles.chip, selectedCategory === cat && styles.chipSelected]}
+                    >
+                      <ThemedText style={selectedCategory === cat ? { color: "#ffffff" } : undefined}>
+                        {CATEGORY_LABELS[cat]}
+                      </ThemedText>
+                    </Pressable>
+                  ))}
+                  {hasMoreCategories && !showAllCategories && (
+                    <Pressable onPress={() => setShowAllCategories(true)} style={styles.chip}>
+                      <ThemedText>+</ThemedText>
+                    </Pressable>
+                  )}
+                </View>
+              </>
+            )}
+
+            {/* 10 : recherche */}
+            {loadingTemplates ? (
+              <ActivityIndicator />
+            ) : templates.length === 0 ? (
+              <ThemedText themeColor="textSecondary">
+                {answeredCount > 0
+                  ? `${answeredLabel} sur ${subject?.display_name} — plus de questions disponibles pour l'instant.`
+                  : `Plus de questions disponibles pour ${subject?.display_name} dans cette première version.`}
+              </ThemedText>
+            ) : (
+              <>
+                <TextInput
+                  value={searchText}
+                  onChangeText={setSearchText}
+                  placeholder="Rechercher une question (ex: école, voyage...)"
+                  style={styles.input}
+                />
+
+                <View style={styles.chipsRow}>
+                  {(selectedCategory || searchText.length > 0) && (
+                    <Pressable onPress={resetFilters}>
+                      <ThemedText type="linkPrimary">Réinitialiser les filtres</ThemedText>
+                    </Pressable>
+                  )}
+                  {searchResults.length > 0 && (
+                    <Pressable onPress={pickRandom}>
+                      <ThemedText type="linkPrimary">🎲 Surprends-moi</ThemedText>
+                    </Pressable>
+                  )}
+                </View>
+
+                <ThemedText themeColor="textSecondary">
+                  {answeredLabel} sur {subject?.display_name}, {templates.length} question
+                  {templates.length === 1 ? "" : "s"} restante{templates.length === 1 ? "" : "s"}.
+                </ThemedText>
+
+                {/* 11 : résultats */}
+                {searchResults.map((t) => (
+                  <Pressable key={t.id} onPress={() => selectTemplate(t)} style={styles.card}>
+                    <ThemedText>{t.template_text.replace("<sujet>", subject?.display_name ?? "")}</ThemedText>
+                  </Pressable>
+                ))}
+                {searchResults.length === 0 && (
+                  <ThemedText themeColor="textSecondary">Aucune question ne correspond.</ThemedText>
+                )}
+              </>
             )}
           </>
         )}
@@ -496,9 +577,6 @@ export default function AddFactScreen() {
                 {selectedTemplate.template_text.replace("<sujet>", subject?.display_name ?? "")}
               </ThemedText>
             </View>
-            <Pressable onPress={() => setSelectedTemplate(null)}>
-              <ThemedText type="linkPrimary">Changer de question</ThemedText>
-            </Pressable>
 
             {/* 12 : réponse */}
             <AnswerInput
@@ -568,7 +646,7 @@ function AnswerInput(props: {
   }, [kind, template.list_name, familyId]);
 
   if (kind === "date") {
-    return <TextInput value={value} onChangeText={onChange} placeholder="AAAA-MM-JJ" style={styles.input} />;
+    return <DateInput value={value} onChange={onChange} />;
   }
 
   if (kind === "year" || kind === "age" || kind === "number") {
@@ -638,6 +716,13 @@ const styles = StyleSheet.create({
     borderColor: "#999999",
     borderRadius: 8,
     padding: Spacing.three,
+  },
+  filtersSummary: {
+    borderWidth: 1,
+    borderColor: "#999999",
+    borderRadius: 8,
+    padding: Spacing.three,
+    borderStyle: "dashed",
   },
   personsRow: {
     flexDirection: "row",
