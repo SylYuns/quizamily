@@ -2,7 +2,7 @@
 
 ## État actuel (2026-11-10)
 
-Le MVP fonctionne de bout en bout en version simple, testé avec des comptes jetables et avec un deuxième vrai compte. Construit : auth, création/rejoindre une famille (avec « réclamer un profil existant »), ajout de faits (cas simple, 24/32 templates), « Mes faits » (modifier/supprimer, statut posé/révélé correct), pioche manuelle pondérée, réponse, validation des réponses libres (anonyme), révélation, et correction d'un fait avec recalcul rétroactif des scores — étapes 1 à 4 et 6 à 9 et 11 de la liste ci-dessous. Pas commencé : étapes 5, 7, 10, 12, 13.
+Le MVP fonctionne de bout en bout en version simple, testé avec des comptes jetables et avec un deuxième vrai compte. Construit : auth, création/rejoindre une famille (avec « réclamer un profil existant »), ajout de faits (cas simple, 24/32 templates), « Mes faits » (modifier/supprimer, statut posé/révélé correct), pioche manuelle pondérée, réponse, validation des réponses libres (anonyme), révélation, correction d'un fait avec recalcul rétroactif des scores, et archives en version simple — étapes 1 à 4, 6 à 9, 11 et 12 (version simple) de la liste ci-dessous. Pas commencé : étapes 5, 7, 10, 13.
 
 **Pour reprendre le travail (ex. depuis un autre ordinateur)** : voir « Points à décider » et « Prochains sujets » plus bas sur cette page.
 
@@ -18,8 +18,8 @@ Le MVP fonctionne de bout en bout en version simple, testé avec des comptes jet
 8. Écran de réponse au quiz + logique du seuil de déclenchement du premier quiz. *(écran de réponse fait en version simple — `src/app/respond.tsx` — reste : seuil de déclenchement automatique du premier quiz, verrouillage après la deadline)*
 9. Révélation automatique à la deadline, calcul des scores (4 états) + validation des réponses libres par l'auteur (notifications, révélation différée, prise de main). *(fait en version simple — `src/app/reveal.tsx` + `src/app/validate.tsx`, déclenchement manuel par l'auteur une fois tout le monde répondu et toutes les réponses libres validées — reste : automatique à la deadline même si incomplet, prise de main, notifications/relances, score cumulé inter-sessions)*
 10. Réactions/commentaires sur les faits révélés.
-11. Mécanisme de correction + recalcul rétroactif des scores. *(fait — `propose_correction`/`validate_correction`, voir `docs/ecrans.md` écran 8 ; reste : UI dans les archives une fois construites, pour corriger un fait au-delà de la dernière révélation)*
-12. Archive familiale enrichie (catégories, filtres, recherche) + score de contribution + relances. La version simple des archives fait partie du MVP.
+11. Mécanisme de correction + recalcul rétroactif des scores. *(fait — `propose_correction`/`validate_correction`, voir `docs/ecrans.md` écran 8 ; accessible aussi depuis les archives, qui réutilisent l'écran de révélation pour le détail d'une question au-delà de la dernière révélation)*
+12. Archive familiale enrichie (catégories, filtres, recherche) + score de contribution + relances. *(fait en version simple — `src/app/archive.tsx`, choix de la personne centrale puis liste des questions révélées la concernant, détail via `src/app/reveal.tsx` ; reste : regroupement par catégorie, auteur/anecdote/date de révélation/taux de bonnes réponses par fait, recherche, frise chronologique, score de contribution, relances)*
 13. Polish, puis phase 2 : push notifications + builds iOS/Android.
 
 ## Scope du premier MVP partageable (test avec 2-3 personnes)
@@ -82,9 +82,9 @@ Décisions de produit ou de sécurité pas encore tranchées — à trancher ava
 
 - Les 8 templates restants d'« Ajouter un fait » (personne liée, pays, ville/lieu).
 - Mini arbre familial (étape 5, vue simple des personnes et de leurs relations).
-- Archives (écran 9) — permettrait aussi de proposer une correction sur un fait au-delà de la dernière révélation.
 - Déclenchement automatique (pioche planifiée + révélation à la deadline même si incomplète).
 - Emails/notifications (nouvelle session, rappels, résultats, relances de validation) + « prise de main ».
+- Enrichissement des archives (étape 12) : regroupement par catégorie, auteur/anecdote/date de révélation/taux de bonnes réponses par fait, recherche par mot-clé, frise chronologique.
 - Réactions/commentaires sur les faits révélés.
 - Score de contribution + relances si un membre n'a rien ajouté.
 - Application de la direction visuelle (coloré, bleu-blanc-rouge).

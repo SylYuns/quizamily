@@ -252,6 +252,10 @@ export default function HomeScreen() {
         <ThemedText type="linkPrimary">Mes faits</ThemedText>
       </Pressable>
 
+      <Pressable onPress={() => router.push("/archive")}>
+        <ThemedText type="linkPrimary">Consulter les archives</ThemedText>
+      </Pressable>
+
       {openSessionClosesAt && (
         <ThemedView style={{ gap: Spacing.two, alignItems: "center" }}>
           <ThemedText themeColor="textSecondary" style={{ textAlign: "center", maxWidth: 320 }}>

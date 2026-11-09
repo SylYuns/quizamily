@@ -1,4 +1,4 @@
-import { Redirect, router } from "expo-router";
+import { Redirect, router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 
@@ -51,11 +51,15 @@ function resultLabel(result: RevealParticipant["result"]): string {
 }
 
 export default function RevealScreen() {
+  const params = useLocalSearchParams<{ questionId?: string }>();
+  const fromArchive = typeof params.questionId === "string" && params.questionId.length > 0;
+
   const [ready, setReady] = useState(false);
   const [noSession, setNoSession] = useState(false);
   const [error, setError] = useState("");
   const [reveal, setReveal] = useState<RevealData | null>(null);
 
+  const [quizQuestionId, setQuizQuestionId] = useState<string | null>(null);
   const [factId, setFactId] = useState<string | null>(null);
   const [familyId, setFamilyId] = useState<string | null>(null);
   const [myPersonId, setMyPersonId] = useState<string | null>(null);
@@ -109,43 +113,69 @@ export default function RevealScreen() {
       setMyPersonId(me.id);
       setFamilyId(me.family_id);
 
-      const { data: session } = await supabase
-        .from("quiz_sessions")
-        .select("id")
-        .eq("family_id", me.family_id)
-        .eq("status", "closed")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      let resolvedQuizQuestionId: string | null = null;
+      let resolvedFactId: string | null = null;
 
-      if (cancelled) return;
-      if (!session) {
+      if (fromArchive) {
+        const { data: quizQuestion } = await supabase
+          .from("quiz_questions")
+          .select("id, fact_id")
+          .eq("id", params.questionId as string)
+          .maybeSingle();
+        if (cancelled || !quizQuestion) {
+          setReady(true);
+          return;
+        }
+        resolvedQuizQuestionId = quizQuestion.id;
+        resolvedFactId = quizQuestion.fact_id;
+      } else {
+        const { data: session } = await supabase
+          .from("quiz_sessions")
+          .select("id")
+          .eq("family_id", me.family_id)
+          .eq("status", "closed")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (cancelled) return;
+        if (!session) {
+          setReady(true);
+          return;
+        }
+
+        const { data: quizQuestion } = await supabase
+          .from("quiz_questions")
+          .select("id, fact_id")
+          .eq("session_id", session.id)
+          .limit(1)
+          .maybeSingle();
+
+        if (cancelled || !quizQuestion) {
+          setReady(true);
+          return;
+        }
+        resolvedQuizQuestionId = quizQuestion.id;
+        resolvedFactId = quizQuestion.fact_id;
+      }
+
+      if (!resolvedQuizQuestionId || !resolvedFactId) {
         setReady(true);
         return;
       }
 
-      const { data: quizQuestion } = await supabase
-        .from("quiz_questions")
-        .select("id, fact_id")
-        .eq("session_id", session.id)
-        .limit(1)
-        .maybeSingle();
-
-      if (cancelled || !quizQuestion) {
-        setReady(true);
-        return;
-      }
-      setFactId(quizQuestion.fact_id);
+      setQuizQuestionId(resolvedQuizQuestionId);
+      setFactId(resolvedFactId);
 
       const [{ data, error: rpcError }, { data: myRecipient }] = await Promise.all([
-        supabase.rpc("get_revealed_question", { p_quiz_question_id: quizQuestion.id }),
+        supabase.rpc("get_revealed_question", { p_quiz_question_id: resolvedQuizQuestionId }),
         supabase
           .from("question_recipients")
           .select("answer_given")
-          .eq("quiz_question_id", quizQuestion.id)
+          .eq("quiz_question_id", resolvedQuizQuestionId)
           .eq("person_id", me.id)
           .maybeSingle(),
-        loadFactExtras(quizQuestion.fact_id),
+        loadFactExtras(resolvedFactId),
       ]);
 
       if (cancelled) return;
@@ -166,6 +196,7 @@ export default function RevealScreen() {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- une seule exécution par montage de l'écran, quel que soit le questionId passé en route
   }, []);
 
   function openCorrectionForm() {
@@ -221,25 +252,9 @@ export default function RevealScreen() {
 
     // Les scores peuvent avoir changé (recalcul rétroactif) : on recharge tout.
     await loadFactExtras(factId);
-    const { data: session } = await supabase
-      .from("quiz_sessions")
-      .select("id")
-      .eq("family_id", familyId!)
-      .eq("status", "closed")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (session) {
-      const { data: quizQuestion } = await supabase
-        .from("quiz_questions")
-        .select("id")
-        .eq("session_id", session.id)
-        .limit(1)
-        .maybeSingle();
-      if (quizQuestion) {
-        const { data } = await supabase.rpc("get_revealed_question", { p_quiz_question_id: quizQuestion.id });
-        setReveal(data as RevealData);
-      }
+    if (quizQuestionId) {
+      const { data } = await supabase.rpc("get_revealed_question", { p_quiz_question_id: quizQuestionId });
+      setReveal(data as RevealData);
     }
     setDecidingCorrection(false);
   }
@@ -385,8 +400,8 @@ export default function RevealScreen() {
           ))}
         </View>
 
-        <Pressable onPress={() => router.replace("/home")}>
-          <ThemedText type="linkPrimary">Retour à l&apos;accueil</ThemedText>
+        <Pressable onPress={() => (fromArchive ? router.back() : router.replace("/home"))}>
+          <ThemedText type="linkPrimary">{fromArchive ? "Retour aux archives" : "Retour à l'accueil"}</ThemedText>
         </Pressable>
       </ScrollView>
     </ThemedView>
