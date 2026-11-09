@@ -22,10 +22,17 @@ type QuestionState = {
   result: string;
 };
 
+type Participant = {
+  person_id: string;
+  display_name: string;
+  answered: boolean;
+};
+
 type OwnQuestionState = {
   questionText: string;
   answerDisplay: string;
   contextText: string | null;
+  participants: Participant[];
 };
 
 function normalize(value: string): string {
@@ -135,10 +142,15 @@ export default function RespondScreen() {
             "<sujet>",
             facts.persons?.display_name ?? "?",
           );
+          const { data: participants } = await supabase.rpc("get_question_participants", {
+            p_quiz_question_id: quizQuestion.id,
+          });
+          if (cancelled) return;
           setOwnQuestion({
             questionText,
             answerDisplay: formatAnswerDisplay(facts.question_templates.answer_input_kind, facts.answer_value),
             contextText: facts.context_text,
+            participants: (participants as Participant[] | null) ?? [],
           });
         } else {
           // Ni destinataire, ni auteur : a rejoint la famille après la création de la session.
@@ -225,6 +237,17 @@ export default function RespondScreen() {
           </View>
           <ThemedText>Réponse : {ownQuestion.answerDisplay}</ThemedText>
           {ownQuestion.contextText && <ThemedText themeColor="textSecondary">{ownQuestion.contextText}</ThemedText>}
+
+          {ownQuestion.participants.length > 0 && (
+            <View style={{ gap: Spacing.one }}>
+              <ThemedText type="smallBold">Qui a répondu ?</ThemedText>
+              {ownQuestion.participants.map((p) => (
+                <ThemedText key={p.person_id} themeColor="textSecondary">
+                  {p.answered ? "✓" : "…"} {p.display_name}
+                </ThemedText>
+              ))}
+            </View>
+          )}
 
           <Pressable onPress={() => router.replace("/home")}>
             <ThemedText type="linkPrimary">Retour à l&apos;accueil</ThemedText>

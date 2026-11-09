@@ -173,6 +173,15 @@ Cas particuliers :
 
 **Simplifié pour l'implémentation initiale** (`src/app/respond.tsx`) : pas de notion de « question suivante » (une session n'a qu'une seule question, voir `concept.md`) — après validation, retour à l'accueil. Type liste : pas encore de bouton « Ajouter » pour une nouvelle valeur côté réponse (le champ réutilise `AnswerInput`, qui le permet déjà — à vérifier/activer). Pas de notification ni de blocage après la deadline : rien ne ferme encore automatiquement une session passée sa `closes_at` (dépend de la révélation automatique, écran 8/roadmap étape 9) donc « modifier sa réponse jusqu'à la deadline » n'est pas encore appliqué strictement. Pas de correction de score affichée (pas de QCM, pas de retour immédiat juste/faux - la correctness n'est révélée qu'à l'écran 8, pas encore construit).
 
+### Vue de l'auteur (« Ma question »)
+
+L'auteur du fait posé n'est pas un destinataire (il ne répond jamais à sa propre question), mais accède depuis l'accueil à un lien « Voir ma question » (plutôt que « Répondre ») qui affiche :
+- la question et sa réponse (lecture seule, pas de modification ni suppression possible une fois posée)
+- l'anecdote, si renseignée
+- **qui, dans la famille, a déjà répondu ou non** (juste le statut — jamais le contenu de la réponse de chacun, pour ne pas gâcher la révélation)
+
+Implémenté via une fonction `get_question_participants(p_quiz_question_id)` (`security definer`, voir `supabase/migrations/20261109180000_question_participants_rpc.sql`) plutôt qu'un assouplissement de la policy RLS sur `question_recipients` — une policy plus large aurait aussi exposé `answer_given`/`result` de chacun.
+
 
 ## 7. Valider les réponses libres
 
