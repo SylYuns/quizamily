@@ -41,7 +41,7 @@ export default function FamilyTreeScreen() {
   const [personBId, setPersonBId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const [creatingPersonFor, setCreatingPersonFor] = useState<"A" | "B" | null>(null);
+  const [showAddPersonForm, setShowAddPersonForm] = useState(false);
   const [newPersonName, setNewPersonName] = useState("");
   const [newPersonGender, setNewPersonGender] = useState<"homme" | "femme" | null>(null);
   const [creatingPerson, setCreatingPerson] = useState(false);
@@ -134,13 +134,17 @@ export default function FamilyTreeScreen() {
     setPersonAId(null);
     setRelationKind("spouse_of");
     setPersonBId(null);
-    setCreatingPersonFor(null);
+    setError("");
+  }
+
+  function resetPersonForm() {
+    setShowAddPersonForm(false);
     setNewPersonName("");
     setNewPersonGender(null);
     setError("");
   }
 
-  async function createPerson(forSlot: "A" | "B") {
+  async function createPerson() {
     if (!familyId || newPersonName.trim().length === 0) return;
     setCreatingPerson(true);
     setError("");
@@ -164,14 +168,9 @@ export default function FamilyTreeScreen() {
       return;
     }
 
-    const created: Person = { id: data.id, display_name: data.display_name, is_central: false };
-    setPersons((prev) => [...prev, created]);
-    if (forSlot === "A") setPersonAId(created.id);
-    else setPersonBId(created.id);
-    setCreatingPersonFor(null);
-    setNewPersonName("");
-    setNewPersonGender(null);
+    setPersons((prev) => [...prev, { id: data.id, display_name: data.display_name, is_central: false }]);
     setCreatingPerson(false);
+    resetPersonForm();
   }
 
   async function submitRelationship() {
@@ -274,11 +273,54 @@ export default function FamilyTreeScreen() {
           </View>
         )}
 
-        {!showAddForm ? (
-          <Pressable onPress={() => setShowAddForm(true)}>
-            <ThemedText type="linkPrimary">+ Ajouter une relation</ThemedText>
-          </Pressable>
-        ) : (
+        {!showAddForm && !showAddPersonForm && (
+          <View style={styles.actionsRow}>
+            <Pressable onPress={() => setShowAddForm(true)}>
+              <ThemedText type="linkPrimary">+ Ajouter une relation</ThemedText>
+            </Pressable>
+            <Pressable onPress={() => setShowAddPersonForm(true)}>
+              <ThemedText type="linkPrimary">+ Ajouter une personne</ThemedText>
+            </Pressable>
+          </View>
+        )}
+
+        {showAddPersonForm && (
+          <View style={styles.card}>
+            <ThemedText type="smallBold">Ajouter une personne</ThemedText>
+            <TextInput
+              value={newPersonName}
+              onChangeText={setNewPersonName}
+              placeholder="Prénom et nom"
+              style={styles.input}
+            />
+            <View style={styles.chipsRow}>
+              {(["homme", "femme"] as const).map((g) => (
+                <Pressable
+                  key={g}
+                  onPress={() => setNewPersonGender(g)}
+                  style={[styles.chip, newPersonGender === g && styles.chipSelected]}
+                >
+                  <ThemedText style={newPersonGender === g ? { color: "#ffffff" } : undefined}>
+                    {g === "homme" ? "Homme" : "Femme"}
+                  </ThemedText>
+                </Pressable>
+              ))}
+            </View>
+
+            {error.length > 0 && <ThemedText themeColor="text">{error}</ThemedText>}
+
+            <View style={styles.actionsRow}>
+              <Pressable onPress={createPerson} disabled={creatingPerson || newPersonName.trim().length === 0}>
+                <ThemedText type="linkPrimary">{creatingPerson ? "Création…" : "Enregistrer"}</ThemedText>
+              </Pressable>
+              <Pressable onPress={resetPersonForm}>
+                <ThemedText type="linkPrimary">Annuler</ThemedText>
+              </Pressable>
+            </View>
+          </View>
+        )}
+
+        {showAddForm && (
           <View style={styles.card}>
             <ThemedText type="smallBold">Ajouter une relation</ThemedText>
 
@@ -293,40 +335,7 @@ export default function FamilyTreeScreen() {
                   <ThemedText style={personAId === p.id ? { color: "#ffffff" } : undefined}>{p.display_name}</ThemedText>
                 </Pressable>
               ))}
-              <Pressable onPress={() => setCreatingPersonFor("A")} style={styles.chip}>
-                <ThemedText>+ Nouvelle personne</ThemedText>
-              </Pressable>
             </View>
-            {creatingPersonFor === "A" && (
-              <View style={{ gap: Spacing.two }}>
-                <TextInput
-                  value={newPersonName}
-                  onChangeText={setNewPersonName}
-                  placeholder="Prénom et nom"
-                  style={styles.input}
-                />
-                <View style={styles.chipsRow}>
-                  {(["homme", "femme"] as const).map((g) => (
-                    <Pressable
-                      key={g}
-                      onPress={() => setNewPersonGender(g)}
-                      style={[styles.chip, newPersonGender === g && styles.chipSelected]}
-                    >
-                      <ThemedText style={newPersonGender === g ? { color: "#ffffff" } : undefined}>
-                        {g === "homme" ? "Homme" : "Femme"}
-                      </ThemedText>
-                    </Pressable>
-                  ))}
-                </View>
-                <Pressable
-                  onPress={() => createPerson("A")}
-                  disabled={creatingPerson || newPersonName.trim().length === 0}
-                  style={[styles.secondaryButton, (creatingPerson || newPersonName.trim().length === 0) && { opacity: 0.6 }]}
-                >
-                  <ThemedText>{creatingPerson ? "Création…" : "Ajouter cette personne"}</ThemedText>
-                </Pressable>
-              </View>
-            )}
 
             <ThemedText themeColor="textSecondary">Relation</ThemedText>
             <View style={styles.chipsRow}>
@@ -361,40 +370,7 @@ export default function FamilyTreeScreen() {
                     <ThemedText style={personBId === p.id ? { color: "#ffffff" } : undefined}>{p.display_name}</ThemedText>
                   </Pressable>
                 ))}
-              <Pressable onPress={() => setCreatingPersonFor("B")} style={styles.chip}>
-                <ThemedText>+ Nouvelle personne</ThemedText>
-              </Pressable>
             </View>
-            {creatingPersonFor === "B" && (
-              <View style={{ gap: Spacing.two }}>
-                <TextInput
-                  value={newPersonName}
-                  onChangeText={setNewPersonName}
-                  placeholder="Prénom et nom"
-                  style={styles.input}
-                />
-                <View style={styles.chipsRow}>
-                  {(["homme", "femme"] as const).map((g) => (
-                    <Pressable
-                      key={g}
-                      onPress={() => setNewPersonGender(g)}
-                      style={[styles.chip, newPersonGender === g && styles.chipSelected]}
-                    >
-                      <ThemedText style={newPersonGender === g ? { color: "#ffffff" } : undefined}>
-                        {g === "homme" ? "Homme" : "Femme"}
-                      </ThemedText>
-                    </Pressable>
-                  ))}
-                </View>
-                <Pressable
-                  onPress={() => createPerson("B")}
-                  disabled={creatingPerson || newPersonName.trim().length === 0}
-                  style={[styles.secondaryButton, (creatingPerson || newPersonName.trim().length === 0) && { opacity: 0.6 }]}
-                >
-                  <ThemedText>{creatingPerson ? "Création…" : "Ajouter cette personne"}</ThemedText>
-                </Pressable>
-              </View>
-            )}
 
             {error.length > 0 && <ThemedText themeColor="text">{error}</ThemedText>}
 
