@@ -14,11 +14,9 @@ import { Template } from "@/types/question-template";
 type QuestionState = {
   recipientId: string;
   quizQuestionId: string;
-  answerValueSnapshot: string | number;
   answerInputKind: string;
   template: Template;
   subjectName: string;
-  currentAnswer: string | number | null;
   result: string;
 };
 
@@ -29,29 +27,12 @@ type Participant = {
 };
 
 type OwnQuestionState = {
+  quizQuestionId: string;
   questionText: string;
   answerDisplay: string;
   contextText: string | null;
   participants: Participant[];
 };
-
-function normalize(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[\s\-']/g, "");
-}
-
-function computeResult(kind: string, given: string | number, snapshot: string | number): "correct" | "incorrect" | "pending_validation" {
-  const isMatch =
-    typeof given === "number" || typeof snapshot === "number"
-      ? Number(given) === Number(snapshot)
-      : normalize(String(given)) === normalize(String(snapshot));
-
-  if (isMatch) return "correct";
-  return kind === "free_text" ? "pending_validation" : "incorrect";
-}
 
 export default function RespondScreen() {
   const [ready, setReady] = useState(false);
@@ -67,6 +48,7 @@ export default function RespondScreen() {
   const [answerValue, setAnswerValue] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [answered, setAnswered] = useState(false);
+  const [revealing, setRevealing] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -105,10 +87,13 @@ export default function RespondScreen() {
       }
       setSessionClosesAt(session.closes_at);
 
+      // Ne jamais demander answer_value_snapshot / facts.answer_value ici : tant qu'on ne
+      // sait pas si l'appelant est l'auteur, ça finirait dans la réponse réseau d'un
+      // destinataire qui n'a pas encore répondu.
       const { data: quizQuestion } = await supabase
         .from("quiz_questions")
         .select(
-          "id, answer_value_snapshot, facts (author_person_id, context_text, answer_value, subject_person_id, question_templates (*), persons:subject_person_id (display_name))",
+          "id, facts (id, author_person_id, subject_person_id, question_templates (*), persons:subject_person_id (display_name))",
         )
         .eq("session_id", session.id)
         .limit(1)
@@ -120,9 +105,8 @@ export default function RespondScreen() {
       }
 
       const facts = quizQuestion.facts as unknown as {
+        id: string;
         author_person_id: string;
-        context_text: string | null;
-        answer_value: string | number;
         subject_person_id: string;
         question_templates: Template;
         persons: { display_name: string } | null;
@@ -138,18 +122,22 @@ export default function RespondScreen() {
       if (cancelled) return;
       if (!recipient) {
         if (facts.author_person_id === me.id) {
+          // C'est mon propre fait : lire sa réponse m'est toujours permis.
+          const [{ data: myFact }, { data: participants }] = await Promise.all([
+            supabase.from("facts").select("answer_value, context_text").eq("id", facts.id).maybeSingle(),
+            supabase.rpc("get_question_participants", { p_quiz_question_id: quizQuestion.id }),
+          ]);
+          if (cancelled || !myFact) return;
+
           const questionText = facts.question_templates.template_text.replace(
             "<sujet>",
             facts.persons?.display_name ?? "?",
           );
-          const { data: participants } = await supabase.rpc("get_question_participants", {
-            p_quiz_question_id: quizQuestion.id,
-          });
-          if (cancelled) return;
           setOwnQuestion({
+            quizQuestionId: quizQuestion.id,
             questionText,
-            answerDisplay: formatAnswerDisplay(facts.question_templates.answer_input_kind, facts.answer_value),
-            contextText: facts.context_text,
+            answerDisplay: formatAnswerDisplay(facts.question_templates.answer_input_kind, myFact.answer_value),
+            contextText: myFact.context_text,
             participants: (participants as Participant[] | null) ?? [],
           });
         } else {
@@ -163,11 +151,9 @@ export default function RespondScreen() {
       const q: QuestionState = {
         recipientId: recipient.id,
         quizQuestionId: quizQuestion.id,
-        answerValueSnapshot: quizQuestion.answer_value_snapshot,
         answerInputKind: facts.question_templates.answer_input_kind,
         template: facts.question_templates,
         subjectName: facts.persons?.display_name ?? "?",
-        currentAnswer: recipient.answer_given,
         result: recipient.result,
       };
       setQuestion(q);
@@ -193,13 +179,13 @@ export default function RespondScreen() {
       const parsed = parseAnswerValue(question.answerInputKind, answerValue);
       if (!parsed.ok) throw new Error(parsed.error);
 
-      const result = computeResult(question.answerInputKind, parsed.value, question.answerValueSnapshot);
-
-      const { error: updateError } = await supabase
-        .from("question_recipients")
-        .update({ answer_given: parsed.value, answered_at: new Date().toISOString(), result })
-        .eq("id", question.recipientId);
-      if (updateError) throw updateError;
+      // Le calcul du résultat (juste/faux) se fait côté serveur : le client ne connaît
+      // jamais la bonne réponse avant la révélation.
+      const { error: rpcError } = await supabase.rpc("submit_answer", {
+        p_quiz_question_id: question.quizQuestionId,
+        p_answer_given: parsed.value,
+      });
+      if (rpcError) throw rpcError;
 
       setAnswered(true);
     } catch (e) {
@@ -208,6 +194,24 @@ export default function RespondScreen() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function triggerReveal() {
+    if (!ownQuestion) return;
+    setRevealing(true);
+    setError("");
+
+    const { error: rpcError } = await supabase.rpc("reveal_current_question", {
+      p_quiz_question_id: ownQuestion.quizQuestionId,
+    });
+
+    if (rpcError) {
+      setError(rpcError.message);
+      setRevealing(false);
+      return;
+    }
+
+    router.replace("/reveal");
   }
 
   if (noSession) {
@@ -223,6 +227,8 @@ export default function RespondScreen() {
   }
 
   if (ownQuestion) {
+    const allAnswered = ownQuestion.participants.length > 0 && ownQuestion.participants.every((p) => p.answered);
+
     return (
       <ThemedView style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.container}>
@@ -248,6 +254,22 @@ export default function RespondScreen() {
               ))}
             </View>
           )}
+
+          {error.length > 0 && <ThemedText themeColor="text">{error}</ThemedText>}
+
+          <Pressable
+            onPress={triggerReveal}
+            disabled={!allAnswered || revealing}
+            style={[styles.primaryButton, (!allAnswered || revealing) && { opacity: 0.6 }]}
+          >
+            <ThemedText style={{ color: "#ffffff" }}>
+              {revealing
+                ? "Révélation…"
+                : allAnswered
+                  ? "Déclencher la révélation"
+                  : "En attente que tout le monde réponde"}
+            </ThemedText>
+          </Pressable>
 
           <Pressable onPress={() => router.replace("/home")}>
             <ThemedText type="linkPrimary">Retour à l&apos;accueil</ThemedText>

@@ -53,6 +53,7 @@ export default function HomeScreen() {
   const [sessionMessage, setSessionMessage] = useState<string | null>(null);
   const [openSessionClosesAt, setOpenSessionClosesAt] = useState<string | null>(null);
   const [isRecipient, setIsRecipient] = useState(true);
+  const [hasRevealedSession, setHasRevealedSession] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -100,17 +101,22 @@ export default function HomeScreen() {
               setInviteLink(`${origin}/join/${inviteRow.token}`);
             }
 
-            const { data: openSession } = await supabase
+            const { data: lastSession } = await supabase
               .from("quiz_sessions")
-              .select("id, closes_at")
+              .select("id, status, closes_at")
               .eq("family_id", firstFamilyId)
-              .eq("status", "open")
+              .order("created_at", { ascending: false })
               .limit(1)
               .maybeSingle();
-            if (openSession && !cancelled) {
-              setOpenSessionClosesAt(openSession.closes_at);
-              const amIRecipient = await checkIsRecipientForSession(firstFamilyId, userId, openSession.id);
-              if (!cancelled) setIsRecipient(amIRecipient);
+
+            if (lastSession && !cancelled) {
+              if (lastSession.status === "open") {
+                setOpenSessionClosesAt(lastSession.closes_at);
+                const amIRecipient = await checkIsRecipientForSession(firstFamilyId, userId, lastSession.id);
+                if (!cancelled) setIsRecipient(amIRecipient);
+              } else if (lastSession.status === "closed") {
+                setHasRevealedSession(true);
+              }
             }
           }
         }
@@ -160,6 +166,7 @@ export default function HomeScreen() {
     } else {
       setSessionMessage(`Session créée : ${data.recipientsCreated} réponse(s) attendue(s).`);
       setOpenSessionClosesAt(data.closesAt);
+      setHasRevealedSession(false);
       if (userId) {
         setIsRecipient(await checkIsRecipientForSession(familyId, userId, data.sessionId));
       }
@@ -245,7 +252,7 @@ export default function HomeScreen() {
         <ThemedText type="linkPrimary">Mes faits</ThemedText>
       </Pressable>
 
-      {openSessionClosesAt ? (
+      {openSessionClosesAt && (
         <ThemedView style={{ gap: Spacing.two, alignItems: "center" }}>
           <ThemedText themeColor="textSecondary" style={{ textAlign: "center", maxWidth: 320 }}>
             Une session est en cours, jusqu&apos;au{" "}
@@ -255,7 +262,20 @@ export default function HomeScreen() {
             <ThemedText type="linkPrimary">{isRecipient ? "Répondre" : "Voir ma question"}</ThemedText>
           </Pressable>
         </ThemedView>
-      ) : (
+      )}
+
+      {!openSessionClosesAt && hasRevealedSession && (
+        <ThemedView style={{ gap: Spacing.two, alignItems: "center" }}>
+          <ThemedText themeColor="textSecondary" style={{ textAlign: "center", maxWidth: 320 }}>
+            La dernière session est terminée.
+          </ThemedText>
+          <Pressable onPress={() => router.push("/reveal")}>
+            <ThemedText type="linkPrimary">Voir la révélation</ThemedText>
+          </Pressable>
+        </ThemedView>
+      )}
+
+      {!openSessionClosesAt && (
         <ThemedView style={{ gap: Spacing.two, alignItems: "center" }}>
           <Pressable
             onPress={createQuizSession}

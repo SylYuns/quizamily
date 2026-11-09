@@ -216,6 +216,16 @@ Actions :
 
 Hors MVP (roadmap) : réactions et commentaires, correction d'un fait.
 
+### Déclenchement
+
+Comme pour la pioche, **manuel pour l'instant** : un bouton « Déclencher la révélation », affiché à l'auteur sur l'écran « Ma question » (voir écran 6), disponible uniquement une fois que **tous les destinataires ont répondu** (vérifié aussi côté serveur, pas seulement par le bouton désactivé côté client). Pour les autres joueurs, une fois la révélation déclenchée, l'accueil ne propose plus « Répondre » mais « La dernière session est terminée → Voir la révélation ».
+
+**À faire plus tard** (roadmap étape 9) : passage automatique en mode révélation quand la deadline (`closes_at`) est dépassée, qu'on ait ou non reçu toutes les réponses (« pas de blocage par les retardataires », voir `concept.md`) — pour l'instant, sans cette automatisation, une question dont un destinataire ne répond jamais reste bloquée indéfiniment, ce qui est acceptable en test mais pas en production.
+
+**Simplifié pour l'implémentation initiale** (`src/app/reveal.tsx`) : une seule question par session (voir `concept.md`), donc pas de « question suivante ». Une réponse en saisie libre encore « en attente de validation » au moment de la révélation est comptée **incorrecte** (pas d'écran de validation pour l'instant, voir écran 7). Pas de score cumulé inter-sessions (demande d'agréger plusieurs sessions passées, pas construit). Pas de réactions/commentaires (hors MVP).
+
+**Sécurité** : la bonne réponse (`quiz_questions.answer_value_snapshot`) n'est plus jamais envoyée au client avant la révélation — jusqu'ici, `respond.tsx` la recevait dans la réponse de l'API pour comparer côté client, visible par n'importe qui ouvrant les outils réseau du navigateur avant même d'avoir répondu. Le calcul juste/faux se fait maintenant entièrement côté serveur via la fonction `submit_answer` (voir `supabase/migrations/20261109190000_reveal_and_secure_answers.sql`), qui remplace l'écriture directe du joueur sur `question_recipients` (la policy correspondante a été retirée : elle aurait permis à un joueur de s'auto-attribuer « juste » sans vraiment répondre correctement). La révélation elle-même passe par `reveal_current_question` (auteur uniquement, vérifie que tout le monde a répondu, bascule `quiz_sessions.status` à `closed`) et `get_revealed_question` (lisible par toute la famille une fois la session fermée).
+
 
 ## 9. Archives
 
