@@ -37,7 +37,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 const CATEGORY_ORDER = Object.keys(CATEGORY_LABELS);
-const MAX_VISIBLE_CATEGORIES = 4;
+const MAX_VISIBLE_CATEGORIES = 3;
 const MAX_VISIBLE_PERSONS = 3;
 
 const COUNTRIES = [
@@ -448,15 +448,7 @@ export default function AddFactScreen() {
         ) : (
           <>
             {/* 1-4 : sujet */}
-            <View style={styles.sectionHeaderRow}>
-              <ThemedText type="smallBold">Sur qui ?</ThemedText>
-              {!loadingTemplates && (
-                <ThemedText themeColor="textSecondary" style={styles.counterText}>
-                  {answeredLabel}, {templates.length} question{templates.length === 1 ? "" : "s"} restante
-                  {templates.length === 1 ? "" : "s"}
-                </ThemedText>
-              )}
-            </View>
+            <ThemedText type="smallBold">Sur qui ?</ThemedText>
             <View style={styles.personsRow}>
               {visiblePersons.map((p) => (
                 <Pressable
@@ -503,28 +495,56 @@ export default function AddFactScreen() {
               </View>
             )}
 
+            {!loadingTemplates && (
+              <ThemedText themeColor="textSecondary" style={styles.counterText}>
+                {subject?.display_name} : {answeredLabel}, {templates.length} question
+                {templates.length === 1 ? "" : "s"} restante{templates.length === 1 ? "" : "s"}.
+              </ThemedText>
+            )}
+
             {/* 5-9 : thèmes */}
             {templates.length > 0 && (
               <>
                 <ThemedText type="smallBold">Thème</ThemedText>
-                <View style={styles.chipsRow}>
-                  {visibleCategories.map((cat) => (
-                    <Pressable
-                      key={cat}
-                      onPress={() => setSelectedCategory((c) => (c === cat ? null : cat))}
-                      style={[styles.chip, selectedCategory === cat && styles.chipSelected]}
-                    >
-                      <ThemedText style={selectedCategory === cat ? { color: "#ffffff" } : undefined}>
-                        {CATEGORY_LABELS[cat]}
-                      </ThemedText>
+                {showAllCategories ? (
+                  <View style={styles.chipsRow}>
+                    {availableCategories.map((cat) => (
+                      <Pressable
+                        key={cat}
+                        onPress={() => setSelectedCategory((c) => (c === cat ? null : cat))}
+                        style={[styles.chip, selectedCategory === cat && styles.chipSelected]}
+                      >
+                        <ThemedText style={selectedCategory === cat ? { color: "#ffffff" } : undefined}>
+                          {CATEGORY_LABELS[cat]}
+                        </ThemedText>
+                      </Pressable>
+                    ))}
+                    <Pressable onPress={() => setShowAllCategories(false)} style={styles.chip}>
+                      <ThemedText>−</ThemedText>
                     </Pressable>
-                  ))}
-                  {hasMoreCategories && !showAllCategories && (
-                    <Pressable onPress={() => setShowAllCategories(true)} style={styles.chip}>
-                      <ThemedText>+</ThemedText>
-                    </Pressable>
-                  )}
-                </View>
+                  </View>
+                ) : (
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View style={styles.chipsRowNoWrap}>
+                      {visibleCategories.map((cat) => (
+                        <Pressable
+                          key={cat}
+                          onPress={() => setSelectedCategory((c) => (c === cat ? null : cat))}
+                          style={[styles.chip, selectedCategory === cat && styles.chipSelected]}
+                        >
+                          <ThemedText style={selectedCategory === cat ? { color: "#ffffff" } : undefined}>
+                            {CATEGORY_LABELS[cat]}
+                          </ThemedText>
+                        </Pressable>
+                      ))}
+                      {hasMoreCategories && (
+                        <Pressable onPress={() => setShowAllCategories(true)} style={styles.chip}>
+                          <ThemedText>+</ThemedText>
+                        </Pressable>
+                      )}
+                    </View>
+                  </ScrollView>
+                )}
               </>
             )}
 
@@ -540,8 +560,8 @@ export default function AddFactScreen() {
                 <TextInput
                   value={searchText}
                   onChangeText={setSearchText}
-                  placeholder="Rechercher une question (ex: école, voyage...)"
-                  style={styles.input}
+                  placeholder="🔍 Rechercher une question (ex: école, voyage...)"
+                  style={styles.searchInput}
                 />
 
                 <View style={styles.chipsRow}>
@@ -559,7 +579,7 @@ export default function AddFactScreen() {
 
                 {/* 11 : résultats */}
                 {searchResults.map((t) => (
-                  <Pressable key={t.id} onPress={() => selectTemplate(t)} style={styles.card}>
+                  <Pressable key={t.id} onPress={() => selectTemplate(t)} style={styles.questionOption}>
                     <ThemedText>{t.template_text.replace("<sujet>", subject?.display_name ?? "")}</ThemedText>
                   </Pressable>
                 ))}
@@ -712,12 +732,14 @@ const styles = StyleSheet.create({
     padding: Spacing.three,
     width: "100%",
   },
-  sectionHeaderRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "space-between",
-    flexWrap: "wrap",
-    gap: Spacing.one,
+  searchInput: {
+    borderWidth: 1,
+    borderColor: "#d9dbe0",
+    borderRadius: 24,
+    backgroundColor: "#f0f0f3",
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.four,
+    width: "100%",
   },
   counterText: {
     fontSize: 13,
@@ -727,6 +749,18 @@ const styles = StyleSheet.create({
     borderColor: "#999999",
     borderRadius: 8,
     padding: Spacing.three,
+  },
+  questionOption: {
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    padding: Spacing.three,
+    borderLeftWidth: 4,
+    borderLeftColor: "#3c87f7",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 1,
   },
   filtersSummary: {
     borderWidth: 1,
@@ -765,6 +799,11 @@ const styles = StyleSheet.create({
   chipsRow: {
     flexDirection: "row",
     flexWrap: "wrap",
+    gap: Spacing.two,
+  },
+  chipsRowNoWrap: {
+    flexDirection: "row",
+    flexWrap: "nowrap",
     gap: Spacing.two,
   },
   chip: {
