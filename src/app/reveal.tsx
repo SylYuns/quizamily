@@ -60,6 +60,7 @@ export default function RevealScreen() {
   const [familyId, setFamilyId] = useState<string | null>(null);
   const [myPersonId, setMyPersonId] = useState<string | null>(null);
   const [authorPersonId, setAuthorPersonId] = useState<string | null>(null);
+  const [myAnswerGiven, setMyAnswerGiven] = useState<string | number | null>(null);
   const [currentAnswerValue, setCurrentAnswerValue] = useState<string | number | null>(null);
   const [template, setTemplate] = useState<Template | null>(null);
   const [pendingCorrection, setPendingCorrection] = useState<PendingCorrection | null>(null);
@@ -136,10 +137,21 @@ export default function RevealScreen() {
       }
       setFactId(quizQuestion.fact_id);
 
-      const [{ data, error: rpcError }] = await Promise.all([
+      const [{ data, error: rpcError }, { data: myRecipient }] = await Promise.all([
         supabase.rpc("get_revealed_question", { p_quiz_question_id: quizQuestion.id }),
+        supabase
+          .from("question_recipients")
+          .select("answer_given")
+          .eq("quiz_question_id", quizQuestion.id)
+          .eq("person_id", me.id)
+          .maybeSingle(),
         loadFactExtras(quizQuestion.fact_id),
       ]);
+
+      if (cancelled) return;
+      if (myRecipient && myRecipient.answer_given !== null && myRecipient.answer_given !== undefined) {
+        setMyAnswerGiven(myRecipient.answer_given);
+      }
 
       if (cancelled) return;
       if (rpcError) {
@@ -155,6 +167,13 @@ export default function RevealScreen() {
       cancelled = true;
     };
   }, []);
+
+  function openCorrectionForm() {
+    // Pré-remplit avec ce que j'avais moi-même répondu, s'il y a lieu : un point de départ
+    // naturel pour proposer une correction, plutôt qu'un champ vide.
+    setCorrectionValue(myAnswerGiven !== null ? String(myAnswerGiven) : "");
+    setShowCorrectionForm(true);
+  }
 
   async function submitCorrection() {
     if (!factId || !template) return;
@@ -345,7 +364,7 @@ export default function RevealScreen() {
                 </View>
               </View>
             ) : (
-              <Pressable onPress={() => setShowCorrectionForm(true)}>
+              <Pressable onPress={openCorrectionForm}>
                 <ThemedText type="linkPrimary">Proposer une correction</ThemedText>
               </Pressable>
             )}

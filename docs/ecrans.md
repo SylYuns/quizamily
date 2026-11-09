@@ -130,7 +130,7 @@ Actions :
 - Modifier ou supprimer un fait **pas encore posé** (réponse, anecdote) — suppression avec confirmation
 - Un fait posé ou révélé ne se modifie plus et ne se supprime plus : il passe par le mécanisme de correction (hors MVP)
 
-**Simplifié pour l'implémentation initiale** : l'écran affiche toujours « pas encore posé », même pour un fait réellement posé dans une session (la pioche existe depuis le 2026-11-09, mais `my-facts.tsx` n'a pas encore été mis à jour pour vérifier l'existence d'une ligne `quiz_questions` liée - à corriger). Modifier la **personne liée** d'un fait n'est pas encore possible (dépend de la même UI que la création d'un fait avec personne liée, pas encore construite).
+**Simplifié pour l'implémentation initiale** : le statut (« pas encore posé » / « posé dans la session en cours » / « révélé ») est calculé en vérifiant l'existence d'une ligne `quiz_questions` liée et le statut de sa session — modifier/supprimer ne sont proposés que pour un fait « pas encore posé » (cohérent avec la RLS, qui bloque déjà l'écriture une fois posé). Modifier la **personne liée** d'un fait n'est pas encore possible (dépend de la même UI que la création d'un fait avec personne liée, pas encore construite).
 
 ### Nouveau fait
 

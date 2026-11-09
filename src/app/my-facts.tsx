@@ -12,6 +12,8 @@ import { ensureListItemExists } from "@/lib/list-items";
 import { supabase } from "@/lib/supabase";
 import { Template } from "@/types/question-template";
 
+type PostedStatus = "not_posed" | "posed_open" | "revealed";
+
 type Fact = {
   id: string;
   answer_value: string | number;
@@ -19,7 +21,14 @@ type Fact = {
   created_at: string;
   template: Template;
   subjectName: string;
+  postedStatus: PostedStatus;
 };
+
+function statusLabel(status: PostedStatus): string {
+  if (status === "posed_open") return "Posé dans la session en cours";
+  if (status === "revealed") return "Révélé";
+  return "Pas encore posé";
+}
 
 function formatCreatedAt(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
@@ -77,18 +86,43 @@ export default function MyFactsScreen() {
       if (cancelled) return;
       if (factsError) {
         setError(factsError.message);
-      } else {
-        setFacts(
-          (data ?? []).map((row) => ({
-            id: row.id,
-            answer_value: row.answer_value,
-            context_text: row.context_text,
-            created_at: row.created_at,
-            template: row.question_templates as unknown as Template,
-            subjectName: (row.subject as unknown as { display_name: string } | null)?.display_name ?? "?",
-          })),
-        );
+        setReady(true);
+        return;
       }
+
+      const factRows = data ?? [];
+      const factIds = factRows.map((row) => row.id);
+      const statusByFactId = new Map<string, PostedStatus>();
+
+      if (factIds.length > 0) {
+        const { data: postedRows } = await supabase
+          .from("quiz_questions")
+          .select("fact_id, quiz_sessions (status)")
+          .in("fact_id", factIds);
+
+        for (const row of postedRows ?? []) {
+          const sessionStatus = (row.quiz_sessions as unknown as { status: string } | null)?.status;
+          const current = statusByFactId.get(row.fact_id);
+          if (sessionStatus === "open") {
+            statusByFactId.set(row.fact_id, "posed_open");
+          } else if (current !== "posed_open") {
+            statusByFactId.set(row.fact_id, "revealed");
+          }
+        }
+      }
+
+      if (cancelled) return;
+      setFacts(
+        factRows.map((row) => ({
+          id: row.id,
+          answer_value: row.answer_value,
+          context_text: row.context_text,
+          created_at: row.created_at,
+          template: row.question_templates as unknown as Template,
+          subjectName: (row.subject as unknown as { display_name: string } | null)?.display_name ?? "?",
+          postedStatus: statusByFactId.get(row.id) ?? "not_posed",
+        })),
+      );
       setReady(true);
     }
 
@@ -198,7 +232,7 @@ export default function MyFactsScreen() {
           return (
             <View key={fact.id} style={styles.card}>
               <ThemedText themeColor="textSecondary" style={styles.statusBadge}>
-                Pas encore posé
+                {statusLabel(fact.postedStatus)}
               </ThemedText>
               <ThemedText type="smallBold">{questionText}</ThemedText>
 
@@ -214,7 +248,7 @@ export default function MyFactsScreen() {
                     Ajouté le {formatCreatedAt(fact.created_at)}
                   </ThemedText>
 
-                  {confirmDeleteId === fact.id ? (
+                  {fact.postedStatus !== "not_posed" ? null : confirmDeleteId === fact.id ? (
                     <View style={styles.actionsRow}>
                       <ThemedText>Supprimer ce fait ?</ThemedText>
                       <Pressable onPress={() => confirmDelete(fact.id)} disabled={deletingId === fact.id}>
