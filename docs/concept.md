@@ -41,19 +41,21 @@ Un fait peut porter sur une personne seule, ou sur une **relation entre deux per
 
 ```
 Catalogue de prompts (centré sur les personnes centrales) → ajout d'une info (champ guidé)
-   → pioche hebdomadaire pondérée (fraîcheur + répartition par auteur)
-   → questions envoyées aux joueurs (jamais à l'auteur du fait)
+   → pioche hebdomadaire pondérée (fraîcheur + répartition par auteur) : une seule question
+   → la question envoyée aux joueurs (jamais à l'auteur du fait)
    → réponses pendant ~7 jours
    → saisie libre uniquement : validation des réponses par l'auteur du fait
    → révélation à la deadline (ou dès la fin des validations) : scores + anecdote + réactions/commentaires ouverts
    → l'archive et l'arbre familial s'enrichissent
 ```
 
+**Une session = une seule question** (pas un lot) : chaque pioche sélectionne un seul fait, envoyé à tous les joueurs concernés avec une semaine pour y répondre. C'est ce rythme simple, une question à la fois, qui a toujours été prévu — pas un digest hebdomadaire à plusieurs questions.
+
 ## Pioche des questions
 
-Priorité : jamais posé > posé il y a longtemps > posé récemment (fraîcheur), avec répartition entre auteurs différents pour que la contribution de chacun ait une vraie chance d'être jouée. **Les personnes centrales restent prioritaires, mais ne sont plus les seuls sujets possibles** (règle assouplie le 2026-11-09 : au départ, on avait prévu 100% personnes centrales ; on autorise maintenant des faits — et donc des questions — sur n'importe quel membre, avec une pondération qui privilégie les personnes centrales).
+Priorité : jamais posé > posé il y a longtemps > posé récemment (fraîcheur), avec répartition entre auteurs différents pour que la contribution de chacun ait une vraie chance d'être jouée (obtenue naturellement : une fois un fait posé, sa fraîcheur retombe, laissant la place aux faits d'autres auteurs lors des pioches suivantes). **Les personnes centrales restent prioritaires, mais ne sont plus les seuls sujets possibles** (règle assouplie le 2026-11-09 : au départ, on avait prévu 100% personnes centrales ; on autorise maintenant des faits — et donc des questions — sur n'importe quel membre, avec une pondération qui privilégie les personnes centrales).
 
-Implémentée (2026-11-09) dans l'Edge Function `create-quiz-session` (détail technique dans `docs/ecrans.md`, section « Pioche et création de session ») : jusqu'à 8 faits par session, pondérés par fraîcheur + bonus personne centrale (×1.5) + pénalité cumulative par auteur déjà pioché. Déclenchement manuel pour l'instant (pas de tâche planifiée hebdomadaire).
+Implémentée (2026-11-09, corrigée le même jour pour piocher une seule question par session plutôt qu'un lot) dans l'Edge Function `create-quiz-session` (détail technique dans `docs/ecrans.md`, section « Pioche et création de session ») : un fait par session, pondéré par fraîcheur + bonus personne centrale (×1.5). Déclenchement manuel pour l'instant (pas de tâche planifiée hebdomadaire).
 
 ## Scoring
 
@@ -72,7 +74,7 @@ Pour les templates de type saisie libre :
    - dès que tous les destinataires ont répondu, ou au plus tard 24 h avant la deadline ;
    - 24 h après la deadline ;
    - 6 jours après la deadline, pour le prévenir que les autres joueurs pourront prendre la main s'il ne valide pas.
-4. La question **n'est pas révélée** tant que des réponses restent à valider. Les autres questions de la session sont révélées normalement à la deadline.
+4. La question **n'est pas révélée** tant que des réponses restent à valider.
 5. **1 h après la deadline**, s'il reste des validations, les joueurs sont prévenus que la révélation attend l'auteur (ce qui les incite à le relancer eux-mêmes).
 6. **7 jours après la deadline**, les joueurs sont prévenus qu'ils peuvent **prendre la main** : le premier qui le fait peut valider les réponses à la place de l'auteur. Tout joueur peut prendre la main, y compris s'il a lui-même répondu à la question. Il ne devient pas l'auteur du fait : la prise de main ne porte que sur la validation de cette question.
 

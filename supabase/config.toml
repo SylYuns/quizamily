@@ -237,7 +237,13 @@ otp_expiry = 3600
 
 # Use a production-ready SMTP server
 [auth.email.smtp]
-enabled = true
+# Désactivé temporairement (2026-11-09) : le sandbox Resend (sans domaine vérifié) ne livre
+# qu'à l'adresse du titulaire du compte Resend lui-même - impossible de tester avec un vrai
+# deuxième membre de la famille. On repasse sur l'envoyeur intégré de Supabase (pas de
+# restriction de destinataire, juste une limite horaire - voir auth.rate_limit.email_sent),
+# le temps d'avoir un nom de domaine à vérifier chez Resend. Pour réactiver, mettre
+# enabled = true.
+enabled = false
 host = "smtp.resend.com"
 port = 465
 user = "resend"

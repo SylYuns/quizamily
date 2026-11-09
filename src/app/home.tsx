@@ -112,7 +112,7 @@ export default function HomeScreen() {
       }
       setSessionMessage(`Erreur : ${message}`);
     } else {
-      setSessionMessage(`Session créée : ${data.questionsCreated} question(s), ${data.recipientsCreated} réponse(s) attendue(s).`);
+      setSessionMessage(`Session créée : ${data.recipientsCreated} réponse(s) attendue(s).`);
     }
 
     setCreatingSession(false);

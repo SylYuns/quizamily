@@ -82,7 +82,7 @@ Actions :
 But : point d'entrée dans une famille, avec accès à toutes les fonctionnalités.
 
 Affiche :
-- les questions de la session en cours auxquelles il n'a pas encore répondu, avec la deadline
+- la question de la session en cours, si pas encore répondue, avec la deadline (une session = une seule question, voir `concept.md`)
 - les réponses en attente de sa validation (s'il est auteur d'un fait en saisie libre, ou s'il a pris la main)
 - les révélations récentes
 - son score de réponses (« 12 bonnes / 18 posées ») et son score de contribution (« Vous avez ajouté 5 souvenirs »)
@@ -98,7 +98,7 @@ Actions :
 - Inviter un membre → partage du lien d'invitation
 - Changer de famille → écran 3 (si au moins 2 familles)
 
-**Simplifié pour l'implémentation initiale** : écran minimal pour l'instant (confirmation que la famille existe, liens vers « Ajouter un fait » et « Mes faits »), avec un bouton temporaire « Créer une session de quiz » qui appelle directement l'Edge Function `create-quiz-session` (voir plus bas) — un vrai accueil (questions en cours, scores, seuil de démarrage) viendra avec les écrans 6 à 9.
+**Simplifié pour l'implémentation initiale** : écran minimal pour l'instant (confirmation que la famille existe, liens vers « Ajouter un fait » et « Mes faits »), avec un bouton temporaire « Créer une session de quiz » qui appelle directement l'Edge Function `create-quiz-session` (voir plus bas) — un vrai accueil (question en cours, scores, seuil de démarrage) viendra avec les écrans 6 à 9.
 
 ### Pioche et création de session (`create-quiz-session`)
 
@@ -106,12 +106,12 @@ Edge Function (`supabase/functions/create-quiz-session`), appelée par un membre
 
 1. Vérifie que l'appelant est bien membre de la famille (sinon 403).
 2. Refuse si une session est déjà `open` pour cette famille (sinon 409) — une seule session active à la fois.
-3. Pioche jusqu'à 8 faits parmi ceux de la famille, pondérés par :
+3. Pioche **un seul fait** parmi ceux de la famille, pondéré par :
    - **fraîcheur** : jamais posé (poids max) > posé il y a longtemps > posé récemment (poids min, mais jamais exclu) ;
-   - **personne centrale** : bonus ×1.5 sur le poids si le sujet est une personne centrale (priorité, pas exclusivité) ;
-   - **répartition entre auteurs** : après chaque fait retenu, le poids des faits restants du même auteur est réduit (×0.3, cumulatif) pour limiter qu'un seul auteur domine le tirage.
+   - **personne centrale** : bonus ×1.5 sur le poids si le sujet est une personne centrale (priorité, pas exclusivité).
    - Un fait déjà posé dans une session encore `open` est exclu (pas de double-pioche concurrente).
-4. Crée la session (`opens_at` = maintenant, `closes_at` = +7 jours), une `quiz_questions` par fait retenu (avec `answer_value_snapshot`, et `validator_person_id` = auteur si le type est `free_text`), et les `question_recipients` associés : tous les joueurs de la famille sauf l'auteur de chaque fait.
+   - La répartition entre auteurs se fait naturellement dans le temps : une fois un fait posé, sa fraîcheur retombe, laissant la place à d'autres auteurs lors des pioches suivantes (pas besoin d'une pénalité explicite puisqu'une seule question est tirée par pioche).
+4. Crée la session (`opens_at` = maintenant, `closes_at` = +7 jours), une `quiz_questions` pour le fait retenu (avec `answer_value_snapshot`, et `validator_person_id` = auteur si le type est `free_text`), et les `question_recipients` associés : tous les joueurs de la famille sauf l'auteur du fait.
 
 **Simplifié pour l'implémentation initiale** : déclenchement **manuel** uniquement (bouton dans l'app) — pas de tâche planifiée hebdomadaire (`pg_cron`) ni de seuil de déclenchement automatique du premier quiz (3 joueurs actifs, voir `concept.md`), ces deux points sont repoussés à l'étape 8 du roadmap. L'Edge Function utilise la clé `service_role` (`ctx.supabaseAdmin`) pour écrire dans `quiz_sessions`/`quiz_questions`/`question_recipients`, qui n'ont pas de policy RLS d'écriture pour les joueurs (ces tables sont gérées par le système, voir `supabase/migrations/20261106130000_rls_policies.sql`).
 
