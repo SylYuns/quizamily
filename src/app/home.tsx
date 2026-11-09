@@ -157,6 +157,10 @@ export default function HomeScreen() {
         <ThemedText style={{ color: "#ffffff" }}>Ajouter un fait</ThemedText>
       </Pressable>
 
+      <Pressable onPress={() => router.push("/my-facts")}>
+        <ThemedText type="linkPrimary">Mes faits</ThemedText>
+      </Pressable>
+
       <ThemedText themeColor="textSecondary" style={{ textAlign: "center", maxWidth: 320 }}>
         (Accueil famille complet à construire — pour l&apos;instant, juste la confirmation que la famille existe.)
       </ThemedText>

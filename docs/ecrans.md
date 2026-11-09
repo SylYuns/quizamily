@@ -105,11 +105,15 @@ But : renseigner une information sur un membre de la famille, et retrouver les f
 
 ### Mes faits
 
-Affiche la liste des faits créés par le joueur, avec leur état : pas encore posé, posé dans la session en cours, révélé.
+Affiche la liste des faits créés par le joueur (les plus récents en premier), avec leur état : pas encore posé, posé dans la session en cours, révélé.
+
+Pour chaque fait : la question (sujet inclus), la réponse donnée, l'anecdote si renseignée, et la date d'ajout.
 
 Actions :
-- Modifier ou supprimer un fait **pas encore posé** (réponse, personne liée, anecdote)
+- Modifier ou supprimer un fait **pas encore posé** (réponse, anecdote) — suppression avec confirmation
 - Un fait posé ou révélé ne se modifie plus et ne se supprime plus : il passe par le mécanisme de correction (hors MVP)
+
+**Simplifié pour l'implémentation initiale** : tant que la pioche/session de quiz n'existe pas (roadmap étape 6), aucun fait n'a jamais de statut « posé » ou « révélé » — l'écran affiche donc toujours « pas encore posé ». Le vrai calcul du statut (via l'existence d'une ligne `quiz_questions` liée) viendra avec la pioche. Modifier la **personne liée** d'un fait n'est pas encore possible (dépend de la même UI que la création d'un fait avec personne liée, pas encore construite).
 
 ### Nouveau fait
 
@@ -127,7 +131,7 @@ Cas particuliers :
 
 **Unicité** : une question ne peut être créée qu'une fois pour la combinaison question + sujet + personne liée ou élément choisi. Par exemple, « voyage en <pays> » peut être créée une fois par pays, et « date de mariage » une fois par conjoint en cas de remariage.
 
-**Simplifié pour l'implémentation initiale** : seules les questions **sans personne liée (`<conjoint>`) et sans élément à choisir (`<pays>`)**, et pas de type `city`/`place`, sont proposées (24 des 32 templates). Les 8 restants demandent une UI de choix/création de personne liée, pas encore construite. Pas de section « Mes faits » (liste/modifier/supprimer) non plus pour l'instant — seul « Nouveau fait » est construit. Photos des personnes : placeholder pour l'instant, le vrai upload est un chantier séparé.
+**Simplifié pour l'implémentation initiale** : seules les questions **sans personne liée (`<conjoint>`) et sans élément à choisir (`<pays>`)**, et pas de type `city`/`place`, sont proposées (24 des 32 templates). Les 8 restants demandent une UI de choix/création de personne liée, pas encore construite. Photos des personnes : placeholder pour l'instant, le vrai upload est un chantier séparé.
 
 
 ## 6. Répondre

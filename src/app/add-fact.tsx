@@ -3,22 +3,14 @@ import { Redirect, router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 
-import DateInput from "@/components/date-input";
+import { AnswerInput } from "@/components/answer-input";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Spacing } from "@/constants/theme";
+import { parseAnswerValue } from "@/lib/answer-value";
+import { ensureListItemExists } from "@/lib/list-items";
 import { supabase } from "@/lib/supabase";
-
-type Template = {
-  id: string;
-  category: string;
-  template_text: string;
-  answer_input_kind: string;
-  list_name: string | null;
-  related_role: string | null;
-  slots: string[] | null;
-  condition: string | null;
-};
+import { Template } from "@/types/question-template";
 
 type Person = {
   id: string;
@@ -39,69 +31,6 @@ const CATEGORY_LABELS: Record<string, string> = {
 const CATEGORY_ORDER = Object.keys(CATEGORY_LABELS);
 const MAX_VISIBLE_CATEGORIES = 3;
 const MAX_VISIBLE_PERSONS = 3;
-
-const COUNTRIES = [
-  "France",
-  "Allemagne",
-  "Belgique",
-  "Suisse",
-  "Italie",
-  "Espagne",
-  "Portugal",
-  "Royaume-Uni",
-  "Irlande",
-  "Pays-Bas",
-  "Luxembourg",
-  "Autriche",
-  "Grèce",
-  "Pologne",
-  "République tchèque",
-  "Hongrie",
-  "Roumanie",
-  "Bulgarie",
-  "Croatie",
-  "Suède",
-  "Norvège",
-  "Danemark",
-  "Finlande",
-  "Islande",
-  "Russie",
-  "Ukraine",
-  "Turquie",
-  "Maroc",
-  "Algérie",
-  "Tunisie",
-  "Égypte",
-  "Sénégal",
-  "Côte d'Ivoire",
-  "Mali",
-  "Cameroun",
-  "Madagascar",
-  "Liban",
-  "Israël",
-  "États-Unis",
-  "Canada",
-  "Mexique",
-  "Brésil",
-  "Argentine",
-  "Chili",
-  "Pérou",
-  "Chine",
-  "Japon",
-  "Corée du Sud",
-  "Inde",
-  "Thaïlande",
-  "Vietnam",
-  "Indonésie",
-  "Australie",
-  "Nouvelle-Zélande",
-  "Maurice",
-  "Réunion",
-  "Guadeloupe",
-  "Martinique",
-  "Polynésie française",
-  "Nouvelle-Calédonie",
-];
 
 // Portée réduite pour ce premier écran : templates sans personne liée (<conjoint>) ni
 // élément à choisir (<pays>), et sans les types city/place (pas encore de widget dédié).
@@ -344,32 +273,17 @@ export default function AddFactScreen() {
     setError("");
 
     try {
-      let finalAnswer: string | number = answerValue.trim();
-      if (["year", "age", "number"].includes(selectedTemplate.answer_input_kind)) {
-        const n = Number(answerValue.trim());
-        if (Number.isNaN(n)) throw new Error("Merci de saisir un nombre valide.");
-        finalAnswer = n;
-      } else if (finalAnswer === "") {
-        throw new Error("Merci de renseigner une réponse.");
-      }
+      const parsed = parseAnswerValue(selectedTemplate.answer_input_kind, answerValue);
+      if (!parsed.ok) throw new Error(parsed.error);
+      const finalAnswer = parsed.value;
 
       if (selectedTemplate.answer_input_kind === "list" && selectedTemplate.list_name) {
-        const { data: existingItem } = await supabase
-          .from("list_items")
-          .select("id")
-          .eq("list_name", selectedTemplate.list_name)
-          .ilike("value", finalAnswer as string)
-          .maybeSingle();
-
-        if (!existingItem) {
-          await supabase.from("list_items").insert({
-            list_name: selectedTemplate.list_name,
-            value: finalAnswer,
-            status: "pending",
-            family_id: familyId,
-            created_by_person_id: myPersonId,
-          });
-        }
+        await ensureListItemExists({
+          listName: selectedTemplate.list_name,
+          value: finalAnswer as string,
+          familyId,
+          personId: myPersonId,
+        });
       }
 
       const { error: factError } = await supabase.from("facts").insert({
@@ -636,87 +550,6 @@ export default function AddFactScreen() {
       </ScrollView>
     </ThemedView>
   );
-}
-
-function AnswerInput(props: {
-  template: Template;
-  familyId: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  const { template, familyId, value, onChange } = props;
-  const kind = template.answer_input_kind;
-
-  const [listOptions, setListOptions] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (kind !== "list" || !template.list_name) return;
-    let cancelled = false;
-    supabase
-      .from("list_items")
-      .select("value, status, family_id")
-      .eq("list_name", template.list_name)
-      .then(({ data }) => {
-        if (cancelled || !data) return;
-        const options = data
-          .filter((row) => row.status === "approved" || row.family_id === familyId)
-          .map((row) => row.value);
-        setListOptions(Array.from(new Set(options)).sort());
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [kind, template.list_name, familyId]);
-
-  if (kind === "date") {
-    return <DateInput value={value} onChange={onChange} />;
-  }
-
-  if (kind === "year" || kind === "age" || kind === "number") {
-    return (
-      <TextInput
-        value={value}
-        onChangeText={onChange}
-        placeholder={kind === "year" ? "Année" : kind === "age" ? "Âge" : "Nombre"}
-        keyboardType="number-pad"
-        style={styles.input}
-      />
-    );
-  }
-
-  if (kind === "country") {
-    return (
-      <View style={styles.chipsRow}>
-        {COUNTRIES.map((c) => (
-          <Pressable key={c} onPress={() => onChange(c)} style={[styles.chip, value === c && styles.chipSelected]}>
-            <ThemedText style={value === c ? { color: "#ffffff" } : undefined}>{c}</ThemedText>
-          </Pressable>
-        ))}
-      </View>
-    );
-  }
-
-  if (kind === "list") {
-    return (
-      <View style={{ gap: Spacing.two }}>
-        <View style={styles.chipsRow}>
-          {listOptions.map((opt) => (
-            <Pressable
-              key={opt}
-              onPress={() => onChange(opt)}
-              style={[styles.chip, value === opt && styles.chipSelected]}
-            >
-              <ThemedText style={value === opt ? { color: "#ffffff" } : undefined}>{opt}</ThemedText>
-            </Pressable>
-          ))}
-        </View>
-        <ThemedText themeColor="textSecondary">Pas dans la liste ?</ThemedText>
-        <TextInput value={value} onChangeText={onChange} placeholder="Nouvelle valeur" style={styles.input} />
-      </View>
-    );
-  }
-
-  return <TextInput value={value} onChangeText={onChange} placeholder="Réponse" style={styles.input} />;
 }
 
 const styles = StyleSheet.create({
