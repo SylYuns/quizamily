@@ -286,6 +286,13 @@ export default function RespondScreen() {
                     : "Déclencher la révélation"}
             </ThemedText>
           </Pressable>
+          {!canReveal && sessionClosesAt && (
+            <ThemedText themeColor="textSecondary" style={{ textAlign: "center", maxWidth: 320, fontSize: 12 }}>
+              Si ce n&apos;est pas fait avant le{" "}
+              {new Date(sessionClosesAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}, la
+              révélation se déclenche automatiquement (les réponses manquantes comptent faux).
+            </ThemedText>
+          )}
 
           <Pressable onPress={() => router.replace("/home")}>
             <ThemedText type="linkPrimary">Retour à l&apos;accueil</ThemedText>

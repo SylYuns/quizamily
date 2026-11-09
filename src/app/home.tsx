@@ -293,8 +293,12 @@ export default function HomeScreen() {
               opacity: creatingSession ? 0.6 : 1,
             }}
           >
-            <ThemedText>{creatingSession ? "Création…" : "Créer une session de quiz (déclenchement manuel)"}</ThemedText>
+            <ThemedText>{creatingSession ? "Création…" : "Créer une session de quiz maintenant"}</ThemedText>
           </Pressable>
+          <ThemedText themeColor="textSecondary" style={{ textAlign: "center", maxWidth: 320, fontSize: 12 }}>
+            Une nouvelle session est aussi créée automatiquement chaque semaine s&apos;il n&apos;y en a pas déjà
+            une en cours.
+          </ThemedText>
           {sessionMessage && (
             <ThemedText themeColor="textSecondary" style={{ textAlign: "center", maxWidth: 320 }}>
               {sessionMessage}

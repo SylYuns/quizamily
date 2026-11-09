@@ -2,7 +2,7 @@
 
 ## État actuel (2026-11-10)
 
-Le MVP fonctionne de bout en bout en version simple, testé avec des comptes jetables et avec un deuxième vrai compte. Construit : auth, création/rejoindre une famille (avec « réclamer un profil existant »), ajout de faits (cas simple, 24/32 templates), « Mes faits » (modifier/supprimer, statut posé/révélé correct), pioche manuelle pondérée, réponse, validation des réponses libres (anonyme), révélation, correction d'un fait avec recalcul rétroactif des scores, et archives en version simple — étapes 1 à 4, 6 à 9, 11 et 12 (version simple) de la liste ci-dessous. Pas commencé : étapes 5, 7, 10, 13.
+Le MVP fonctionne de bout en bout en version simple, testé avec des comptes jetables et avec un deuxième vrai compte. Construit : auth, création/rejoindre une famille (avec « réclamer un profil existant »), ajout de faits (cas simple, 24/32 templates), « Mes faits » (modifier/supprimer, statut posé/révélé correct), pioche (manuelle + automatique hebdomadaire), réponse, validation des réponses libres (anonyme), révélation (manuelle + automatique à la deadline), correction d'un fait avec recalcul rétroactif des scores, et archives en version simple — étapes 1 à 4, 6 à 9, 11 et 12 (version simple) de la liste ci-dessous. Pas commencé : étapes 5, 7, 10, 13.
 
 **Pour reprendre le travail (ex. depuis un autre ordinateur)** : voir « Points à décider » et « Prochains sujets » plus bas sur cette page.
 
@@ -13,10 +13,10 @@ Le MVP fonctionne de bout en bout en version simple, testé avec des comptes jet
 3. Invitations (lien) + flux de rejoindre une famille.
 4. Catalogue de templates + formulaire d'ajout de fait (champs guidés par type) + « Mes faits ». *(fait pour le cas simple — 24/32 templates, section « Mes faits » avec modifier/supprimer ; reste : personne liée `<conjoint>`, élément `<pays>`, types city/place — le vrai statut posé/révélé de « Mes faits » attend l'étape 6)*
 5. Mini arbre familial (vue simple des personnes + relations).
-6. Logique de pioche pondérée (fraîcheur + répartition auteurs) + Edge Function de création de session. *(fait : `supabase/functions/create-quiz-session`, déclenchement manuel pour l'instant — pas encore de tâche planifiée hebdomadaire, voir `docs/ecrans.md`)*
+6. Logique de pioche pondérée (fraîcheur + répartition auteurs) + Edge Function de création de session. *(fait : `supabase/functions/create-quiz-session` pour le déclenchement manuel, plus `auto_create_quiz_sessions()` + tâche `pg_cron` hebdomadaire (lundi 8h) pour le déclenchement automatique — voir étape 9 pour le détail du cron)*
 7. Emails (nouvelle session, rappel, résultats).
-8. Écran de réponse au quiz + logique du seuil de déclenchement du premier quiz. *(écran de réponse fait en version simple — `src/app/respond.tsx` — reste : seuil de déclenchement automatique du premier quiz, verrouillage après la deadline)*
-9. Révélation automatique à la deadline, calcul des scores (4 états) + validation des réponses libres par l'auteur (notifications, révélation différée, prise de main). *(fait en version simple — `src/app/reveal.tsx` + `src/app/validate.tsx`, déclenchement manuel par l'auteur une fois tout le monde répondu et toutes les réponses libres validées — reste : automatique à la deadline même si incomplet, prise de main, notifications/relances, score cumulé inter-sessions)*
+8. Écran de réponse au quiz + logique du seuil de déclenchement du premier quiz. *(écran de réponse fait en version simple — `src/app/respond.tsx` ; seuil appliqué : la pioche automatique ne se déclenche que pour une famille ayant au moins 3 joueurs, voir « Décisions déjà prises » — reste : verrouillage de la réponse après la deadline, actuellement sans effet puisque la révélation auto absorbe ce cas)*
+9. Révélation automatique à la deadline, calcul des scores (4 états) + validation des réponses libres par l'auteur (notifications, révélation différée, prise de main). *(fait en version simple — `src/app/reveal.tsx` + `src/app/validate.tsx` pour le déclenchement manuel par l'auteur, plus `auto_reveal_expired_sessions()` + tâche `pg_cron` horaire pour clôturer automatiquement toute session dont la deadline est dépassée (réponses manquantes ou en attente de validation comptées fausses) — reste : prise de main, notifications/relances, score cumulé inter-sessions)*
 10. Réactions/commentaires sur les faits révélés.
 11. Mécanisme de correction + recalcul rétroactif des scores. *(fait — `propose_correction`/`validate_correction`, voir `docs/ecrans.md` écran 8 ; accessible aussi depuis les archives, qui réutilisent l'écran de révélation pour le détail d'une question au-delà de la dernière révélation)*
 12. Archive familiale enrichie (catégories, filtres, recherche) + score de contribution + relances. *(fait en version simple — `src/app/archive.tsx`, choix de la personne centrale puis liste des questions révélées la concernant, détail via `src/app/reveal.tsx` ; reste : regroupement par catégorie, auteur/anecdote/date de révélation/taux de bonnes réponses par fait, recherche, frise chronologique, score de contribution, relances)*
@@ -60,7 +60,6 @@ Pistes de validation gardées en tête pour plus tard : discuter avec des person
 Décisions de produit ou de sécurité pas encore tranchées — à trancher avant d'avancer sur le sujet concerné, ou à accepter explicitement comme compromis pour l'instant :
 
 - **Faits avec personne liée (`<conjoint>`) ou élément choisi (`<pays>`)** : 8 des 32 templates du catalogue en dépendent (voir `question-templates.toml`), pas encore proposés dans « Ajouter un fait ». Reste à concevoir l'UI de choix/création d'une personne liée.
-- **Déclenchement automatique** : pioche et révélation sont 100 % manuelles pour l'instant (boutons). À décider : tâche planifiée (`pg_cron` + Edge Function) pour la pioche hebdomadaire, et pour la révélation, quoi faire si un destinataire ne répond jamais (bloque indéfiniment pour l'instant, pas de "pas de blocage par les retardataires" appliqué).
 - **Emails/notifications** : aucune vraie notification n'existe encore (nouvelle session, rappel, relance de validation, résultats) — le calcul de timing ("24h avant la deadline") existe déjà côté logique (réutilisé pour débloquer la validation anonyme), mais rien n'envoie d'email. Fournisseur : Resend reste actif, en sandbox (pas de domaine vérifié — décision déjà prise de ne pas en acheter un pour l'instant, voir ci-dessous).
 - **« Prise de main »** : un joueur reprenant la validation des réponses libres à la place de l'auteur après 7 jours (prévu dans `concept.md`) — pas construit, dépend des notifications ci-dessus.
 - **Accord grammatical féminin/masculin** des questions (ex. « il/elle a pris l'avion ») — sujet technique ouvert depuis le début (voir `question-templates.toml`), jamais tranché.
@@ -73,7 +72,8 @@ Décisions de produit ou de sécurité pas encore tranchées — à trancher ava
 - Une session de quiz = **une seule question** (pas un lot), avec une semaine pour y répondre (clarifié le 2026-11-09, voir `concept.md`).
 - Terminologie retenue : **« personne centrale »** (pas « personne fondatrice », « vedette », etc.).
 - Pas de QCM en V1 : les joueurs répondent avec le même champ guidé que l'auteur du fait.
-- Seuil du premier quiz automatique : au moins 3 joueurs actifs (règle actée, mécanisme pas encore construit).
+- Seuil du quiz automatique : au moins 3 joueurs dans la famille, sinon la pioche automatique hebdomadaire ne se déclenche pas pour cette famille (`auto_create_quiz_sessions()`, voir migration `20261109240000_automatic_triggering.sql`).
+- Déclenchement automatique (2026-11-10) : pioche hebdomadaire (lundi 8h) et révélation à la deadline (vérifiée toutes les heures, réponses manquantes/en attente comptées fausses) tournent via `pg_cron`, en plus des boutons manuels qui restent disponibles (pioche immédiate, révélation dès que tout le monde a répondu).
 - Resend reste l'envoyeur d'email (sandbox, pas de domaine acheté) — ne pas reproposer de le désactiver.
 - Catalogue de templates géré par nous, pas par les familles, en V1.
 - Pas de maximum technique sur le nombre de personnes centrales (recommandation UI : 1 à 4). Une nouvelle personne centrale peut être ajoutée à tout moment, sans gatekeeper.
@@ -82,7 +82,6 @@ Décisions de produit ou de sécurité pas encore tranchées — à trancher ava
 
 - Les 8 templates restants d'« Ajouter un fait » (personne liée, pays, ville/lieu).
 - Mini arbre familial (étape 5, vue simple des personnes et de leurs relations).
-- Déclenchement automatique (pioche planifiée + révélation à la deadline même si incomplète).
 - Emails/notifications (nouvelle session, rappels, résultats, relances de validation) + « prise de main ».
 - Enrichissement des archives (étape 12) : regroupement par catégorie, auteur/anecdote/date de révélation/taux de bonnes réponses par fait, recherche par mot-clé, frise chronologique.
 - Réactions/commentaires sur les faits révélés.
