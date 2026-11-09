@@ -162,7 +162,7 @@ export default function AddFactScreen() {
 
   const [templates, setTemplates] = useState<Template[]>([]);
   const [answeredCount, setAnsweredCount] = useState(0);
-  const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [loadingTemplates, setLoadingTemplates] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -448,7 +448,15 @@ export default function AddFactScreen() {
         ) : (
           <>
             {/* 1-4 : sujet */}
-            <ThemedText type="smallBold">Sur qui ?</ThemedText>
+            <View style={styles.sectionHeaderRow}>
+              <ThemedText type="smallBold">Sur qui ?</ThemedText>
+              {!loadingTemplates && (
+                <ThemedText themeColor="textSecondary" style={styles.counterText}>
+                  {answeredLabel}, {templates.length} question{templates.length === 1 ? "" : "s"} restante
+                  {templates.length === 1 ? "" : "s"}
+                </ThemedText>
+              )}
+            </View>
             <View style={styles.personsRow}>
               {visiblePersons.map((p) => (
                 <Pressable
@@ -525,9 +533,7 @@ export default function AddFactScreen() {
               <ActivityIndicator />
             ) : templates.length === 0 ? (
               <ThemedText themeColor="textSecondary">
-                {answeredCount > 0
-                  ? `${answeredLabel} sur ${subject?.display_name} — plus de questions disponibles pour l'instant.`
-                  : `Plus de questions disponibles pour ${subject?.display_name} dans cette première version.`}
+                Plus de questions disponibles pour {subject?.display_name} dans cette première version.
               </ThemedText>
             ) : (
               <>
@@ -550,11 +556,6 @@ export default function AddFactScreen() {
                     </Pressable>
                   )}
                 </View>
-
-                <ThemedText themeColor="textSecondary">
-                  {answeredLabel} sur {subject?.display_name}, {templates.length} question
-                  {templates.length === 1 ? "" : "s"} restante{templates.length === 1 ? "" : "s"}.
-                </ThemedText>
 
                 {/* 11 : résultats */}
                 {searchResults.map((t) => (
@@ -710,6 +711,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: Spacing.three,
     width: "100%",
+  },
+  sectionHeaderRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: Spacing.one,
+  },
+  counterText: {
+    fontSize: 13,
   },
   card: {
     borderWidth: 1,
