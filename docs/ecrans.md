@@ -198,6 +198,10 @@ Actions :
 - Accepter ou refuser chaque réponse (ou groupe de réponses)
 - Une fois tout validé → la question sera révélée à la deadline, ou tout de suite si la deadline est passée
 
+Implémenté (`src/app/validate.tsx`) via `get_pending_validations`/`validate_pending_answers` (`security definer`, voir `supabase/migrations/20261109200000_validate_free_text_answers.sql`) : ces fonctions ne renvoient jamais qui a donné quelle réponse (juste la valeur, son nombre d'occurrences, et les ids de ligne nécessaires pour appliquer la décision), pour respecter l'anonymat documenté ci-dessus. Accessible depuis « Ma question » (écran 6) via un lien « Valider les réponses (N en attente) » dès qu'il y en a ; `reveal_current_question` refuse maintenant explicitement de révéler tant qu'il en reste (plus d'auto-résolution silencieuse en "incorrect").
+
+**Simplifié pour l'implémentation initiale** : pas de « prise de main » (un autre joueur prenant le relais après 7 jours si l'auteur ne valide pas) — auteur uniquement pour l'instant. Pas de notifications/relances à l'auteur.
+
 
 ## 8. Révélation
 
@@ -222,7 +226,7 @@ Comme pour la pioche, **manuel pour l'instant** : un bouton « Déclencher la r�
 
 **À faire plus tard** (roadmap étape 9) : passage automatique en mode révélation quand la deadline (`closes_at`) est dépassée, qu'on ait ou non reçu toutes les réponses (« pas de blocage par les retardataires », voir `concept.md`) — pour l'instant, sans cette automatisation, une question dont un destinataire ne répond jamais reste bloquée indéfiniment, ce qui est acceptable en test mais pas en production.
 
-**Simplifié pour l'implémentation initiale** (`src/app/reveal.tsx`) : une seule question par session (voir `concept.md`), donc pas de « question suivante ». Une réponse en saisie libre encore « en attente de validation » au moment de la révélation est comptée **incorrecte** (pas d'écran de validation pour l'instant, voir écran 7). Pas de score cumulé inter-sessions (demande d'agréger plusieurs sessions passées, pas construit). Pas de réactions/commentaires (hors MVP).
+**Simplifié pour l'implémentation initiale** (`src/app/reveal.tsx`) : une seule question par session (voir `concept.md`), donc pas de « question suivante ». `reveal_current_question` refuse de révéler tant qu'il reste des réponses « en attente de validation » (voir écran 7) — l'auteur doit d'abord passer par `src/app/validate.tsx`. Pas de score cumulé inter-sessions (demande d'agréger plusieurs sessions passées, pas construit). Pas de réactions/commentaires (hors MVP).
 
 **Sécurité** : la bonne réponse (`quiz_questions.answer_value_snapshot`) n'est plus jamais envoyée au client avant la révélation — jusqu'ici, `respond.tsx` la recevait dans la réponse de l'API pour comparer côté client, visible par n'importe qui ouvrant les outils réseau du navigateur avant même d'avoir répondu. Le calcul juste/faux se fait maintenant entièrement côté serveur via la fonction `submit_answer` (voir `supabase/migrations/20261109190000_reveal_and_secure_answers.sql`), qui remplace l'écriture directe du joueur sur `question_recipients` (la policy correspondante a été retirée : elle aurait permis à un joueur de s'auto-attribuer « juste » sans vraiment répondre correctement). La révélation elle-même passe par `reveal_current_question` (auteur uniquement, vérifie que tout le monde a répondu, bascule `quiz_sessions.status` à `closed`) et `get_revealed_question` (lisible par toute la famille une fois la session fermée).
 

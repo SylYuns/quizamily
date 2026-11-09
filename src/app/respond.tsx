@@ -32,6 +32,7 @@ type OwnQuestionState = {
   answerDisplay: string;
   contextText: string | null;
   participants: Participant[];
+  pendingValidationCount: number;
 };
 
 export default function RespondScreen() {
@@ -123,9 +124,10 @@ export default function RespondScreen() {
       if (!recipient) {
         if (facts.author_person_id === me.id) {
           // C'est mon propre fait : lire sa réponse m'est toujours permis.
-          const [{ data: myFact }, { data: participants }] = await Promise.all([
+          const [{ data: myFact }, { data: participants }, { data: pendingData }] = await Promise.all([
             supabase.from("facts").select("answer_value, context_text").eq("id", facts.id).maybeSingle(),
             supabase.rpc("get_question_participants", { p_quiz_question_id: quizQuestion.id }),
+            supabase.rpc("get_pending_validations", { p_quiz_question_id: quizQuestion.id }),
           ]);
           if (cancelled || !myFact) return;
 
@@ -133,12 +135,14 @@ export default function RespondScreen() {
             "<sujet>",
             facts.persons?.display_name ?? "?",
           );
+          const pendingGroups = (pendingData?.pending as { count: number }[] | undefined) ?? [];
           setOwnQuestion({
             quizQuestionId: quizQuestion.id,
             questionText,
             answerDisplay: formatAnswerDisplay(facts.question_templates.answer_input_kind, myFact.answer_value),
             contextText: myFact.context_text,
             participants: (participants as Participant[] | null) ?? [],
+            pendingValidationCount: pendingGroups.reduce((sum, g) => sum + g.count, 0),
           });
         } else {
           // Ni destinataire, ni auteur : a rejoint la famille après la création de la session.
@@ -228,6 +232,8 @@ export default function RespondScreen() {
 
   if (ownQuestion) {
     const allAnswered = ownQuestion.participants.length > 0 && ownQuestion.participants.every((p) => p.answered);
+    const hasPendingValidations = ownQuestion.pendingValidationCount > 0;
+    const canReveal = allAnswered && !hasPendingValidations;
 
     return (
       <ThemedView style={{ flex: 1 }}>
@@ -255,19 +261,29 @@ export default function RespondScreen() {
             </View>
           )}
 
+          {hasPendingValidations && (
+            <Pressable onPress={() => router.push("/validate")}>
+              <ThemedText type="linkPrimary">
+                Valider les réponses ({ownQuestion.pendingValidationCount} en attente)
+              </ThemedText>
+            </Pressable>
+          )}
+
           {error.length > 0 && <ThemedText themeColor="text">{error}</ThemedText>}
 
           <Pressable
             onPress={triggerReveal}
-            disabled={!allAnswered || revealing}
-            style={[styles.primaryButton, (!allAnswered || revealing) && { opacity: 0.6 }]}
+            disabled={!canReveal || revealing}
+            style={[styles.primaryButton, (!canReveal || revealing) && { opacity: 0.6 }]}
           >
             <ThemedText style={{ color: "#ffffff" }}>
               {revealing
                 ? "Révélation…"
-                : allAnswered
-                  ? "Déclencher la révélation"
-                  : "En attente que tout le monde réponde"}
+                : !allAnswered
+                  ? "En attente que tout le monde réponde"
+                  : hasPendingValidations
+                    ? "Valide d'abord les réponses en attente"
+                    : "Déclencher la révélation"}
             </ThemedText>
           </Pressable>
 
