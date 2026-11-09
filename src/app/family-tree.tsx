@@ -1,6 +1,6 @@
 import { Redirect, router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -40,6 +40,11 @@ export default function FamilyTreeScreen() {
   const [relationKind, setRelationKind] = useState<RelationKind>("spouse_of");
   const [personBId, setPersonBId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const [creatingPersonFor, setCreatingPersonFor] = useState<"A" | "B" | null>(null);
+  const [newPersonName, setNewPersonName] = useState("");
+  const [newPersonGender, setNewPersonGender] = useState<"homme" | "femme" | null>(null);
+  const [creatingPerson, setCreatingPerson] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -129,7 +134,44 @@ export default function FamilyTreeScreen() {
     setPersonAId(null);
     setRelationKind("spouse_of");
     setPersonBId(null);
+    setCreatingPersonFor(null);
+    setNewPersonName("");
+    setNewPersonGender(null);
     setError("");
+  }
+
+  async function createPerson(forSlot: "A" | "B") {
+    if (!familyId || newPersonName.trim().length === 0) return;
+    setCreatingPerson(true);
+    setError("");
+
+    const { data, error: insertError } = await supabase
+      .from("persons")
+      .insert({
+        family_id: familyId,
+        kind: "profile",
+        display_name: newPersonName.trim(),
+        gender: newPersonGender,
+        is_central: false,
+        is_deceased: false,
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      setError(insertError.message);
+      setCreatingPerson(false);
+      return;
+    }
+
+    const created: Person = { id: data.id, display_name: data.display_name, is_central: false };
+    setPersons((prev) => [...prev, created]);
+    if (forSlot === "A") setPersonAId(created.id);
+    else setPersonBId(created.id);
+    setCreatingPersonFor(null);
+    setNewPersonName("");
+    setNewPersonGender(null);
+    setCreatingPerson(false);
   }
 
   async function submitRelationship() {
@@ -251,7 +293,40 @@ export default function FamilyTreeScreen() {
                   <ThemedText style={personAId === p.id ? { color: "#ffffff" } : undefined}>{p.display_name}</ThemedText>
                 </Pressable>
               ))}
+              <Pressable onPress={() => setCreatingPersonFor("A")} style={styles.chip}>
+                <ThemedText>+ Nouvelle personne</ThemedText>
+              </Pressable>
             </View>
+            {creatingPersonFor === "A" && (
+              <View style={{ gap: Spacing.two }}>
+                <TextInput
+                  value={newPersonName}
+                  onChangeText={setNewPersonName}
+                  placeholder="Prénom et nom"
+                  style={styles.input}
+                />
+                <View style={styles.chipsRow}>
+                  {(["homme", "femme"] as const).map((g) => (
+                    <Pressable
+                      key={g}
+                      onPress={() => setNewPersonGender(g)}
+                      style={[styles.chip, newPersonGender === g && styles.chipSelected]}
+                    >
+                      <ThemedText style={newPersonGender === g ? { color: "#ffffff" } : undefined}>
+                        {g === "homme" ? "Homme" : "Femme"}
+                      </ThemedText>
+                    </Pressable>
+                  ))}
+                </View>
+                <Pressable
+                  onPress={() => createPerson("A")}
+                  disabled={creatingPerson || newPersonName.trim().length === 0}
+                  style={[styles.secondaryButton, (creatingPerson || newPersonName.trim().length === 0) && { opacity: 0.6 }]}
+                >
+                  <ThemedText>{creatingPerson ? "Création…" : "Ajouter cette personne"}</ThemedText>
+                </Pressable>
+              </View>
+            )}
 
             <ThemedText themeColor="textSecondary">Relation</ThemedText>
             <View style={styles.chipsRow}>
@@ -286,7 +361,40 @@ export default function FamilyTreeScreen() {
                     <ThemedText style={personBId === p.id ? { color: "#ffffff" } : undefined}>{p.display_name}</ThemedText>
                   </Pressable>
                 ))}
+              <Pressable onPress={() => setCreatingPersonFor("B")} style={styles.chip}>
+                <ThemedText>+ Nouvelle personne</ThemedText>
+              </Pressable>
             </View>
+            {creatingPersonFor === "B" && (
+              <View style={{ gap: Spacing.two }}>
+                <TextInput
+                  value={newPersonName}
+                  onChangeText={setNewPersonName}
+                  placeholder="Prénom et nom"
+                  style={styles.input}
+                />
+                <View style={styles.chipsRow}>
+                  {(["homme", "femme"] as const).map((g) => (
+                    <Pressable
+                      key={g}
+                      onPress={() => setNewPersonGender(g)}
+                      style={[styles.chip, newPersonGender === g && styles.chipSelected]}
+                    >
+                      <ThemedText style={newPersonGender === g ? { color: "#ffffff" } : undefined}>
+                        {g === "homme" ? "Homme" : "Femme"}
+                      </ThemedText>
+                    </Pressable>
+                  ))}
+                </View>
+                <Pressable
+                  onPress={() => createPerson("B")}
+                  disabled={creatingPerson || newPersonName.trim().length === 0}
+                  style={[styles.secondaryButton, (creatingPerson || newPersonName.trim().length === 0) && { opacity: 0.6 }]}
+                >
+                  <ThemedText>{creatingPerson ? "Création…" : "Ajouter cette personne"}</ThemedText>
+                </Pressable>
+              </View>
+            )}
 
             {error.length > 0 && <ThemedText themeColor="text">{error}</ThemedText>}
 
@@ -326,6 +434,21 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: Spacing.three,
     gap: Spacing.one,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#999999",
+    borderRadius: 8,
+    padding: Spacing.three,
+    width: "100%",
+  },
+  secondaryButton: {
+    borderWidth: 1,
+    borderColor: "#999999",
+    borderRadius: 8,
+    paddingVertical: Spacing.three,
+    paddingHorizontal: Spacing.four,
+    alignItems: "center",
   },
   chipsRow: {
     flexDirection: "row",
