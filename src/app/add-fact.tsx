@@ -524,26 +524,28 @@ export default function AddFactScreen() {
                     </Pressable>
                   </View>
                 ) : (
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    <View style={styles.chipsRowNoWrap}>
-                      {visibleCategories.map((cat) => (
-                        <Pressable
-                          key={cat}
-                          onPress={() => setSelectedCategory((c) => (c === cat ? null : cat))}
-                          style={[styles.chip, selectedCategory === cat && styles.chipSelected]}
-                        >
-                          <ThemedText style={selectedCategory === cat ? { color: "#ffffff" } : undefined}>
-                            {CATEGORY_LABELS[cat]}
-                          </ThemedText>
-                        </Pressable>
-                      ))}
-                      {hasMoreCategories && (
-                        <Pressable onPress={() => setShowAllCategories(true)} style={styles.chip}>
-                          <ThemedText>+</ThemedText>
-                        </Pressable>
-                      )}
-                    </View>
-                  </ScrollView>
+                  <View style={styles.themeRow}>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.themeScroll}>
+                      <View style={styles.chipsRowNoWrap}>
+                        {visibleCategories.map((cat) => (
+                          <Pressable
+                            key={cat}
+                            onPress={() => setSelectedCategory((c) => (c === cat ? null : cat))}
+                            style={[styles.chip, selectedCategory === cat && styles.chipSelected]}
+                          >
+                            <ThemedText style={selectedCategory === cat ? { color: "#ffffff" } : undefined}>
+                              {CATEGORY_LABELS[cat]}
+                            </ThemedText>
+                          </Pressable>
+                        ))}
+                      </View>
+                    </ScrollView>
+                    {hasMoreCategories && (
+                      <Pressable onPress={() => setShowAllCategories(true)} style={styles.chip}>
+                        <ThemedText>+</ThemedText>
+                      </Pressable>
+                    )}
+                  </View>
                 )}
               </>
             )}
@@ -805,6 +807,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "nowrap",
     gap: Spacing.two,
+  },
+  themeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.two,
+  },
+  themeScroll: {
+    flex: 1,
   },
   chip: {
     borderWidth: 1,
