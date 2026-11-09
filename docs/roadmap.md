@@ -28,7 +28,7 @@ Volontairement réduit par rapport à la liste complète ci-dessus :
 
 **Inclus** : auth + création famille + invite, création des personnes centrales (relations simplifiées), un catalogue réduit de ~15-20 templates codés en dur (pas de back-office d'édition), ajout de faits, pioche + session de quiz (version simple au début, pas besoin du roulement pondéré sophistiqué dès le jour 1), réponse, validation des réponses libres par l'auteur (écran de validation + emails de rappel à l'auteur et d'attente aux joueurs ; la prise de main peut attendre), révélation (scores + contexte), emails (nouvelle question + résultats), archives en version simple (liste des questions révélées concernant une personne centrale).
 
-**Reporté après le premier test** : réactions/commentaires, mécanisme de correction, relances de contribution, vue arbre familial, pièces jointes (photo/audio) sur les faits, notifications push, builds natifs iOS/Android (le web suffit pour tester avec 2-3 personnes).
+**Reporté après le premier test** : réactions/commentaires, relances de contribution, pièces jointes (photo/audio) sur les faits, notifications push, builds natifs iOS/Android (le web suffit pour tester avec 2-3 personnes). *(mécanisme de correction et vue arbre familial, listés ici à l'origine, sont finalement déjà construits — voir « État actuel » en haut de page.)*
 
 ## Estimation de charge (solo, ~1-2 jours/semaine, dev généraliste mais nouveau sur Expo/Supabase)
 
@@ -65,6 +65,7 @@ Décisions de produit ou de sécurité pas encore tranchées — à trancher ava
 - **Fuite résiduelle, type `list`** : le champ de réponse propose les mêmes suggestions qu'à la création du fait, ce qui peut révéler la bonne réponse si une liste a très peu de valeurs (voir `docs/data-model.md`). Pas corrigé, jugé à faible risque avec peu de testeurs — à revoir avant une ouverture plus large.
 - **Fuite résiduelle, `facts.answer_value`** : un fait pas encore posé reste techniquement lisible par n'importe quel membre de la famille via une requête directe (la policy RLS n'est pas conditionnée par le statut posé/révélé) — demanderait une policy plus fine ou de déplacer `answer_value` dans une table séparée pour fermer complètement (voir `docs/data-model.md`).
 - **Direction visuelle** (coloré/chaleureux, bleu-blanc-rouge — voir `concept.md`) : documentée depuis le début, jamais appliquée. Tous les écrans utilisent encore un style minimal (gris/bleu uni) pour avancer vite sur les fonctionnalités.
+- **`relationship_label` pas encore un vrai lien par paire** : reste un champ texte simple posé par le créateur de la famille sur sa propre perception (ex: "Grand-mère" = grand-mère du créateur), pas une relation stockée dans `relationships` entre le créateur et chaque personne centrale — contrairement aux liens que l'arbre familial (étape 5) sait maintenant capturer pour tout le monde. Pas bloquant, juste incohérent avec le reste du modèle.
 
 ## Décisions déjà prises (pour éviter de les re-discuter)
 
@@ -87,4 +88,5 @@ Décisions de produit ou de sécurité pas encore tranchées — à trancher ava
 - Score de contribution + relances si un membre n'a rien ajouté.
 - Application de la direction visuelle (coloré, bleu-blanc-rouge).
 - Fermer les deux fuites résiduelles notées plus haut (type `list`, `facts.answer_value`).
+- Vraie capture par paire du lien de parenté créateur ↔ personnes centrales (`relationship_label`), voir « Points à décider ».
 - Phase 2 : notifications push, builds natifs iOS/Android.
