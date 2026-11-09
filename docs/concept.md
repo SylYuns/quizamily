@@ -4,6 +4,10 @@
 
 Les joueurs (enfants, petits-enfants...) s'amusent à deviner et enrichir leur connaissance d'une ou plusieurs **personnes centrales** de la famille — typiquement des grands-parents ou arrière-grands-parents, vivants ou décédés, qui n'utilisent pas forcément l'app eux-mêmes. Le jeu produit, comme sous-produit, une archive familiale vivante.
 
+## Direction visuelle
+
+Coloré et chaleureux, pas minimaliste/froid — c'est un jeu de famille, pas un outil pro. Belles icônes, ambiance fun. Palette à dominante bleu/blanc/rouge quand c'est pertinent. Pas une priorité immédiate (les écrans actuels sont volontairement sommaires pour avancer vite sur les fonctionnalités), mais à appliquer dès qu'on retravaille sérieusement l'UI.
+
 ## Rôles
 
 - **Joueurs** : comptes actifs. Ajoutent des infos, répondent aux quiz.
