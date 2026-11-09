@@ -130,6 +130,8 @@ Cas particuliers :
 
 **Unicité** : une question ne peut être créée qu'une fois pour la combinaison question + personne centrale + personne liée ou élément choisi. Par exemple, « voyage en <pays> » peut être créée une fois par pays, et « date de mariage » une fois par conjoint en cas de remariage.
 
+**Simplifié pour l'implémentation initiale** : seules les questions **sans personne liée (`<conjoint>`) et sans élément à choisir (`<pays>`)**, et pas de type `city`/`place`, sont proposées (24 des 32 templates). Les 8 restants demandent une UI de choix/création de personne liée, pas encore construite. Pas de section « Mes faits » (liste/modifier/supprimer) non plus pour l'instant — seul « Nouveau fait » est construit.
+
 
 ## 6. Répondre
 

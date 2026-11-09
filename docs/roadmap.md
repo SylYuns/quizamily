@@ -5,7 +5,7 @@
 1. Setup Expo + Supabase, schéma DB + RLS.
 2. Auth + création famille + désignation des personnes centrales + relations de départ.
 3. Invitations (lien) + flux de rejoindre une famille.
-4. Catalogue de templates + formulaire d'ajout de fait (champs guidés par type).
+4. Catalogue de templates + formulaire d'ajout de fait (champs guidés par type). *(fait pour le cas simple — 24/32 templates ; reste : personne liée `<conjoint>`, élément `<pays>`, types city/place, section « Mes faits »)*
 5. Mini arbre familial (vue simple des personnes + relations).
 6. Logique de pioche pondérée (fraîcheur + répartition auteurs) + Edge Function de création de session.
 7. Emails (nouvelle session, rappel, résultats).
