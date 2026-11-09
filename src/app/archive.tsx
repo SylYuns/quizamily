@@ -168,7 +168,6 @@ export default function ArchiveScreen() {
             {!loadingEntries &&
               entries !== null &&
               entries.map((entry) => {
-                const questionText = entry.questionText.replace("<sujet>", selectedPerson.displayName);
                 return (
                   <Pressable
                     key={entry.quizQuestionId}
@@ -177,7 +176,7 @@ export default function ArchiveScreen() {
                       router.push({ pathname: "/reveal", params: { questionId: entry.quizQuestionId } })
                     }
                   >
-                    <ThemedText type="smallBold">{questionText}</ThemedText>
+                    <ThemedText type="smallBold">{entry.questionText}</ThemedText>
                     <ThemedText themeColor="textSecondary">
                       {formatAnswerDisplay(entry.answerInputKind, entry.answer)}
                     </ThemedText>

@@ -285,7 +285,7 @@ export default function RevealScreen() {
     );
   }
 
-  const questionText = reveal.questionText.replace("<sujet>", reveal.subjectName);
+  const questionText = reveal.questionText;
   const isAuthor = myPersonId !== null && myPersonId === authorPersonId;
   const displayedAnswer = currentAnswerValue !== null ? currentAnswerValue : reveal.correctAnswer;
 

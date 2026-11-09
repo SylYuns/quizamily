@@ -8,6 +8,7 @@ import { ThemedView } from "@/components/themed-view";
 import { Spacing } from "@/constants/theme";
 import { parseAnswerValue } from "@/lib/answer-value";
 import { formatAnswerDisplay } from "@/lib/format-answer";
+import { substituteQuestionText } from "@/lib/question-text";
 import { supabase } from "@/lib/supabase";
 import { Template } from "@/types/question-template";
 
@@ -17,6 +18,8 @@ type QuestionState = {
   answerInputKind: string;
   template: Template;
   subjectName: string;
+  relatedName: string | null;
+  slotValues: Record<string, string> | null;
   result: string;
 };
 
@@ -94,7 +97,7 @@ export default function RespondScreen() {
       const { data: quizQuestion } = await supabase
         .from("quiz_questions")
         .select(
-          "id, facts (id, author_person_id, subject_person_id, question_templates (*), persons:subject_person_id (display_name))",
+          "id, facts (id, author_person_id, subject_person_id, slot_values, question_templates (*), persons:subject_person_id (display_name), relatedPerson:related_person_id (display_name))",
         )
         .eq("session_id", session.id)
         .limit(1)
@@ -109,8 +112,10 @@ export default function RespondScreen() {
         id: string;
         author_person_id: string;
         subject_person_id: string;
+        slot_values: Record<string, string> | null;
         question_templates: Template;
         persons: { display_name: string } | null;
+        relatedPerson: { display_name: string } | null;
       };
 
       const { data: recipient } = await supabase
@@ -131,9 +136,12 @@ export default function RespondScreen() {
           ]);
           if (cancelled || !myFact) return;
 
-          const questionText = facts.question_templates.template_text.replace(
-            "<sujet>",
+          const questionText = substituteQuestionText(
+            facts.question_templates.template_text,
+            facts.question_templates.related_role,
             facts.persons?.display_name ?? "?",
+            facts.relatedPerson?.display_name ?? null,
+            facts.slot_values,
           );
           const pendingGroups = (pendingData?.pending as { count: number }[] | undefined) ?? [];
           setOwnQuestion({
@@ -158,6 +166,8 @@ export default function RespondScreen() {
         answerInputKind: facts.question_templates.answer_input_kind,
         template: facts.question_templates,
         subjectName: facts.persons?.display_name ?? "?",
+        relatedName: facts.relatedPerson?.display_name ?? null,
+        slotValues: facts.slot_values,
         result: recipient.result,
       };
       setQuestion(q);
@@ -318,7 +328,13 @@ export default function RespondScreen() {
     );
   }
 
-  const questionText = question.template.template_text.replace("<sujet>", question.subjectName);
+  const questionText = substituteQuestionText(
+    question.template.template_text,
+    question.template.related_role,
+    question.subjectName,
+    question.relatedName,
+    question.slotValues,
+  );
 
   return (
     <ThemedView style={{ flex: 1 }}>

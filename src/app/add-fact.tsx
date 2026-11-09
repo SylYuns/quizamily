@@ -6,6 +6,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View }
 import { AnswerInput } from "@/components/answer-input";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { COUNTRIES } from "@/constants/countries";
 import { Spacing } from "@/constants/theme";
 import { parseAnswerValue } from "@/lib/answer-value";
 import { ensureListItemExists } from "@/lib/list-items";
@@ -20,6 +21,12 @@ type Person = {
   is_central: boolean;
 };
 
+type Relationship = {
+  person_a_id: string;
+  person_b_id: string;
+  relation_type: string;
+};
+
 const CATEGORY_LABELS: Record<string, string> = {
   "naissance-enfance": "Naissance et enfance",
   jeunesse: "Jeunesse",
@@ -32,11 +39,32 @@ const CATEGORY_ORDER = Object.keys(CATEGORY_LABELS);
 const MAX_VISIBLE_CATEGORIES = 3;
 const MAX_VISIBLE_PERSONS = 3;
 
-// Portée réduite pour ce premier écran : templates sans personne liée (<conjoint>) ni
-// élément à choisir (<pays>), et sans les types city/place (pas encore de widget dédié).
-// Ça couvre 24 des 32 templates du catalogue - le reste viendra avec la gestion des
-// personnes liées.
-const SUPPORTED_KINDS = ["date", "year", "age", "number", "country", "list", "free_text"];
+function findRelatedPersonId(relationships: Relationship[], subjectId: string): string | null {
+  const rel = relationships.find(
+    (r) => r.relation_type === "spouse_of" && (r.person_a_id === subjectId || r.person_b_id === subjectId),
+  );
+  if (!rel) return null;
+  return rel.person_a_id === subjectId ? rel.person_b_id : rel.person_a_id;
+}
+
+// Remplace <sujet>/<conjoint>/<pays> par leur valeur connue. <conjoint>/<pays> peuvent être
+// inconnus tant que l'auteur n'a pas résolu la personne liée ou l'élément choisi : on affiche
+// alors une tournure générique plutôt que le nom littéral du template.
+function substituteTemplateText(
+  t: Template,
+  subjectName: string,
+  relatedName: string | null,
+  slotValues: Record<string, string>,
+): string {
+  let text = t.template_text.replace("<sujet>", subjectName);
+  if (t.related_role) {
+    text = text.replace(`<${t.related_role}>`, relatedName ?? "son/sa conjoint·e");
+  }
+  for (const slot of t.slots ?? []) {
+    text = text.replace(`<${slot}>`, slotValues[slot] ?? `(${slot} à préciser)`);
+  }
+  return text;
+}
 
 async function hasPotentialSibling(personId: string, famId: string): Promise<boolean> {
   const { data: parentLinks } = await supabase
@@ -86,8 +114,16 @@ export default function AddFactScreen() {
   const [familyId, setFamilyId] = useState<string | null>(null);
   const [myPersonId, setMyPersonId] = useState<string | null>(null);
   const [allPersons, setAllPersons] = useState<Person[]>([]);
+  const [relationships, setRelationships] = useState<Relationship[]>([]);
   const [subjectId, setSubjectId] = useState<string | null>(null);
   const [showAllPersons, setShowAllPersons] = useState(false);
+
+  const [relatedPersonId, setRelatedPersonId] = useState<string | null>(null);
+  const [showSpouseCreator, setShowSpouseCreator] = useState(false);
+  const [newSpouseName, setNewSpouseName] = useState("");
+  const [newSpouseGender, setNewSpouseGender] = useState<"homme" | "femme" | null>(null);
+  const [creatingSpouse, setCreatingSpouse] = useState(false);
+  const [slotValues, setSlotValues] = useState<Record<string, string>>({});
 
   const [templates, setTemplates] = useState<Template[]>([]);
   const [answeredCount, setAnsweredCount] = useState(0);
@@ -128,16 +164,20 @@ export default function AddFactScreen() {
       setMyPersonId(me.id);
       setFamilyId(me.family_id);
 
-      const { data: persons } = await supabase
-        .from("persons")
-        .select("id, display_name, gender, is_deceased, is_central")
-        .eq("family_id", me.family_id)
-        .order("is_central", { ascending: false })
-        .order("display_name", { ascending: true });
+      const [{ data: persons }, { data: rels }] = await Promise.all([
+        supabase
+          .from("persons")
+          .select("id, display_name, gender, is_deceased, is_central")
+          .eq("family_id", me.family_id)
+          .order("is_central", { ascending: false })
+          .order("display_name", { ascending: true }),
+        supabase.from("relationships").select("person_a_id, person_b_id, relation_type").eq("family_id", me.family_id),
+      ]);
 
       if (cancelled) return;
       const list = persons ?? [];
       setAllPersons(list);
+      setRelationships(rels ?? []);
 
       let initialSubjectId = list.length > 0 ? list[0].id : null;
       let initialCategory: string | null = null;
@@ -196,11 +236,9 @@ export default function AddFactScreen() {
       if (cancelled) return;
 
       const existingTemplateIds = new Set((factsRes.data ?? []).map((f) => f.template_id));
-      const supportedForSubject = (templatesRes.data ?? []).filter((t: Template) => {
-        if (t.related_role || (t.slots && t.slots.length > 0)) return false;
-        if (!SUPPORTED_KINDS.includes(t.answer_input_kind)) return false;
-        return matchesCondition(t.condition, subject, siblingRes);
-      });
+      const supportedForSubject = (templatesRes.data ?? []).filter((t: Template) =>
+        matchesCondition(t.condition, subject, siblingRes),
+      );
       const eligible = supportedForSubject.filter((t) => !existingTemplateIds.has(t.id));
 
       setTemplates(eligible);
@@ -253,6 +291,54 @@ export default function AddFactScreen() {
     setContextText("");
     setError("");
     setFiltersCollapsed(true);
+    setSlotValues({});
+    setShowSpouseCreator(false);
+    setNewSpouseName("");
+    setNewSpouseGender(null);
+    setRelatedPersonId(t.related_role && subjectId ? findRelatedPersonId(relationships, subjectId) : null);
+  }
+
+  async function createSpouse() {
+    if (!subjectId || !familyId || newSpouseName.trim().length === 0) return;
+    setCreatingSpouse(true);
+    setError("");
+
+    try {
+      const { data: spouse, error: spouseError } = await supabase
+        .from("persons")
+        .insert({
+          family_id: familyId,
+          kind: "profile",
+          display_name: newSpouseName.trim(),
+          gender: newSpouseGender,
+          is_central: false,
+          is_deceased: false,
+        })
+        .select()
+        .single();
+      if (spouseError) throw spouseError;
+
+      // Le lien spouse_of n'est enregistré qu'à la validation du fait (submitFact), pour ne
+      // pas laisser une relation orpheline si l'auteur abandonne en cours de route - la
+      // personne elle-même doit en revanche déjà exister pour que le fait puisse la référencer.
+      setAllPersons((prev) => [
+        ...prev,
+        { id: spouse.id, display_name: spouse.display_name, gender: spouse.gender, is_deceased: false, is_central: false },
+      ]);
+      setRelatedPersonId(spouse.id);
+      setShowSpouseCreator(false);
+      setNewSpouseName("");
+      setNewSpouseGender(null);
+    } catch (e) {
+      const message = typeof e === "object" && e !== null && "message" in e ? String(e.message) : null;
+      setError(message || "Une erreur est survenue.");
+    } finally {
+      setCreatingSpouse(false);
+    }
+  }
+
+  function pickExistingSpouse(personId: string) {
+    setRelatedPersonId(personId);
   }
 
   function resetFilters() {
@@ -286,10 +372,23 @@ export default function AddFactScreen() {
         });
       }
 
+      if (selectedTemplate.related_role && relatedPersonId && findRelatedPersonId(relationships, subjectId) === null) {
+        const { error: relError } = await supabase.from("relationships").insert({
+          family_id: familyId,
+          person_a_id: subjectId,
+          person_b_id: relatedPersonId,
+          relation_type: "spouse_of",
+        });
+        if (relError) throw relError;
+        setRelationships((prev) => [...prev, { person_a_id: subjectId, person_b_id: relatedPersonId, relation_type: "spouse_of" }]);
+      }
+
       const { error: factError } = await supabase.from("facts").insert({
         family_id: familyId,
         template_id: selectedTemplate.id,
         subject_person_id: subjectId,
+        related_person_id: selectedTemplate.related_role ? relatedPersonId : null,
+        slot_values: Object.keys(slotValues).length > 0 ? slotValues : null,
         author_person_id: myPersonId,
         answer_value: finalAnswer,
         context_text: contextText.trim().length > 0 ? contextText.trim() : null,
@@ -312,6 +411,11 @@ export default function AddFactScreen() {
     setError("");
     setSearchText("");
     setJustSaved(false);
+    setRelatedPersonId(null);
+    setSlotValues({});
+    setShowSpouseCreator(false);
+    setNewSpouseName("");
+    setNewSpouseGender(null);
     setRefreshKey((k) => k + 1); // force a refetch so the just-created fact's template disappears
   }
 
@@ -494,11 +598,16 @@ export default function AddFactScreen() {
                 </View>
 
                 {/* 11 : résultats */}
-                {searchResults.map((t) => (
-                  <Pressable key={t.id} onPress={() => selectTemplate(t)} style={styles.questionOption}>
-                    <ThemedText>{t.template_text.replace("<sujet>", subject?.display_name ?? "")}</ThemedText>
-                  </Pressable>
-                ))}
+                {searchResults.map((t) => {
+                  const knownRelated = subjectId ? allPersons.find((p) => p.id === findRelatedPersonId(relationships, subjectId)) : null;
+                  return (
+                    <Pressable key={t.id} onPress={() => selectTemplate(t)} style={styles.questionOption}>
+                      <ThemedText>
+                        {substituteTemplateText(t, subject?.display_name ?? "", knownRelated?.display_name ?? null, {})}
+                      </ThemedText>
+                    </Pressable>
+                  );
+                })}
                 {searchResults.length === 0 && (
                   <ThemedText themeColor="textSecondary">Aucune question ne correspond.</ThemedText>
                 )}
@@ -507,42 +616,129 @@ export default function AddFactScreen() {
           </>
         )}
 
-        {selectedTemplate && (
-          <View style={{ gap: Spacing.three }}>
-            <View style={[styles.card, styles.chipSelected]}>
-              <ThemedText style={{ color: "#ffffff" }}>
-                {selectedTemplate.template_text.replace("<sujet>", subject?.display_name ?? "")}
-              </ThemedText>
+        {selectedTemplate && (() => {
+          const relatedPerson = allPersons.find((p) => p.id === relatedPersonId) ?? null;
+          const needsRelated = !!selectedTemplate.related_role && !relatedPersonId;
+          const missingSlots = (selectedTemplate.slots ?? []).filter((s) => !slotValues[s]);
+          const readyForAnswer = !needsRelated && missingSlots.length === 0;
+
+          return (
+            <View style={{ gap: Spacing.three }}>
+              <View style={[styles.card, styles.chipSelected]}>
+                <ThemedText style={{ color: "#ffffff" }}>
+                  {substituteTemplateText(selectedTemplate, subject?.display_name ?? "", relatedPerson?.display_name ?? null, slotValues)}
+                </ThemedText>
+              </View>
+
+              {needsRelated && (
+                <View style={{ gap: Spacing.two }}>
+                  <ThemedText type="smallBold">
+                    Qui est le conjoint ou la conjointe de {subject?.display_name} ?
+                  </ThemedText>
+                  <View style={styles.chipsRow}>
+                    {allPersons
+                      .filter((p) => p.id !== subjectId)
+                      .map((p) => (
+                        <Pressable key={p.id} onPress={() => pickExistingSpouse(p.id)} style={styles.chip}>
+                          <ThemedText>{p.display_name}</ThemedText>
+                        </Pressable>
+                      ))}
+                    <Pressable onPress={() => setShowSpouseCreator(true)} style={styles.chip}>
+                      <ThemedText>+ Nouvelle personne</ThemedText>
+                    </Pressable>
+                  </View>
+                  {showSpouseCreator && (
+                    <View style={{ gap: Spacing.two }}>
+                      <TextInput
+                        value={newSpouseName}
+                        onChangeText={setNewSpouseName}
+                        placeholder="Prénom et nom"
+                        style={styles.input}
+                      />
+                      <View style={styles.chipsRow}>
+                        {(["homme", "femme"] as const).map((g) => (
+                          <Pressable
+                            key={g}
+                            onPress={() => setNewSpouseGender(g)}
+                            style={[styles.chip, newSpouseGender === g && styles.chipSelected]}
+                          >
+                            <ThemedText style={newSpouseGender === g ? { color: "#ffffff" } : undefined}>
+                              {g === "homme" ? "Homme" : "Femme"}
+                            </ThemedText>
+                          </Pressable>
+                        ))}
+                      </View>
+                      <Pressable
+                        onPress={createSpouse}
+                        disabled={creatingSpouse || newSpouseName.trim().length === 0}
+                        style={[
+                          styles.secondaryButton,
+                          (creatingSpouse || newSpouseName.trim().length === 0) && { opacity: 0.6 },
+                        ]}
+                      >
+                        <ThemedText>{creatingSpouse ? "Création…" : "Ajouter cette personne"}</ThemedText>
+                      </Pressable>
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {missingSlots.map((slot) =>
+                slot === "pays" ? (
+                  <View key={slot} style={{ gap: Spacing.two }}>
+                    <ThemedText type="smallBold">Quel pays ?</ThemedText>
+                    <View style={styles.chipsRow}>
+                      {COUNTRIES.map((c) => (
+                        <Pressable
+                          key={c}
+                          onPress={() => setSlotValues((v) => ({ ...v, [slot]: c }))}
+                          style={styles.chip}
+                        >
+                          <ThemedText>{c}</ThemedText>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
+                ) : null,
+              )}
+
+              {!readyForAnswer && error.length > 0 && <ThemedText themeColor="text">{error}</ThemedText>}
+
+              {readyForAnswer && (
+                <>
+                  {/* 12 : réponse */}
+                  <AnswerInput
+                    template={selectedTemplate}
+                    familyId={familyId!}
+                    value={answerValue}
+                    onChange={setAnswerValue}
+                  />
+
+                  <ThemedText type="smallBold">Anecdote ou contexte (facultatif)</ThemedText>
+                  <TextInput
+                    value={contextText}
+                    onChangeText={setContextText}
+                    placeholder="Une histoire à raconter autour de cette réponse..."
+                    multiline
+                    style={[styles.input, { minHeight: 80 }]}
+                  />
+
+                  {error.length > 0 && <ThemedText themeColor="text">{error}</ThemedText>}
+
+                  <Pressable
+                    onPress={submitFact}
+                    disabled={submitting || answerValue.trim().length === 0}
+                    style={[styles.primaryButton, (submitting || answerValue.trim().length === 0) && { opacity: 0.6 }]}
+                  >
+                    <ThemedText style={{ color: "#ffffff" }}>
+                      {submitting ? "Enregistrement…" : "Enregistrer"}
+                    </ThemedText>
+                  </Pressable>
+                </>
+              )}
             </View>
-
-            {/* 12 : réponse */}
-            <AnswerInput
-              template={selectedTemplate}
-              familyId={familyId!}
-              value={answerValue}
-              onChange={setAnswerValue}
-            />
-
-            <ThemedText type="smallBold">Anecdote ou contexte (facultatif)</ThemedText>
-            <TextInput
-              value={contextText}
-              onChangeText={setContextText}
-              placeholder="Une histoire à raconter autour de cette réponse..."
-              multiline
-              style={[styles.input, { minHeight: 80 }]}
-            />
-
-            {error.length > 0 && <ThemedText themeColor="text">{error}</ThemedText>}
-
-            <Pressable
-              onPress={submitFact}
-              disabled={submitting || answerValue.trim().length === 0}
-              style={[styles.primaryButton, (submitting || answerValue.trim().length === 0) && { opacity: 0.6 }]}
-            >
-              <ThemedText style={{ color: "#ffffff" }}>{submitting ? "Enregistrement…" : "Enregistrer"}</ThemedText>
-            </Pressable>
-          </View>
-        )}
+          );
+        })()}
 
         <Pressable onPress={() => router.replace("/home")}>
           <ThemedText type="linkPrimary">Retour à l&apos;accueil</ThemedText>

@@ -9,6 +9,7 @@ import { Spacing } from "@/constants/theme";
 import { parseAnswerValue } from "@/lib/answer-value";
 import { formatAnswerDisplay } from "@/lib/format-answer";
 import { ensureListItemExists } from "@/lib/list-items";
+import { substituteQuestionText } from "@/lib/question-text";
 import { supabase } from "@/lib/supabase";
 import { Template } from "@/types/question-template";
 
@@ -21,6 +22,8 @@ type Fact = {
   created_at: string;
   template: Template;
   subjectName: string;
+  relatedName: string | null;
+  slotValues: Record<string, string> | null;
   postedStatus: PostedStatus;
 };
 
@@ -77,7 +80,7 @@ export default function MyFactsScreen() {
       const { data, error: factsError } = await supabase
         .from("facts")
         .select(
-          "id, answer_value, context_text, created_at, question_templates (*), subject:persons!subject_person_id (display_name)",
+          "id, answer_value, context_text, created_at, slot_values, question_templates (*), subject:persons!subject_person_id (display_name), related:persons!related_person_id (display_name)",
         )
         .eq("author_person_id", me.id)
         .eq("status", "active")
@@ -120,6 +123,8 @@ export default function MyFactsScreen() {
           created_at: row.created_at,
           template: row.question_templates as unknown as Template,
           subjectName: (row.subject as unknown as { display_name: string } | null)?.display_name ?? "?",
+          relatedName: (row.related as unknown as { display_name: string } | null)?.display_name ?? null,
+          slotValues: (row.slot_values as Record<string, string> | null) ?? null,
           postedStatus: statusByFactId.get(row.id) ?? "not_posed",
         })),
       );
@@ -227,7 +232,13 @@ export default function MyFactsScreen() {
 
         {facts.map((fact) => {
           const isEditing = editingFactId === fact.id;
-          const questionText = fact.template.template_text.replace("<sujet>", fact.subjectName);
+          const questionText = substituteQuestionText(
+            fact.template.template_text,
+            fact.template.related_role,
+            fact.subjectName,
+            fact.relatedName,
+            fact.slotValues,
+          );
 
           return (
             <View key={fact.id} style={styles.card}>
