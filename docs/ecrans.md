@@ -183,7 +183,7 @@ Cas particuliers :
 
 **Simplifié pour l'implémentation initiale** (`src/app/respond.tsx`) : pas de notion de « question suivante » (une session n'a qu'une seule question, voir `concept.md`) — après validation, retour à l'accueil. Type liste : pas encore de bouton « Ajouter » pour une nouvelle valeur côté réponse (le champ réutilise `AnswerInput`, qui le permet déjà — à vérifier/activer). Pas de notification. Pas de retour immédiat juste/faux : le résultat n'est connu qu'à la révélation (écran 8).
 
-**À corriger** : `submit_answer` ne vérifie ni la deadline ni l'état de la session. Un joueur peut donc répondre ou modifier sa réponse après la deadline, et même après la révélation, ce qui change son score. Il faut refuser toute réponse une fois la deadline passée ou la session clôturée, et refuser la modification d'une réponse libre déjà validée (verrouillage prévu plus haut). La fermeture automatique des sessions existe (révélation automatique, écran 8), mais elle ne bloque pas ce cas.
+**Blocage des réponses** (corrigé le 2026-11-10, migration `20261110100000_reveal_waits_validation_and_answer_lock.sql`) : `submit_answer` refuse toute réponse une fois la deadline passée ou la session clôturée, et refuse la modification d'une réponse libre une fois que tout le monde a répondu et que l'auteur a validé (verrouillage prévu plus haut). Une réponse modifiée avant ce verrouillage repart de zéro : une validation précédente est effacée. Le message de refus du serveur s'affiche tel quel sur l'écran.
 
 ### Vue de l'auteur (« Ma question »)
 
@@ -242,7 +242,9 @@ Comme pour la pioche, **manuel pour l'instant** : un bouton « Déclencher la r�
 
 **Règle (décision du 2026-11-10)** : **pas de révélation automatique tant qu'il reste une réponse à valider**. Seules les questions en saisie libre sont concernées, puisque c'est le seul type où une réponse peut être « en attente de validation ». La question attend que l'auteur valide, ou qu'un joueur prenne la main 7 jours après la deadline (voir `concept.md`) : celui qui prend la main veut faire avancer le jeu, on part du principe qu'il validera ou refusera les réponses. Une fois toutes les réponses traitées, le passage horaire suivant révèle la question, puisque la deadline est dépassée.
 
-**À corriger** : le code actuel ne respecte pas cette règle. `auto_reveal_expired_sessions()` compte les réponses en attente de validation comme fausses et clôture la session. Il faut qu'elle ignore toute session qui a encore une réponse `pending_validation`. Lié : le blocage des réponses après la deadline (voir écran 6, À corriger), d'autant plus nécessaire qu'une session peut maintenant rester ouverte longtemps après sa deadline.
+Corrigé le 2026-11-10 (migration `20261110100000_reveal_waits_validation_and_answer_lock.sql`) : `auto_reveal_expired_sessions()` ignore toute session qui a encore une réponse `pending_validation`. Lié : le blocage des réponses après la deadline (voir écran 6), d'autant plus nécessaire qu'une session peut maintenant rester ouverte après sa deadline.
+
+**Limite restante** : la révélation manuelle (`reveal_current_question`) exige toujours que tout le monde ait répondu. Après la deadline, s'il manque des réponses et que les tâches planifiées sont désactivées (phase de test), la question ne peut donc pas être révélée, même une fois les validations faites.
 
 **Simplifié pour l'implémentation initiale** (`src/app/reveal.tsx`) : une seule question par session (voir `concept.md`), donc pas de « question suivante ». `reveal_current_question` refuse de révéler tant qu'il reste des réponses « en attente de validation » (voir écran 7) — l'auteur doit d'abord passer par `src/app/validate.tsx`. Pas de score cumulé inter-sessions (demande d'agréger plusieurs sessions passées, pas construit). Pas de réactions/commentaires (hors MVP).
 
