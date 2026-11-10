@@ -11,7 +11,7 @@
 import "@supabase/functions-js/edge-runtime.d.ts";
 import { withSupabase } from "@supabase/server";
 
-import { FactCandidate, pickWeightedFact } from "./pioche.ts";
+import { countNeverPosed, FactCandidate, pickFact } from "./pioche.ts";
 
 const SESSION_DURATION_DAYS = 7;
 
@@ -128,7 +128,7 @@ export default {
       lastPosedAt: posedByFactId.get(f.id)?.lastPosedAt ?? null,
     }));
 
-    const picked = pickWeightedFact(candidates);
+    const picked = pickFact(candidates);
 
     if (!picked) {
       return Response.json(
@@ -137,7 +137,9 @@ export default {
       );
     }
 
-    const fact = eligibleFacts.find((f) => f.id === picked.id)!;
+    const fact = eligibleFacts.find((f) => f.id === picked.candidate.id)!;
+    // Faits jamais posés restants après cette pioche (alerte « réserve bientôt vide » sous 5).
+    const neverPosedLeft = countNeverPosed(candidates) - (picked.reused ? 0 : 1);
 
     const now = new Date();
     const closesAt = new Date(now.getTime() + SESSION_DURATION_DAYS * 24 * 60 * 60 * 1000);
@@ -182,6 +184,10 @@ export default {
       closesAt: session.closes_at,
       factId: fact.id,
       recipientsCreated: recipientsToInsert.length,
+      // true : plus aucun fait jamais posé, ce fait avait déjà été posé (prévenir les joueurs,
+      // forme à définir — voir « Points à décider » dans docs/roadmap.md).
+      reused: picked.reused,
+      neverPosedLeft,
     });
   }),
 };

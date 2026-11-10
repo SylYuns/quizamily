@@ -138,7 +138,7 @@ Edge Function (`supabase/functions/create-quiz-session`), appelée par un membre
    - **Règle (décision du 2026-11-10)** : seuls les faits **jamais posés** sont piochés. Un fait déjà posé ne peut être repioché que s'il ne reste plus aucun fait jamais posé, et les joueurs en sont alors prévenus (forme à définir).
    - Pondération entre les faits jamais posés : bonus ×1.5 si le sujet est une personne centrale (priorité, pas exclusivité).
    - Un fait déjà posé dans une session encore `open` est exclu (pas de double-pioche concurrente).
-   - **À corriger** : le code actuel (`pioche.ts` de l'Edge Function, et `create_quiz_session_for_family()` en SQL pour la tâche planifiée) pondère par fraîcheur et peut donc repiocher un fait déjà posé même s'il en reste de jamais posés. Les deux implémentations sont à corriger ensemble.
+   - **Corrigé le 2026-11-10** dans les deux implémentations, gardées alignées : `supabase/functions/create-quiz-session/pioche.ts` (testé par `pioche.test.ts`, `npm run test:pioche`) et `create_quiz_session_for_family()` (migration `20261110130000_pioche_never_posed_first.sql`, testée sur Postgres local). Le résultat renvoie aussi `reused` (fait déjà posé repioché, faute de faits jamais posés) et `neverPosedLeft` (faits jamais posés restants, pour l'alerte de l'accueil sous 5). En attendant la refonte de l'accueil, le message affiché après « Créer une session » le signale.
 4. Crée la session (`opens_at` = maintenant, `closes_at` = +7 jours), une `quiz_questions` pour le fait retenu (avec `answer_value_snapshot`, et `validator_person_id` = auteur si le type est `free_text`), et les `question_recipients` associés : tous les joueurs de la famille sauf l'auteur du fait.
 
 **Déclenchement** : deux voies coexistent.

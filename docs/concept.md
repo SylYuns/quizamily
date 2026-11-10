@@ -59,7 +59,7 @@ Catalogue de prompts (centré sur les personnes centrales) → ajout d'une info 
 
 La réserve de faits jamais posés peut donc vraiment s'épuiser : l'accueil affiche une **alerte quand il en reste moins de 5** (environ 5 semaines de quiz), pour inciter à ajouter des souvenirs.
 
-Implémentée (2026-11-09, corrigée le même jour pour piocher une seule question par session plutôt qu'un lot) dans l'Edge Function `create-quiz-session` (détail technique dans `docs/ecrans.md`, section « Pioche et création de session ») : un fait par session, pondéré par fraîcheur + bonus personne centrale (×1.5). **À corriger** : la pondération par fraîcheur ne respecte pas la règle ci-dessus (elle peut repiocher un fait déjà posé). Déclenchement manuel pour l'instant (pas de tâche planifiée hebdomadaire).
+Implémentée (2026-11-09, corrigée le même jour pour piocher une seule question par session plutôt qu'un lot) dans l'Edge Function `create-quiz-session` (détail technique dans `docs/ecrans.md`, section « Pioche et création de session ») : un fait par session, pondéré par fraîcheur + bonus personne centrale (×1.5). Corrigée le 2026-11-10 pour respecter la règle ci-dessus, dans l'Edge Function (`pioche.ts`) et dans la fonction SQL de la tâche planifiée (migration `20261110130000_pioche_never_posed_first.sql`). Le résultat d'une pioche indique `reused` (fait déjà posé repioché) et `neverPosedLeft` (faits jamais posés restants). Déclenchement manuel pour l'instant (pas de tâche planifiée hebdomadaire).
 
 ## Scoring
 

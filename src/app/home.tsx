@@ -164,7 +164,15 @@ export default function HomeScreen() {
       }
       setSessionMessage(`Erreur : ${message}`);
     } else {
-      setSessionMessage(`Session créée : ${data.recipientsCreated} réponse(s) attendue(s).`);
+      // reused : plus aucun fait jamais posé, la pioche a repris un fait déjà posé.
+      // Message provisoire (forme de l'avertissement aux joueurs à définir).
+      const reserve =
+        data.reused === true
+          ? " Plus aucun souvenir jamais posé : cette question a déjà été posée."
+          : typeof data.neverPosedLeft === "number" && data.neverPosedLeft < 5
+            ? ` Plus que ${data.neverPosedLeft} question(s) en réserve : ajoutez des souvenirs !`
+            : "";
+      setSessionMessage(`Session créée : ${data.recipientsCreated} réponse(s) attendue(s).${reserve}`);
       setOpenSessionClosesAt(data.closesAt);
       setHasRevealedSession(false);
       if (userId) {

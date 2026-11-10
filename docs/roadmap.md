@@ -15,6 +15,8 @@ Tâches qui ne peuvent être faites que depuis l'ordinateur relié au projet Sup
   - `20261110100000_reveal_waits_validation_and_answer_lock.sql` : pas de révélation automatique tant qu'une réponse libre attend sa validation ; réponses refusées après la deadline ou la révélation ; verrouillage des réponses libres validées.
   - `20261110110000_reveal_timing_rules.sql` : les non-réponses ne bloquent plus la révélation manuelle ; révélation immédiate à la dernière validation quand la deadline est passée.
   - `20261110120000_sibling_relation.sql` : nouveau type de relation `sibling_of` (frère / sœur).
+  - `20261110130000_pioche_never_posed_first.sql` : la pioche de la tâche planifiée ne repioche plus un fait déjà posé tant qu'il en reste de jamais posés.
+- [ ] **Redéployer l'Edge Function de la pioche** (pioche manuelle, même règle) : `npx supabase functions deploy create-quiz-session`.
 - [ ] **Vérifier les tâches planifiées** : dans l'éditeur SQL de Supabase, `select jobname, schedule, active from cron.job;`. La migration `20261109240000_automatic_triggering.sql` a programmé deux tâches : `auto-create-quiz-sessions` (lundi 8 h) et `auto-reveal-expired-sessions` (toutes les heures).
 - [ ] **Les désactiver pendant la phase de test** (déclenchement manuel uniquement) :
   ```sql
@@ -26,13 +28,14 @@ Tâches qui ne peuvent être faites que depuis l'ordinateur relié au projet Sup
   select cron.schedule('auto-create-quiz-sessions', '0 8 * * 1', $$select auto_create_quiz_sessions();$$);
   select cron.schedule('auto-reveal-expired-sessions', '0 * * * *', $$select auto_reveal_expired_sessions();$$);
   ```
-- [ ] **Vérifier l'app** : `npx tsc --noEmit` et `npx expo lint` (pas pu être lancés le 2026-11-10 : dépendances non installables depuis l'environnement de Claude). Fichiers modifiés : `src/app/respond.tsx`, `src/app/validate.tsx`, `src/lib/family-tree-layout.ts` (nouveau), `src/app/family-tree.tsx` (réécrit), `src/app/archive.tsx`, `src/app/add-fact.tsx`.
+- [ ] **Vérifier l'app** : `npx tsc --noEmit` et `npx expo lint` (pas pu être lancés le 2026-11-10 : dépendances non installables depuis l'environnement de Claude). Fichiers modifiés : `src/app/respond.tsx`, `src/app/validate.tsx`, `src/lib/family-tree-layout.ts` (nouveau), `src/app/family-tree.tsx` (réécrit), `src/app/archive.tsx`, `src/app/add-fact.tsx`, `src/app/home.tsx` (message après création d'une session).
 - [ ] **Tester le nouvel écran de l'arbre** (`src/app/family-tree.tsx`) :
   - glissements gauche/droite et haut/bas, avec les crans ; toucher une personne (doit ouvrir ses souvenirs) ;
   - mode Modifier : ajouter un conjoint, un enfant, un frère ou une sœur (avec et sans parents connus), relier une personne sans relation ;
   - une grande fratrie (8-9 enfants avec conjoints et enfants) ;
   - sur le web et, si possible, sur téléphone.
 - [ ] **Lancer les tests du placement de l'arbre** : `npm run test:layout` (Node 22.6 ou plus récent ; 19 tests, passent dans l'environnement de Claude).
+- [ ] **Lancer les tests de la pioche** : `npm run test:pioche` (6 tests, passent dans l'environnement de Claude).
 - [ ] **Tester à la main** : une question libre validée après sa deadline doit s'ouvrir directement sur la révélation ; la révélation manuelle doit fonctionner même si un joueur n'a pas répondu.
 
 ## Étapes de réalisation
@@ -119,7 +122,7 @@ Décisions de produit ou de sécurité pas encore tranchées — à trancher ava
 - Application de la direction visuelle aux autres écrans : charte posée dans `docs/design.md` (2026-11-10), à appliquer écran par écran.
 - Fermer les deux fuites résiduelles notées plus haut (type `list`, `facts.answer_value`).
 - **Refonte de la navigation (décidée le 2026-11-10)**, détail dans `docs/ecrans.md` (règles communes, écrans 4, 9 à 12). Ordre suggéré :
-  1. **Corriger la pioche** : ne jamais repiocher un fait déjà posé tant qu'il reste des faits jamais posés (voir `concept.md`). À corriger à la fois dans `supabase/functions/create-quiz-session/pioche.ts` et dans `create_quiz_session_for_family()` (SQL).
+  1. ~~**Corriger la pioche**~~ : **fait le 2026-11-10** (`pioche.ts` + migration `20261110130000_pioche_never_posed_first.sql`, testés).
   2. **Écran d'accueil (écran 4)** : bandeau famille (bouton famille, bouton « Inviter », menu burger), deux boutons centraux « Participer au quiz » (avec ses 7 états) et « Consulter les connaissances », puis « Ajouter un souvenir » (alerte sous 5 faits jamais posés), « Historique », « Mes faits » (badge corrections). Carte « Lancer votre premier quiz » pour une famille qui démarre. **Maquette validée le 2026-11-10** (7 états, lien et charte dans `docs/design.md`) : reste à coder `src/app/home.tsx`, avec les polices Fredoka et Nunito à ajouter au projet.
   3. **Arbre familial (écran 10)** : **maquette validée le 2026-11-10** (règles complètes dans `docs/ecrans.md`, écran 10). Navigation par générations avec crans verticaux et horizontaux, traits à angle droit pour toutes les familles visibles, amorces, mode consultation à l'arrivée et bouton « Modifier » ; nouveaux types de relation « enfant » et « frère / sœur » (`sibling_of`, migration nécessaire). Module de placement **fait** (`src/lib/family-tree-layout.ts`, `npm run test:layout`), **écran réécrit** (`src/app/family-tree.tsx`) et migration `sibling_of` écrite, le 2026-11-10 : reste à tester à l'écran (écarts avec la maquette listés dans `docs/ecrans.md`, écran 10). À tester à l'écran avec une grande fratrie (8-9 enfants avec conjoints et enfants).
   4. **Récapitulatif d'une personne (écran 11)** : mini-biographie rédigée par catégorie. Demande d'écrire une phrase `recap` pour chacun des 32 templates de `question-templates.toml`.
