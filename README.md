@@ -1,10 +1,10 @@
 # Quizamily
 
-Application de quiz familial : les membres d'une famille ajoutent des informations sur les **personnes centrales** (grands-parents, arrière-grands-parents...), l'app en tire des questions fermées envoyées chaque semaine, et les résultats enrichissent une **archive familiale** vivante.
+Application de quiz familial : les membres d'une famille ajoutent des informations sur les **personnes centrales** (grands-parents, arrière-grands-parents...), l'app en tire une question envoyée chaque semaine, et les résultats enrichissent une **archive familiale** vivante.
 
 ## Statut actuel
 
-Projet en phase de planification technique. Le concept, le modèle de données et la stack sont définis ; aucun code applicatif n'a encore été écrit.
+MVP fonctionnel en version web (Expo + Supabase), en cours de test : création et rejoindre une famille, ajout de faits, pioche, réponse, validation des réponses libres, révélation, corrections et archives en version simple. Détail de l'avancement et prochains sujets dans [docs/roadmap.md](docs/roadmap.md).
 
 ## Documentation
 
