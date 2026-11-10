@@ -25,7 +25,8 @@ Tâches qui ne peuvent être faites que depuis l'ordinateur relié au projet Sup
   select cron.schedule('auto-create-quiz-sessions', '0 8 * * 1', $$select auto_create_quiz_sessions();$$);
   select cron.schedule('auto-reveal-expired-sessions', '0 * * * *', $$select auto_reveal_expired_sessions();$$);
   ```
-- [ ] **Vérifier l'app** : `npx tsc --noEmit` et `npx expo lint` (pas pu être lancés le 2026-11-10 : dépendances non installables depuis l'environnement de Claude). Fichiers modifiés : `src/app/respond.tsx`, `src/app/validate.tsx`.
+- [ ] **Vérifier l'app** : `npx tsc --noEmit` et `npx expo lint` (pas pu être lancés le 2026-11-10 : dépendances non installables depuis l'environnement de Claude). Fichiers modifiés : `src/app/respond.tsx`, `src/app/validate.tsx`, `src/lib/family-tree-layout.ts` (nouveau).
+- [ ] **Lancer les tests du placement de l'arbre** : `npm run test:layout` (Node 22.6 ou plus récent ; 19 tests, passent dans l'environnement de Claude).
 - [ ] **Tester à la main** : une question libre validée après sa deadline doit s'ouvrir directement sur la révélation ; la révélation manuelle doit fonctionner même si un joueur n'a pas répondu.
 
 ## Étapes de réalisation
