@@ -1,4 +1,4 @@
-import { Redirect, router } from "expo-router";
+import { Redirect, router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
@@ -21,6 +21,9 @@ type ArchiveEntry = {
 };
 
 export default function ArchiveScreen() {
+  // Ouvert depuis l'arbre familial (écran 10) : la personne touchée est présélectionnée,
+  // même si ce n'est pas une personne centrale. En attendant le récapitulatif (écran 11).
+  const { personId } = useLocalSearchParams<{ personId?: string }>();
   const [ready, setReady] = useState(false);
   const [noSession, setNoSession] = useState(false);
   const [error, setError] = useState("");
@@ -67,7 +70,21 @@ export default function ArchiveScreen() {
 
       const persons = (data ?? []).map((row) => ({ id: row.id, displayName: row.display_name }));
       setCentralPersons(persons);
-      if (persons.length === 1) {
+      if (personId) {
+        const fromTree = persons.find((p) => p.id === personId);
+        if (fromTree) {
+          setSelectedPerson(fromTree);
+        } else {
+          const { data: other } = await supabase
+            .from("persons")
+            .select("id, display_name")
+            .eq("family_id", me.family_id)
+            .eq("id", personId)
+            .maybeSingle();
+          if (cancelled) return;
+          if (other) setSelectedPerson({ id: other.id, displayName: other.display_name });
+        }
+      } else if (persons.length === 1) {
         setSelectedPerson(persons[0]);
       }
       setReady(true);
@@ -77,7 +94,7 @@ export default function ArchiveScreen() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [personId]);
 
   useEffect(() => {
     if (!selectedPerson) return;

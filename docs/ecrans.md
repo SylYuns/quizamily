@@ -358,7 +358,25 @@ La famille de l'appli, ce sont **les descendants d'un ancêtre commun, avec leur
 - `moveFocus(placement, personne, "left" | "right" | "up" | "down")` : personne centrée après un cran ;
 - `connectorSegments(placement, lignes, décalages)` : traits de couple, de filiation et amorces, à angle droit.
 
-**Reste à faire** : réécrire `src/app/family-tree.tsx` avec ce module (gestes de glissement avec crans, dessin des cartes et des traits, mode Modifier), et ajouter le type de relation `sibling_of` en base (migration).
+**Écran réécrit le 2026-11-10** (`src/app/family-tree.tsx`), avec ce module, et type de relation `sibling_of` ajouté en base (migration `20261110120000_sibling_relation.sql`). **Pas encore testé à l'écran** (voir la liste « À faire sur l'ordinateur avec Supabase » dans `roadmap.md`).
+
+Ce qui est fait :
+- 3 lignes, bande blanche sous la génération centrée, points de génération à droite, « Haut de l'arbre » en génération 0 ;
+- glissement horizontal (crans personne par personne ; un glissement long fait plusieurs crans) et vertical (crans par génération), avec une animation qui repart de la position sous le doigt ;
+- traits de couple, de filiation pour toutes les familles visibles et amorces, calculés par le module ;
+- compteurs « N souvenirs » (faits révélés) et « N à découvrir » (faits pas encore posés) ;
+- dernière personne consultée mémorisée sur l'appareil, par famille ;
+- alerte « N personnes sans relation » (ouvre le mode Modifier) ;
+- toucher une personne ouvre ses souvenirs dans les archives (`/archive?personId=…`), en attendant le récapitulatif (écran 11) ;
+- mode Modifier : toucher une personne la sélectionne ; boutons « + Conjoint·e » (si elle n'en a pas), « + Enfant » (enfant du couple), « + Frère ou sœur » (rattaché aux parents s'ils sont connus, sinon lien `sibling_of` ; pas proposé pour un conjoint), « Relier à une personne… » (conjoint·e / parent / enfant / frère ou sœur de, personnes sans relation en tête) ; encart des personnes à placer.
+
+Écarts avec la maquette, à reprendre si besoin :
+- les boutons d'ajout sont dans un panneau sous l'arbre, pas en cartes pointillées dans l'arbre ;
+- pendant un glissement horizontal, seule la ligne centrale glisse de façon continue ; les lignes du dessus et du dessous se recalent d'un coup ;
+- polices système (Fredoka et Nunito pas encore ajoutées au projet), icônes en caractères (★, ✎, ⚠, ‹) en attendant de vraies icônes ;
+- le bandeau famille (nom, inviter, menu) n'est pas encore là : il viendra avec la refonte de l'accueil.
+
+La condition « a des frères ou sœurs » du catalogue (écran 5) tient compte des liens `sibling_of` (`src/app/add-fact.tsx`).
 
 **Plus de types de relation à la création** :
 - ajouter « enfant » aux choix actuels (« conjoint », « parent »). Le résultat est le même que « parent » dans l'autre sens (`parent_of` avec les deux personnes inversées), mais c'est plus naturel selon la personne depuis laquelle on part ;

@@ -66,7 +66,17 @@ function substituteTemplateText(
   return text;
 }
 
+// Adelphes : liés directement (sibling_of, dans un sens ou l'autre), ou partageant un parent.
 async function hasPotentialSibling(personId: string, famId: string): Promise<boolean> {
+  const { data: directLinks } = await supabase
+    .from("relationships")
+    .select("id")
+    .eq("family_id", famId)
+    .eq("relation_type", "sibling_of")
+    .or(`person_a_id.eq.${personId},person_b_id.eq.${personId}`)
+    .limit(1);
+  if ((directLinks ?? []).length > 0) return true;
+
   const { data: parentLinks } = await supabase
     .from("relationships")
     .select("person_a_id")
