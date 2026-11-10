@@ -77,17 +77,23 @@ export default function RevealScreen() {
   const [decidingCorrection, setDecidingCorrection] = useState(false);
 
   async function loadFactExtras(fId: string) {
-    const { data: fact } = await supabase
-      .from("facts")
-      .select("author_person_id, answer_value, pending_correction, answer_history, question_templates (*)")
-      .eq("id", fId)
-      .maybeSingle();
+    // La bonne réponse n'est plus lisible directement sur facts (migration
+    // 20261110140000) : get_fact_answer la renvoie une fois le fait révélé.
+    const [{ data: fact }, { data: answer }] = await Promise.all([
+      supabase.from("facts").select("author_person_id, question_templates (*)").eq("id", fId).maybeSingle(),
+      supabase.rpc("get_fact_answer", { p_fact_id: fId }),
+    ]);
     if (!fact) return;
+    const a = (answer ?? null) as {
+      answer_value: string | number | null;
+      answer_history: HistoryEntry[] | null;
+      pending_correction: PendingCorrection | null;
+    } | null;
     setAuthorPersonId(fact.author_person_id);
-    setCurrentAnswerValue(fact.answer_value);
+    setCurrentAnswerValue(a?.answer_value ?? null);
     setTemplate(fact.question_templates as unknown as Template);
-    setPendingCorrection((fact.pending_correction as PendingCorrection | null) ?? null);
-    setAnswerHistory((fact.answer_history as HistoryEntry[] | null) ?? []);
+    setPendingCorrection(a?.pending_correction ?? null);
+    setAnswerHistory(a?.answer_history ?? []);
   }
 
   useEffect(() => {

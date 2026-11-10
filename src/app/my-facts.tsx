@@ -80,7 +80,7 @@ export default function MyFactsScreen() {
       const { data, error: factsError } = await supabase
         .from("facts")
         .select(
-          "id, answer_value, context_text, created_at, slot_values, question_templates (*), subject:persons!subject_person_id (display_name), related:persons!related_person_id (display_name)",
+          "id, context_text, created_at, slot_values, question_templates (*), subject:persons!subject_person_id (display_name), related:persons!related_person_id (display_name)",
         )
         .eq("author_person_id", me.id)
         .eq("status", "active")
@@ -96,6 +96,13 @@ export default function MyFactsScreen() {
       const factRows = data ?? [];
       const factIds = factRows.map((row) => row.id);
       const statusByFactId = new Map<string, PostedStatus>();
+
+      // La bonne réponse n'est plus lisible directement sur facts (migration
+      // 20261110140000) : l'auteur relit les siennes par get_my_fact_answers.
+      const { data: answerRows } = await supabase.rpc("get_my_fact_answers", { p_family_id: me.family_id });
+      const answerByFactId = new Map(
+        ((answerRows ?? []) as { fact_id: string; answer_value: string | number }[]).map((r) => [r.fact_id, r.answer_value]),
+      );
 
       if (factIds.length > 0) {
         const { data: postedRows } = await supabase
@@ -118,7 +125,7 @@ export default function MyFactsScreen() {
       setFacts(
         factRows.map((row) => ({
           id: row.id,
-          answer_value: row.answer_value,
+          answer_value: answerByFactId.get(row.id) ?? "",
           context_text: row.context_text,
           created_at: row.created_at,
           template: row.question_templates as unknown as Template,

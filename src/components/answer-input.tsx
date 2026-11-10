@@ -13,8 +13,15 @@ export function AnswerInput(props: {
   familyId: string;
   value: string;
   onChange: (v: string) => void;
+  /**
+   * Pour un joueur qui répond : ne proposer que les valeurs validées de la liste globale,
+   * pas celles ajoutées par la famille. Une valeur ajoutée par l'auteur en créant le fait
+   * serait sinon une suggestion qui trahit la bonne réponse. Le joueur peut toujours la
+   * taper lui-même (comparaison après normalisation).
+   */
+  hideFamilyItems?: boolean;
 }) {
-  const { template, familyId, value, onChange } = props;
+  const { template, familyId, value, onChange, hideFamilyItems = false } = props;
   const kind = template.answer_input_kind;
 
   const [listOptions, setListOptions] = useState<string[]>([]);
@@ -22,21 +29,19 @@ export function AnswerInput(props: {
   useEffect(() => {
     if (kind !== "list" || !template.list_name) return;
     let cancelled = false;
-    supabase
-      .from("list_items")
-      .select("value, status, family_id")
-      .eq("list_name", template.list_name)
-      .then(({ data }) => {
-        if (cancelled || !data) return;
-        const options = data
-          .filter((row) => row.status === "approved" || row.family_id === familyId)
-          .map((row) => row.value);
-        setListOptions(Array.from(new Set(options)).sort());
-      });
+    let query = supabase.from("list_items").select("value, status, family_id").eq("list_name", template.list_name);
+    if (hideFamilyItems) query = query.eq("status", "approved");
+    query.then(({ data }) => {
+      if (cancelled || !data) return;
+      const options = data
+        .filter((row) => row.status === "approved" || (!hideFamilyItems && row.family_id === familyId))
+        .map((row) => row.value);
+      setListOptions(Array.from(new Set(options)).sort());
+    });
     return () => {
       cancelled = true;
     };
-  }, [kind, template.list_name, familyId]);
+  }, [kind, template.list_name, familyId, hideFamilyItems]);
 
   if (kind === "date") {
     return <DateInput value={value} onChange={onChange} />;

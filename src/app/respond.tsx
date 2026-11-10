@@ -129,12 +129,17 @@ export default function RespondScreen() {
       if (!recipient) {
         if (facts.author_person_id === me.id) {
           // C'est mon propre fait : lire sa réponse m'est toujours permis.
-          const [{ data: myFact }, { data: participants }, { data: pendingData }] = await Promise.all([
-            supabase.from("facts").select("answer_value, context_text").eq("id", facts.id).maybeSingle(),
-            supabase.rpc("get_question_participants", { p_quiz_question_id: quizQuestion.id }),
-            supabase.rpc("get_pending_validations", { p_quiz_question_id: quizQuestion.id }),
-          ]);
+          // La bonne réponse n'est plus lisible directement sur facts (migration
+          // 20261110140000) : get_fact_answer la renvoie à l'auteur.
+          const [{ data: myFact }, { data: myAnswer }, { data: participants }, { data: pendingData }] =
+            await Promise.all([
+              supabase.from("facts").select("context_text").eq("id", facts.id).maybeSingle(),
+              supabase.rpc("get_fact_answer", { p_fact_id: facts.id }),
+              supabase.rpc("get_question_participants", { p_quiz_question_id: quizQuestion.id }),
+              supabase.rpc("get_pending_validations", { p_quiz_question_id: quizQuestion.id }),
+            ]);
           if (cancelled || !myFact) return;
+          const myAnswerValue = (myAnswer as { answer_value: string | number } | null)?.answer_value ?? "";
 
           const questionText = substituteQuestionText(
             facts.question_templates.template_text,
@@ -147,7 +152,7 @@ export default function RespondScreen() {
           setOwnQuestion({
             quizQuestionId: quizQuestion.id,
             questionText,
-            answerDisplay: formatAnswerDisplay(facts.question_templates.answer_input_kind, myFact.answer_value),
+            answerDisplay: formatAnswerDisplay(facts.question_templates.answer_input_kind, myAnswerValue),
             contextText: myFact.context_text,
             participants: (participants as Participant[] | null) ?? [],
             pendingValidationCount: pendingGroups.reduce((sum, g) => sum + g.count, 0),
@@ -370,6 +375,7 @@ export default function RespondScreen() {
               familyId={familyId!}
               value={answerValue}
               onChange={setAnswerValue}
+              hideFamilyItems
             />
 
             {error.length > 0 && <ThemedText themeColor="text">{error}</ThemedText>}
