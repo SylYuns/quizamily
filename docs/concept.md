@@ -6,7 +6,7 @@ Les joueurs (enfants, petits-enfants...) s'amusent à deviner et enrichir leur c
 
 ## Direction visuelle
 
-Coloré et chaleureux, pas minimaliste/froid — c'est un jeu de famille, pas un outil pro. Belles icônes, ambiance fun. Palette à dominante bleu/blanc/rouge quand c'est pertinent. Pas une priorité immédiate (les écrans actuels sont volontairement sommaires pour avancer vite sur les fonctionnalités), mais à appliquer dès qu'on retravaille sérieusement l'UI.
+Coloré et chaleureux, pas minimaliste/froid — c'est un jeu de famille, pas un outil pro. Belles icônes, ambiance fun. Palette à dominante bleu/blanc/rouge quand c'est pertinent. Charte posée le 2026-11-10 avec la maquette de l'accueil, détaillée dans `design.md` : fond blanc chaud, bleu pour les actions, rouge réservé aux badges, alertes et liserés (jamais en grand fond, ça fait alerte), polices Fredoka (titres) et Nunito (texte). À appliquer à chaque écran au fur et à mesure qu'on le retravaille.
 
 ## Rôles
 

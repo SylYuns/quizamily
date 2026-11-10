@@ -1,6 +1,6 @@
 # Écrans du MVP
 
-Description fonctionnelle, sans design : ce que chaque écran affiche et ce qu'on peut y faire. L'interface reste volontairement simple, elle sera enrichie au fur et à mesure.
+Description fonctionnelle : ce que chaque écran affiche et ce qu'on peut y faire. La charte visuelle (couleurs, polices, styles de boutons) et le lien vers les maquettes sont dans `design.md`. L'interface reste volontairement simple, elle sera enrichie au fur et à mesure.
 
 Les points marqués **À décider** sont des questions ouvertes.
 
@@ -93,22 +93,26 @@ Du haut vers le bas, par ordre d'importance :
 1. **Bandeau** (voir Règles communes) : nom de la famille, bouton « Inviter », menu burger.
 2. **Deux gros boutons centraux** :
    - **« Participer au quiz »** : mène à la bonne action selon la phase du jeu (voir États ci-dessous). Son libellé, une icône ou un badge indiquent l'état.
-   - **« Consulter les connaissances »** : ouvre l'arbre familial en mode consultation (écran 10). En touchant une personne, on lit le récapitulatif de ce qu'on sait d'elle (écran 11).
+   - **« Consulter les connaissances »** (bouton blanc à liserés bleu et rouge, jamais rouge plein) : ouvre l'arbre familial en mode consultation (écran 10). En touchant une personne, on lit le récapitulatif de ce qu'on sait d'elle (écran 11).
 3. **« Ajouter un souvenir »** (écran 5) : moins important, mais mis en avant. **Alerte** quand il reste moins de 5 faits jamais posés dans la pioche (« Plus que 3 questions en réserve : ajoutez des souvenirs ! »).
 4. **« Historique »** (écran 12) : les questions déjà posées et le tableau des scores.
 5. **« Mes faits »** (écran 5, Mes faits), avec un **badge** quand une proposition de correction attend la décision du joueur sur l'un de ses faits.
 
 ### États du bouton « Participer au quiz »
 
-| État | Ce que le bouton affiche | Où il mène |
-|---|---|---|
-| Une question t'attend | « Une question t'attend » + deadline | Répondre (écran 6) |
-| Tu as répondu, en attente de la révélation | « Réponse envoyée, révélation le … » | Répondre (consulter / modifier sa réponse jusqu'à la deadline) |
-| Tu es l'auteur de la question en cours | « Ta question est en jeu » + nombre de réponses reçues | Ma question (écran 6, vue de l'auteur) |
-| Réponses à valider | « N réponses à valider » (badge) | Valider (écran 7) |
-| Révélation disponible | « La révélation est là ! » | Révélation (écran 8) |
-| Entre deux quiz | Texte/icône « Quiz terminé » + date du prochain quiz (« Prochaine question lundi ») ; en phase de test, sans tâche planifiée : « En attente du prochain quiz » | Revoir la dernière révélation (écran 8) |
-| Plus aucun fait à piocher | « Pas de prochain quiz : ajoutez des souvenirs » | Ajouter un souvenir (écran 5) |
+Deux styles (détail dans `design.md`) : **bleu plein** quand une action t'attend, **blanc à liserés bleu et rouge** quand il n'y a rien à faire et qu'on attend. Chaque état est dessiné dans la maquette de l'accueil (lien dans `design.md`).
+
+| État | Style | Ce que le bouton affiche | Où il mène |
+|---|---|---|---|
+| Une question t'attend | Bleu plein, badge « 1 » | « Une question t'attend » + deadline (« À répondre avant dimanche 15 novembre ») | Répondre (écran 6) |
+| Tu as répondu, en attente de la révélation | Blanc à liserés | « Réponse envoyée » + date de la révélation, lien « Voir ou modifier ma réponse » | Répondre (consulter / modifier sa réponse jusqu'à la deadline) |
+| Tu es l'auteur de la question en cours | Blanc à liserés | « Ta question est en jeu » + nombre de réponses reçues et date de la révélation, lien « Voir ma question » | Ma question (écran 6, vue de l'auteur) |
+| Réponses à valider | Bleu plein, badge du nombre | « N réponses à valider » + rappel de la question | Valider (écran 7) |
+| Révélation disponible | Bleu plein, badge « 1 » | « La révélation est là ! » + « Découvre qui avait trouvé » | Révélation (écran 8) |
+| Entre deux quiz | Blanc à liserés | « Quiz terminé » + date du prochain quiz (« Prochaine question lundi 16 novembre ») ; en phase de test, sans tâche planifiée : « En attente du prochain quiz » ; lien « Revoir la dernière révélation » | Revoir la dernière révélation (écran 8) |
+| Plus aucun fait à piocher | Blanc à liserés | « Pas de prochain quiz » + « Il n'y a plus de souvenirs à piocher », lien « Ajouter des souvenirs » | Ajouter un souvenir (écran 5) |
+
+Le bouton n'a pas d'icône. L'étiquette « PARTICIPER AU QUIZ » est en première ligne, avec le badge éventuel aligné à droite.
 
 Si plusieurs états s'appliquent en même temps (ex : l'auteur doit valider des réponses), le plus urgent l'emporte : valider > répondre > révélation disponible > en attente.
 

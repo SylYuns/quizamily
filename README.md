@@ -4,7 +4,7 @@ Application de quiz familial : les membres d'une famille ajoutent des informatio
 
 ## Statut actuel
 
-MVP fonctionnel en version web (Expo + Supabase), en cours de test : création et rejoindre une famille, ajout de faits, pioche, réponse, validation des réponses libres, révélation, corrections et archives en version simple. Détail de l'avancement et prochains sujets dans [docs/roadmap.md](docs/roadmap.md).
+MVP fonctionnel en version web (Expo + Supabase), en cours de test : création et rejoindre une famille, ajout de faits, pioche, réponse, validation des réponses libres, révélation, corrections et archives en version simple. Détail de l'avancement et prochains sujets dans [docs/roadmap.md](docs/roadmap.md). Charte visuelle et maquettes : [docs/design.md](docs/design.md).
 
 ## Documentation
 
@@ -13,6 +13,7 @@ MVP fonctionnel en version web (Expo + Supabase), en cours de test : création e
 - [docs/stack.md](docs/stack.md) — la stack technique choisie.
 - [docs/roadmap.md](docs/roadmap.md) — les étapes de réalisation et les hypothèses encore ouvertes.
 - [docs/ecrans.md](docs/ecrans.md) — description fonctionnelle des écrans du MVP.
+- [docs/design.md](docs/design.md) — la charte visuelle (couleurs, polices, styles de boutons) et le lien vers les maquettes.
 - [docs/question-templates.toml](docs/question-templates.toml) — le catalogue des templates de questions.
 
 ## Contexte

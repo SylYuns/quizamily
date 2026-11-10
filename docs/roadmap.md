@@ -108,11 +108,11 @@ Décisions de produit ou de sécurité pas encore tranchées — à trancher ava
 - Emails/notifications (nouvelle session, rappels, résultats, relances de validation) + « prise de main ».
 - Réactions/commentaires sur les faits révélés.
 - Score de contribution + relances si un membre n'a rien ajouté.
-- Application de la direction visuelle (coloré, bleu-blanc-rouge).
+- Application de la direction visuelle aux autres écrans : charte posée dans `docs/design.md` (2026-11-10), à appliquer écran par écran.
 - Fermer les deux fuites résiduelles notées plus haut (type `list`, `facts.answer_value`).
 - **Refonte de la navigation (décidée le 2026-11-10)**, détail dans `docs/ecrans.md` (règles communes, écrans 4, 9 à 12). Ordre suggéré :
   1. **Corriger la pioche** : ne jamais repiocher un fait déjà posé tant qu'il reste des faits jamais posés (voir `concept.md`). À corriger à la fois dans `supabase/functions/create-quiz-session/pioche.ts` et dans `create_quiz_session_for_family()` (SQL).
-  2. **Écran d'accueil (écran 4)** : bandeau famille (bouton famille, bouton « Inviter », menu burger), deux boutons centraux « Participer au quiz » (avec ses 7 états) et « Consulter les connaissances », puis « Ajouter un souvenir » (alerte sous 5 faits jamais posés), « Historique », « Mes faits » (badge corrections). Carte « Lancer votre premier quiz » pour une famille qui démarre. Maquette à faire avant le code.
+  2. **Écran d'accueil (écran 4)** : bandeau famille (bouton famille, bouton « Inviter », menu burger), deux boutons centraux « Participer au quiz » (avec ses 7 états) et « Consulter les connaissances », puis « Ajouter un souvenir » (alerte sous 5 faits jamais posés), « Historique », « Mes faits » (badge corrections). Carte « Lancer votre premier quiz » pour une famille qui démarre. **Maquette validée le 2026-11-10** (7 états, lien et charte dans `docs/design.md`) : reste à coder `src/app/home.tsx`, avec les polices Fredoka et Nunito à ajouter au projet.
   3. **Arbre familial (écran 10)** : affichage en arbre généalogique (enfants sous leurs parents, traits pour les relations) ; mode consultation à l'arrivée avec compteurs par personne, bouton « Modifier » pour les membres et relations ; nouveaux types de relation « enfant » et « frère / sœur » (`sibling_of`, migration nécessaire).
   4. **Récapitulatif d'une personne (écran 11)** : mini-biographie rédigée par catégorie. Demande d'écrire une phrase `recap` pour chacun des 32 templates de `question-templates.toml`.
   5. **Historique (écran 12)** : questions déjà posées + tableau des scores. Demande le **score cumulé** inter-sessions (agrégation en base, pas encore construite).

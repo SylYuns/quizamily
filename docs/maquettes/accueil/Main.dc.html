@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Accueil famille</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+body{margin:0}
+a{color:#2347C5}a:hover{color:#1A3596}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FFFBF6; font-family: Nunito, system-ui, sans-serif; color: #1B1F3B; display: flex; flex-direction: column; overflow: hidden">
+
+  <header style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: #FFFFFF; border-bottom: 1px solid #EDE6DC">
+    <button type="button" style="display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border: 1px solid #E2DACE; border-radius: 22px; background: #FFFFFF; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 17px; color: #1B1F3B; cursor: pointer">
+      Famille Chardaire
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+    </button>
+    <button type="button" aria-label="Inviter dans la famille" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: none; border-radius: 22px; background: #E7ECFB; color: #2347C5; cursor: pointer">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1"></path><circle cx="8.5" cy="7" r="3.5"></circle><path d="M19 8v6M22 11h-6"></path></svg>
+    </button>
+    <div style="flex-grow: 1"></div>
+    <button type="button" aria-label="Menu" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: none; border-radius: 22px; background: transparent; color: #1B1F3B; cursor: pointer">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+    </button>
+  </header>
+
+  <main style="display: flex; flex-direction: column; gap: 14px; padding: 18px 16px 16px">
+    <p style="margin: 0; font-size: 16px; color: #5B5F73">Bonjour <strong style="color: #1B1F3B">Sylvain</strong></p>
+
+    <sc-if value="{{showQuizStrong}}" hint-placeholder-val="{{ true }}">
+      <button type="button" style="display: flex; flex-direction: column; align-items: flex-start; gap: 10px; box-sizing: border-box; padding: 20px; border: none; border-radius: 22px; background: #2347C5; color: #FFFFFF; text-align: left; cursor: pointer; box-shadow: 0 6px 0 #1A3596">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 28px">
+          <span style="font-size: 14px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.85">Participer au quiz</span>
+          <sc-if value="{{quizBadge}}" hint-placeholder-val="{{ true }}">
+            <span style="min-width: 28px; height: 28px; box-sizing: border-box; padding: 0 9px; border-radius: 14px; background: #D62839; color: #FFFFFF; font-weight: 800; font-size: 15px; display: flex; align-items: center; justify-content: center">{{quizBadge}}</span>
+          </sc-if>
+        </div>
+        <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 27px; line-height: 1.1">{{quizTitle}}</span>
+        <span style="font-size: 15px; opacity: 0.9">{{quizSub}}</span>
+      </button>
+    </sc-if>
+
+    <sc-if value="{{showQuizMuted}}" hint-placeholder-val="{{ false }}">
+      <button type="button" style="display: flex; flex-direction: column; align-items: flex-start; gap: 10px; box-sizing: border-box; padding: 20px; border-top: 1px solid #E2DACE; border-bottom: 1px solid #E2DACE; border-left: 8px solid #2347C5; border-right: 8px solid #D62839; border-radius: 22px; background: #FFFFFF; color: #1B1F3B; text-align: left; cursor: pointer; box-shadow: 0 4px 14px rgba(27,31,59,0.08)">
+        <span style="font-size: 14px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #2347C5">Participer au quiz</span>
+        <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 27px; line-height: 1.1">{{quizTitle}}</span>
+        <span style="font-size: 15px; color: #5B5F73">{{quizSub}}</span>
+        <span style="display: flex; align-items: center; gap: 4px; font-size: 15px; font-weight: 700; color: #2347C5">{{quizLink}}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+        </span>
+      </button>
+    </sc-if>
+
+    <sc-if value="{{showStart}}" hint-placeholder-val="{{ false }}">
+      <section style="display: flex; flex-direction: column; gap: 14px; box-sizing: border-box; padding: 20px; border: 2px solid #C9D4F4; border-radius: 22px; background: #FFFFFF">
+        <h2 style="margin: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 25px; line-height: 1.15; color: #1B1F3B">Lancer votre premier quiz</h2>
+        <p style="margin: 0; font-size: 15px; line-height: 1.4; color: #5B5F73">Le premier quiz démarre dès que la famille compte 3 joueurs et quelques souvenirs.</p>
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; align-items: center; gap: 10px; font-size: 16px">
+            <span style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 13px; background: #2347C5; color: #FFFFFF">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+            </span>
+            Famille créée
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; font-size: 16px">
+            <span style="width: 26px; height: 26px; box-sizing: border-box; border-radius: 13px; border: 2px solid #2347C5"></span>
+            <span><strong>2 joueurs sur 3</strong> · encore 1 à inviter</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; font-size: 16px">
+            <span style="width: 26px; height: 26px; box-sizing: border-box; border-radius: 13px; border: 2px solid #2347C5"></span>
+            <span><strong>1 souvenir</strong> ajouté pour l'instant</span>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px">
+          <button type="button" style="flex: 1; min-height: 48px; border: none; border-radius: 14px; background: #2347C5; color: #FFFFFF; font-family: Nunito, sans-serif; font-weight: 800; font-size: 15px; cursor: pointer">Inviter des membres</button>
+          <button type="button" style="flex: 1; min-height: 48px; border: 2px solid #2347C5; border-radius: 14px; background: #FFFFFF; color: #2347C5; font-family: Nunito, sans-serif; font-weight: 800; font-size: 15px; cursor: pointer">Ajouter un souvenir</button>
+        </div>
+      </section>
+    </sc-if>
+
+    <button type="button" style="display: flex; align-items: center; gap: 16px; min-height: 112px; box-sizing: border-box; padding: 20px; border-top: 1px solid #E2DACE; border-bottom: 1px solid #E2DACE; border-left: 8px solid #2347C5; border-right: 8px solid #D62839; border-radius: 22px; background: #FFFFFF; color: #1B1F3B; text-align: left; cursor: pointer; box-shadow: 0 4px 14px rgba(27,31,59,0.08)">
+      <span style="display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 52px; height: 52px; border-radius: 16px; background: #E7ECFB; color: #2347C5">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="2.5"></circle><circle cx="6" cy="18" r="2.5"></circle><circle cx="18" cy="18" r="2.5"></circle><path d="M12 7.5v4M6 15.5v-4h12v4"></path></svg>
+      </span>
+      <span style="display: flex; flex-direction: column; gap: 4px">
+        <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 23px; line-height: 1.1">Consulter les connaissances</span>
+        <span style="font-size: 15px; color: #5B5F73">{{knowSub}}</span>
+      </span>
+    </button>
+
+    <sc-if value="{{showAdd}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; border: 2px solid #C9D4F4; border-radius: 18px; background: #FFFFFF; overflow: hidden">
+        <button type="button" style="display: flex; align-items: center; gap: 14px; min-height: 64px; box-sizing: border-box; padding: 12px 16px; border: none; background: transparent; color: #1B1F3B; text-align: left; cursor: pointer">
+          <span style="display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 40px; height: 40px; border-radius: 20px; background: #2347C5; color: #FFFFFF">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+          </span>
+          <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 20px">Ajouter un souvenir</span>
+        </button>
+        <sc-if value="{{alertText}}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: #FDE8EA; color: #A81E2C; font-size: 14px; font-weight: 700">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path><path d="M12 9v4M12 17h.01"></path></svg>
+            {{alertText}}
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+      <button type="button" style="display: flex; align-items: center; gap: 10px; min-height: 60px; box-sizing: border-box; padding: 10px 14px; border: 1px solid #E2DACE; border-radius: 16px; background: #FFFFFF; color: #1B1F3B; font-family: Nunito, sans-serif; font-weight: 800; font-size: 16px; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2347C5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+        Historique
+      </button>
+      <button type="button" style="display: flex; align-items: center; gap: 10px; min-height: 60px; box-sizing: border-box; padding: 10px 14px; border: 1px solid #E2DACE; border-radius: 16px; background: #FFFFFF; color: #1B1F3B; font-family: Nunito, sans-serif; font-weight: 800; font-size: 16px; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2347C5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path></svg>
+        Mes faits
+        <sc-if value="{{factsBadge}}" hint-placeholder-val="{{ false }}">
+          <span style="margin-left: auto; min-width: 24px; height: 24px; box-sizing: border-box; padding: 0 7px; border-radius: 12px; background: #D62839; color: #FFFFFF; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center">{{factsBadge}}</span>
+        </sc-if>
+      </button>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"etat":{"editor":"enum","default":"question","options":["question","repondu","auteur","valider","revelation","entre-deux","plus-de-faits","demarrage"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const etat = this.props.etat ?? 'question';
+    const states = {
+      'question': { strong: true, title: 'Une question t’attend', sub: 'À répondre avant dimanche 15 novembre', badge: '1', alert: 'Plus que 3 questions en réserve', factsBadge: '1' },
+      'repondu': { strong: false, title: 'Réponse envoyée', sub: 'Révélation dimanche 15 novembre', link: 'Voir ou modifier ma réponse', badge: '', alert: '', factsBadge: '' },
+      'auteur': { strong: false, title: 'Ta question est en jeu', sub: '3 joueurs sur 5 ont répondu · révélation dimanche 15 novembre', link: 'Voir ma question', badge: '', alert: '', factsBadge: '' },
+      'valider': { strong: true, title: '2 réponses à valider', sub: 'Ta question sur Mamie Marie · 5 joueurs sur 5 ont répondu', badge: '2', alert: '', factsBadge: '' },
+      'revelation': { strong: true, title: 'La révélation est là !', sub: 'Découvre qui avait trouvé', badge: '1', alert: '', factsBadge: '' },
+      'entre-deux': { strong: false, title: 'Quiz terminé', sub: 'Prochaine question lundi 16 novembre', link: 'Revoir la dernière révélation', badge: '', alert: '', factsBadge: '' },
+      'plus-de-faits': { strong: false, title: 'Pas de prochain quiz', sub: 'Il n’y a plus de souvenirs à piocher.', link: 'Ajouter des souvenirs', badge: '', alert: 'Plus aucune question en réserve', factsBadge: '' },
+      'demarrage': { start: true, badge: '', alert: '', factsBadge: '' },
+    };
+    const s = states[etat] ?? states['question'];
+    const isStart = !!s.start;
+    return {
+      showQuizStrong: !isStart && s.strong === true,
+      showQuizMuted: !isStart && s.strong === false,
+      showStart: isStart,
+      showAdd: !isStart,
+      quizTitle: s.title ?? '',
+      quizSub: s.sub ?? '',
+      quizLink: s.link ?? '',
+      quizBadge: s.badge,
+      alertText: s.alert,
+      factsBadge: s.factsBadge,
+      knowSub: isStart ? 'Découvre et complète l’arbre de la famille' : '24 souvenirs sur 4 personnes',
+    };
+  }
+}
+</script>
+</body>
+</html>
