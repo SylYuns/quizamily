@@ -122,6 +122,21 @@ Le pool de faits est fini (surtout avec seulement 1-4 personnes centrales), donc
 
 Le terme officiel retenu pour désigner la ou les personnes autour de qui le jeu est centré est **"personne centrale"** (pluriel : "personnes centrales"). D'autres termes ont été envisagés puis écartés ("personne fondatrice", "pivot", "vedette", "invité(e) d'honneur"...).
 
+## Monétisation (pistes, rien de décidé)
+
+Ouvert le 2026-11-10. Principe : pas de publicité (elle casserait l'ambiance chaleureuse, rapporterait presque rien vu le faible volume d'usage, gênerait les utilisateurs âgés et imposerait du suivi publicitaire et des demandes de consentement, délicat pour une appli qui stocke des données familiales).
+
+Pistes de Sylvain :
+- **Don volontaire** (style Ko-fi). Rapporte peu (très faible part de donateurs), mais colle à l'esprit du projet. Attention aux règles des stores : sur iPhone, un pourboire au développeur doit passer par l'achat intégré d'Apple (commission prélevée), et un lien externe « Tips » peut faire refuser l'appli ; règles comparables chez Google ; assouplissements en Europe pour les liens externes, avec conditions et frais, à vérifier au moment de publier. Sur la version web, un lien Ko-fi suffit.
+- **Abonnement par famille, autour de 1 €/mois**, pour régler la fréquence et les jours des révélations. Bon principe : un membre paie, toute la famille en profite. Limites : la fonctionnalité ne parle qu'à l'organisateur de la famille ; sur 1 € TTC, il reste environ 0,70 € après TVA et commission des stores (15 % pour les petits développeurs) ; un paiement annuel (autour de 10 €/an) réduirait les frais et la résiliation.
+
+Autres options payantes envisagées, à combiner ou non :
+- **Photos et enregistrements audio** sur les faits (prévus après le MVP) : coût de stockage réel, facile à justifier.
+- **Livre souvenir** (imprimé ou PDF) construit à partir du récapitulatif d'une personne : achat à l'unité (ordre d'idée 15-30 €), cadeau évident pour un anniversaire.
+- **Paliers** au-delà d'un certain nombre de personnes centrales ou de membres.
+
+Calendrier proposé : premier test gratuit, avec au plus un lien de don sur la version web ; décider après avoir observé l'usage réel. Questions de TVA et de statut (micro-entreprise ou autre) à voir avec un comptable.
+
 ## Hypothèses non encore tranchées
 
 - Pas de maximum technique strict sur le nombre de personnes centrales (juste une recommandation UI de rester à 1-4).

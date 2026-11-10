@@ -89,6 +89,7 @@ Décisions de produit ou de sécurité pas encore tranchées — à trancher ava
 - **Direction visuelle** (coloré/chaleureux, bleu-blanc-rouge — voir `concept.md`) : documentée depuis le début, jamais appliquée. Tous les écrans utilisent encore un style minimal (gris/bleu uni) pour avancer vite sur les fonctionnalités.
 - **`relationship_label` pas encore un vrai lien par paire** : reste un champ texte simple posé par le créateur de la famille sur sa propre perception (ex: "Grand-mère" = grand-mère du créateur), pas une relation stockée dans `relationships` entre le créateur et chaque personne centrale — contrairement aux liens que l'arbre familial (étape 5) sait maintenant capturer pour tout le monde. Pas bloquant, juste incohérent avec le reste du modèle.
 - **Repiocher un fait déjà posé** : autorisé seulement quand il ne reste plus aucun fait jamais posé, en prévenant les joueurs. Forme de l'avertissement à définir (message dans la question, sur l'accueil, par email ?).
+- **Monétisation** (piste ouverte le 2026-11-10, rien de décidé) : voir « Monétisation » dans `concept.md`. À trancher après le premier test, en observant ce que les familles utilisent vraiment.
 
 ## Décisions déjà prises (pour éviter de les re-discuter)
 
