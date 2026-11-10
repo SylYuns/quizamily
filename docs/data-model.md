@@ -22,7 +22,8 @@ persons
 
 relationships
   id, family_id, person_a_id, person_b_id
-  relation_type            -- 'parent_of' | 'spouse_of'
+  relation_type            -- 'parent_of' | 'spouse_of' | 'sibling_of' (prévu, pas encore en base : lien direct
+                           -- entre adelphes dont on ne connaît pas les parents ; symétrique comme spouse_of)
   created_by, created_at
 
 invites

@@ -273,9 +273,31 @@ Les archives affichent les mêmes informations pour tout le monde : les faits pa
 
 Action : ouvrir une question → son détail (même contenu que la révélation)
 
-### Enrichissements après le MVP
+### Enrichissements après le MVP (archives)
 
 - Regroupement par catégorie (naissance et enfance, jeunesse, couple…) et filtres
 - Pour chaque fait : auteur, anecdote, date de révélation, taux de bonnes réponses (« 3 joueurs sur 5 avaient trouvé »)
 - Recherche par mot-clé
 - **Frise chronologique** de la vie de chaque personne centrale, construite à partir des faits de type date et année
+
+
+## 10. Arbre familial
+
+But : voir qui est qui dans la famille, et créer les relations entre les personnes.
+
+### Existant (`src/app/family-tree.tsx`)
+
+- Une carte par personne centrale avec son conjoint, ses parents, ses frères et sœurs et ses enfants, puis la liste des autres membres.
+- Un formulaire pour lier deux personnes (« conjoint » ou « parent »), avec création à la volée d'une personne manquante.
+- Lecture et ajout seulement : pas de suppression ni de modification d'une relation ou d'une personne.
+
+### À faire
+
+**Affichage en arbre généalogique** (dans les grandes lignes) :
+- l'affichage s'organise selon les relations créées : les enfants sous leurs parents, les conjoints côte à côte ;
+- des traits entre les personnes représentent les relations ;
+- toute relation ajoutée se répercute immédiatement sur l'arbre.
+
+**Plus de types de relation à la création** :
+- ajouter « enfant » aux choix actuels (« conjoint », « parent »). Le résultat est le même que « parent » dans l'autre sens (`parent_of` avec les deux personnes inversées), mais c'est plus naturel selon la personne depuis laquelle on part ;
+- ajouter « frère / sœur » (adelphe), pour lier directement deux personnes dont on ne connaît pas les parents (ex : les frères et sœurs d'une grand-mère). Demande un nouveau type de relation `sibling_of`, symétrique comme `spouse_of`. Dans l'arbre, les adelphes d'une personne sont alors ceux liés directement, plus ceux qui partagent un parent enregistré. La condition « a des frères ou sœurs » du catalogue (écran 5) doit tenir compte des deux cas.
