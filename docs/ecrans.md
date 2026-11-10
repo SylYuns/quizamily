@@ -321,12 +321,37 @@ But : **porte d'entrée vers les connaissances** de la famille (bouton « Consul
 - Un formulaire pour lier deux personnes (« conjoint » ou « parent »), avec création à la volée d'une personne manquante.
 - Lecture et ajout seulement : pas de suppression ni de modification d'une relation ou d'une personne.
 
+### Quelle partie de la famille est affichée (décision du 2026-11-10)
+
+La famille de l'appli, ce sont **les descendants d'un ancêtre commun, avec leurs conjoints**. Les conjoints (« pièces rapportées ») n'ont pas d'ascendance dans cette famille : ils l'auront dans leur propre famille.
+- **Un couple n'a qu'un seul couple de parents** renseigné. Pas de « + Ajouter ses parents » sur un conjoint.
+- **L'arbre affiché** est celui de l'ancêtre commun : on part de la première personne centrale, on remonte de parent en parent jusqu'au plus haut, puis on affiche toute sa descendance avec les conjoints (oncles, tantes, cousins compris). Si l'ancêtre le plus haut a des adelphes liés directement (`sibling_of`, sans parents connus), ils sont sur sa ligne, avec leurs descendants.
+- **Tout le reste n'est pas affiché** : personnes sans aucune relation, petits groupes reliés entre eux mais pas à l'arbre principal, personnes centrales sans lien avec la première. Un **bouton avec alerte** (« 3 personnes sans relation ») les signale ; en mode Modifier, un encart les liste avec un bouton « Relier ».
+- Cas limite : si les parents des deux conjoints sont quand même renseignés, l'arbre suit ceux du conjoint qui descend de l'ancêtre commun.
+- Un seul conjoint par personne pour l'instant (pas de remariage). Rien de particulier pour les personnes décédées pour l'instant.
+
+### Affichage et navigation (décision du 2026-11-10)
+
+**Maquette** : « Quizamily – Arbre familial », lien et charte dans `design.md`, source dans `docs/maquettes/arbre/` (famille fictive sur 4 générations, 5 écrans : ouverture, déplacements, mode Modifier).
+
+- **3 lignes visibles** : la génération centrée au milieu de l'écran (cartes en taille normale, sur une bande blanche), la génération précédente au-dessus et la suivante en dessous (cartes plus petites).
+- **Glisser vers le haut ou le bas** change de génération, avec des **crans** : l'écran s'arrête sur une génération bien centrée en hauteur. Des points sur le bord droit indiquent la génération affichée.
+- **Glisser à gauche ou à droite** parcourt la génération centrée, avec des crans **personne par personne** : à chaque cran, une personne est au centre de l'écran.
+- **La ligne du dessus suit** : les parents de la personne centrée sont centrés au-dessus. Tant qu'on passe d'un adelphe à l'autre, elle ne bouge pas ; en passant à une autre fratrie, elle glisse jusqu'à centrer les nouveaux parents.
+- **La ligne du dessous suit** : les enfants de la personne (du couple) centrée sont centrés en dessous.
+- **Le conjoint** est juste à côté de la personne. Centrer l'un ou l'autre centre les mêmes parents (ceux du couple).
+- **Placement** : tout l'arbre est calculé d'un bloc, chaque couple centré au-dessus de ses enfants, chaque descendance occupant sa propre largeur, même écartement sur toutes les lignes. Conséquence : une génération nombreuse élargit l'arbre et laisse des espaces entre les familles des autres lignes.
+- **Traits de filiation** pour **toutes** les familles entre deux lignes visibles, toujours **à angle droit** (descente depuis le couple, barre horizontale, descente vers chaque enfant), **jamais obliques**. Ils sont persistants : tracés même s'ils sortent en partie de l'écran.
+- **Amorces** : un petit trait vertical au-dessus de chaque personne ou couple de la ligne du haut qui a des parents, et sous chaque personne ou couple de la ligne du bas qui a des enfants, pour montrer que l'arbre continue.
+- **Sur chaque personne** : initiale dans un rond de couleur, prénom, nombre de souvenirs ; sur la ligne centrale, en plus, « N à découvrir » (faits pas encore posés). La personne centrée a un contour bleu ; une personne centrale a une petite étoile bleue.
+- **Ouverture** : centrée sur la première personne centrale, puis sur la dernière personne consultée (mémorisée sur l'appareil, par famille ; en changeant d'appareil, on revient sur la première personne centrale).
+- **Mode Modifier** : titre « Modifier l'arbre », bouton « Terminé » ; un crayon sur chaque personne (toucher = la modifier) ; boutons en pointillés « + Frère ou sœur » (au bout de la fratrie centrée) et « + Enfant » (au bout des enfants du couple centré) ; encart des personnes à placer en bas.
+
+**À tester en conditions réelles** : une génération de 8 ou 9 enfants, chacun avec un conjoint et plusieurs enfants (largeur de l'arbre, longueur des traits, confort du défilement).
+
 ### À faire
 
-**Affichage en arbre généalogique** (dans les grandes lignes) :
-- l'affichage s'organise selon les relations créées : les enfants sous leurs parents, les conjoints côte à côte ;
-- des traits entre les personnes représentent les relations ;
-- toute relation ajoutée se répercute immédiatement sur l'arbre.
+**Implémentation** : réécrire `src/app/family-tree.tsx` selon les règles ci-dessus. Le calcul du placement (qui va sur quelle ligne, à quelle position, où passent les traits) est à écrire comme un module indépendant de l'interface, testable seul sur des familles d'exemple, dont le cas de la grande fratrie.
 
 **Plus de types de relation à la création** :
 - ajouter « enfant » aux choix actuels (« conjoint », « parent »). Le résultat est le même que « parent » dans l'autre sens (`parent_of` avec les deux personnes inversées), mais c'est plus naturel selon la personne depuis laquelle on part ;

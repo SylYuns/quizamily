@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Arbre familial</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+body{margin:0}
+a{color:#2347C5}a:hover{color:#1A3596}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; box-sizing: border-box; background: #FFFBF6; font-family: Nunito, system-ui, sans-serif; color: #1B1F3B; overflow: hidden">
+
+  <header style="position: absolute; left: 0; top: 0; width: 390px; box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: #FFFFFF; border-bottom: 1px solid #EDE6DC; z-index: 3">
+    <button type="button" style="display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border: 1px solid #E2DACE; border-radius: 22px; background: #FFFFFF; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 17px; color: #1B1F3B; cursor: pointer">
+      Famille Martin
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+    </button>
+    <button type="button" aria-label="Inviter dans la famille" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: none; border-radius: 22px; background: #E7ECFB; color: #2347C5; cursor: pointer">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1"></path><circle cx="8.5" cy="7" r="3.5"></circle><path d="M19 8v6M22 11h-6"></path></svg>
+    </button>
+    <div style="flex-grow: 1"></div>
+    <button type="button" aria-label="Menu" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: none; border-radius: 22px; background: transparent; color: #1B1F3B; cursor: pointer">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+    </button>
+  </header>
+
+  <div style="position: absolute; left: 0; top: 69px; width: 390px; box-sizing: border-box; display: flex; align-items: center; gap: 6px; padding: 8px 16px 0 8px; z-index: 3">
+    <button type="button" aria-label="Retour à l'accueil" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: none; border-radius: 22px; background: transparent; color: #1B1F3B; cursor: pointer">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+    </button>
+    <h1 style="margin: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 22px">{{screenTitle}}</h1>
+    <div style="flex-grow: 1"></div>
+    <sc-if value="{{isConsult}}" hint-placeholder-val="{{ true }}">
+      <button type="button" style="display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border: 2px solid #2347C5; border-radius: 14px; background: #FFFFFF; color: #2347C5; font-family: Nunito, sans-serif; font-weight: 800; font-size: 15px; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>
+        Modifier
+      </button>
+    </sc-if>
+    <sc-if value="{{isEdit}}" hint-placeholder-val="{{ false }}">
+      <button type="button" style="min-height: 44px; padding: 0 18px; border: none; border-radius: 14px; background: #2347C5; color: #FFFFFF; font-family: Nunito, sans-serif; font-weight: 800; font-size: 15px; cursor: pointer">Terminé</button>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{isConsult}}" hint-placeholder-val="{{ true }}">
+    <button type="button" style="position: absolute; left: 16px; top: 128px; z-index: 3; display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 12px; border: none; border-radius: 18px; background: #FDE8EA; color: #A81E2C; font-family: Nunito, sans-serif; font-weight: 800; font-size: 14px; cursor: pointer">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path><path d="M12 9v4M12 17h.01"></path></svg>
+      3 personnes sans relation
+    </button>
+  </sc-if>
+
+  <div style="{{bandStyle}}"></div>
+
+  <sc-if value="{{showTopLabel}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; left: 0; top: 214px; width: 390px; text-align: center; font-size: 14px; font-weight: 700; color: #5B5F73">Haut de l'arbre : les ancêtres communs</div>
+  </sc-if>
+
+  <sc-for list="{{lines}}" as="l" hint-placeholder-count="6">
+    <div style="{{l.style}}"></div>
+  </sc-for>
+
+  <sc-for list="{{nodes}}" as="n" hint-placeholder-count="8">
+    <sc-if value="{{n.isPerson}}" hint-placeholder-val="{{ true }}">
+      <button type="button" aria-label="{{n.aria}}" style="{{n.style}}">
+        <span style="{{n.avatarStyle}}">{{n.initials}}
+          <sc-if value="{{n.central}}" hint-placeholder-val="{{ false }}">
+            <span style="position: absolute; right: -5px; bottom: -5px; width: 22px; height: 22px; box-sizing: border-box; border-radius: 11px; background: #2347C5; border: 2px solid #FFFFFF; display: flex; align-items: center; justify-content: center; color: #FFFFFF">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.4 7L12 17.6 5.8 21.1l1.4-7L2 9.3l7-.8z"></path></svg>
+            </span>
+          </sc-if>
+          <sc-if value="{{n.edit}}" hint-placeholder-val="{{ false }}">
+            <span style="position: absolute; right: -6px; top: -6px; width: 24px; height: 24px; box-sizing: border-box; border-radius: 12px; background: #FFFFFF; border: 2px solid #2347C5; display: flex; align-items: center; justify-content: center; color: #2347C5">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>
+            </span>
+          </sc-if>
+        </span>
+        <span style="{{n.nameStyle}}">{{n.name}}</span>
+        <span style="{{n.countStyle}}">{{n.countText}}</span>
+        <sc-if value="{{n.discover}}" hint-placeholder-val="{{ false }}">
+          <span style="margin-top: 2px; padding: 2px 8px; border-radius: 10px; background: #E7ECFB; color: #2347C5; font-size: 12px; font-weight: 800; white-space: nowrap">{{n.discover}}</span>
+        </sc-if>
+      </button>
+    </sc-if>
+    <sc-if value="{{n.isAdd}}" hint-placeholder-val="{{ false }}">
+      <button type="button" style="{{n.style}}">
+        <span style="{{n.avatarStyle}}">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+        </span>
+        <span style="{{n.nameStyle}}">{{n.name}}</span>
+      </button>
+    </sc-if>
+  </sc-for>
+
+  <div style="position: absolute; right: 8px; top: 380px; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 2" aria-hidden="true">
+    <sc-for list="{{genDots}}" as="d" hint-placeholder-count="4">
+      <span style="{{d.style}}"></span>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{isConsult}}" hint-placeholder-val="{{ true }}">
+    <div style="position: absolute; left: 16px; top: 724px; width: 358px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center">
+      <p style="margin: 0; font-size: 15px; font-weight: 700; color: #1B1F3B">Touche une personne pour lire ses souvenirs</p>
+      <p style="margin: 0; font-size: 13px; color: #5B5F73">Glisse à gauche ou à droite pour parcourir une génération, vers le haut ou le bas pour changer de génération</p>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{isEdit}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; left: 16px; top: 696px; width: 358px; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 18px; background: #FFFFFF; border: 1px solid #E2DACE; box-shadow: 0 4px 14px rgba(27,31,59,0.08)">
+      <div style="display: flex; align-items: center; gap: 8px; color: #A81E2C; font-size: 14px; font-weight: 800">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path><path d="M12 9v4M12 17h.01"></path></svg>
+        À placer dans l'arbre (3)
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="flex-grow: 1; font-size: 15px; font-weight: 700">Pierre · Sophie · Bernard</span>
+        <button type="button" style="min-height: 44px; padding: 0 16px; border: 2px solid #2347C5; border-radius: 14px; background: #FFFFFF; color: #2347C5; font-family: Nunito, sans-serif; font-weight: 800; font-size: 15px; cursor: pointer">Relier</button>
+      </div>
+      <p style="margin: 0; font-size: 13px; color: #5B5F73">Touche une personne de l'arbre pour la modifier, ou un bouton + pour ajouter quelqu'un.</p>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"focus":{"editor":"enum","default":"marie","options":["marcel","marie","jean","helene","claire","paul","luc","thomas","julie","camille","lea","hugo","emma","nathan","jade"]},"mode":{"editor":"enum","default":"consultation","options":["consultation","modifier"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const focus = this.props.focus ?? 'marie';
+    const mode = this.props.mode ?? 'consultation';
+    const isEdit = mode === 'modifier';
+
+    const P = {
+      marcel: { n: 'Marcel', s: 6, d: 1, c: 0 },
+      marie: { n: 'Marie', s: 12, d: 3, c: 1, central: true },
+      jean: { n: 'Jean', s: 5, d: 2, c: 2 },
+      helene: { n: 'Hélène', s: 1, d: 0, c: 3 },
+      claire: { n: 'Claire', s: 4, d: 1, c: 1 },
+      paul: { n: 'Paul', s: 0, d: 0, c: 0 },
+      luc: { n: 'Luc', s: 3, d: 0, c: 2 },
+      thomas: { n: 'Thomas', s: 2, d: 1, c: 3 },
+      julie: { n: 'Julie', s: 0, d: 0, c: 1 },
+      camille: { n: 'Camille', s: 2, d: 0, c: 0 },
+      lea: { n: 'Léa', s: 1, d: 1, c: 2 },
+      hugo: { n: 'Hugo', s: 1, d: 0, c: 3 },
+      emma: { n: 'Emma', s: 0, d: 0, c: 1 },
+      nathan: { n: 'Nathan', s: 0, d: 0, c: 0 },
+      jade: { n: 'Jade', s: 0, d: 0, c: 2 },
+    };
+    const baseUnits = [
+      { id: 'u0', g: 0, m: ['marcel', 'marie'], p: null },
+      { id: 'u1', g: 1, m: ['jean', 'helene'], p: 'u0' },
+      { id: 'u2', g: 1, m: ['claire', 'paul'], p: 'u0' },
+      { id: 'u3', g: 1, m: ['luc'], p: 'u0' },
+      { id: 'u4', g: 2, m: ['thomas', 'julie'], p: 'u1' },
+      { id: 'u5', g: 2, m: ['camille'], p: 'u1' },
+      { id: 'u6', g: 2, m: ['lea'], p: 'u2' },
+      { id: 'u7', g: 2, m: ['hugo'], p: 'u2' },
+      { id: 'u8', g: 3, m: ['emma'], p: 'u4' },
+      { id: 'u9', g: 3, m: ['nathan'], p: 'u4' },
+      { id: 'u10', g: 3, m: ['jade'], p: 'u6' },
+    ];
+    const maxGen = 3;
+    const fu = baseUnits.find((u) => u.m.includes(focus)) || baseUnits[0];
+    const g = fu.g;
+
+    // Unités (couples ou personnes seules), avec les boutons "+" du mode Modifier.
+    const units = baseUnits.map((u) => Object.assign({}, u));
+    if (isEdit) {
+      let lastSib = -1;
+      units.forEach((u, i) => { if (u.g === g && u.p === fu.p) lastSib = i; });
+      units.splice(lastSib + 1, 0, { id: 'addSib', g, add: 'Frère ou sœur', p: fu.p, m: ['+sib'] });
+      if (g < maxGen) {
+        let lastKid = -1;
+        units.forEach((u, i) => { if (u.p === fu.id) lastKid = i; });
+        const at = lastKid >= 0 ? lastKid + 1 : units.length;
+        units.splice(at, 0, { id: 'addKid', g: g + 1, add: 'Enfant', p: fu.id, m: ['+kid'] });
+      }
+    }
+    const byId = {};
+    units.forEach((u) => { byId[u.id] = u; });
+    const kidsOf = (u) => units.filter((k) => k.p === u.id);
+
+    // Placement en arbre (même pas horizontal pour toutes les lignes) : chaque couple
+    // est centré au-dessus de ses enfants, chaque descendance occupe sa propre largeur.
+    const W = 96, GIN = 6, GOUT = 18;
+    const uw = (u) => u.m.length * W + (u.m.length - 1) * GIN;
+    const subW = (u) => {
+      const ks = kidsOf(u);
+      const kw = ks.reduce((a, k) => a + subW(k), 0) + Math.max(0, ks.length - 1) * GOUT;
+      return Math.max(uw(u), kw);
+    };
+    const place = (u, left) => {
+      const sw = subW(u);
+      const ks = kidsOf(u);
+      let center;
+      if (ks.length) {
+        const kw = ks.reduce((a, k) => a + subW(k), 0) + (ks.length - 1) * GOUT;
+        let x = left + (sw - kw) / 2;
+        ks.forEach((k) => { place(k, x); x += subW(k) + GOUT; });
+        center = (ks[0].cx + ks[ks.length - 1].cx) / 2;
+      } else {
+        center = left + sw / 2;
+      }
+      u.cx = center;
+      u.x0 = center - uw(u) / 2;
+    };
+    let rx = 0;
+    units.filter((u) => u.p === null).forEach((r) => { place(r, rx); rx += subW(r) + GOUT; });
+    const px = (u, id) => u.x0 + u.m.indexOf(id) * (W + GIN);
+    const rowUnits = (k) => units.filter((u) => u.g === k);
+
+    // Décalage horizontal de chaque ligne (crans) : la personne centrée au milieu de
+    // l'écran, ses parents centrés au-dessus, ses enfants centrés en dessous.
+    const fU = byId[fu.id];
+    const cOff = 195 - (px(fU, focus) + W / 2);
+    const parentU = fU.p ? byId[fU.p] : null;
+    const uOff = parentU ? 195 - parentU.cx : cOff;
+    const fKids = kidsOf(fU);
+    const lOff = fKids.length ? 195 - (fKids[0].cx + fKids[fKids.length - 1].cx) / 2 : cOff;
+
+    const C = { g, units: rowUnits(g), off: cOff };
+    const U = g > 0 ? { g: g - 1, units: rowUnits(g - 1), off: uOff } : null;
+    const L = g < maxGen ? { g: g + 1, units: rowUnits(g + 1), off: lOff } : null;
+
+    const Y_U = 186, Y_C = 360, Y_L = 576;
+    const AV_C = 60, AV_S = 46, H_C = 124, H_S = 82;
+    const pal = [
+      { bg: '#E7ECFB', fg: '#2347C5' },
+      { bg: '#FDE8EA', fg: '#A81E2C' },
+      { bg: '#FFF1D6', fg: '#7A4F00' },
+      { bg: '#E3F4EC', fg: '#1E6B45' },
+    ];
+    const nodes = [];
+    const lines = [];
+    const line = (x, y, w, h) => lines.push({ style: 'position: absolute; left: ' + Math.round(x) + 'px; top: ' + Math.round(y) + 'px; width: ' + Math.max(2, Math.round(w)) + 'px; height: ' + Math.max(2, Math.round(h)) + 'px; background: #AEBBE3; border-radius: 1px' });
+
+    const addRow = (row, top, isCenter) => {
+      if (!row) return;
+      const off = row.off;
+      const av = isCenter ? AV_C : AV_S;
+      row.units.forEach((u) => {
+        u.m.forEach((id) => {
+          const left = off + px(u, id);
+          if (left > 400 || left + W < -10) return;
+          const base = 'position: absolute; left: ' + Math.round(left) + 'px; top: ' + top + 'px; width: ' + W + 'px; display: flex; flex-direction: column; align-items: center; gap: ' + (isCenter ? 5 : 4) + 'px; padding: 0; border: none; background: transparent; color: #1B1F3B; text-align: center; cursor: pointer; z-index: 1';
+          if (u.add) {
+            nodes.push({
+              isAdd: true, isPerson: false, name: u.add, style: base,
+              avatarStyle: 'width: ' + av + 'px; height: ' + av + 'px; box-sizing: border-box; border-radius: 50%; border: 2px dashed #2347C5; background: #FFFFFF; color: #2347C5; display: flex; align-items: center; justify-content: center',
+              nameStyle: 'font-size: ' + (isCenter ? 14 : 12) + 'px; font-weight: 800; color: #2347C5; line-height: 1.2',
+            });
+            return;
+          }
+          const p = P[id];
+          const col = pal[p.c];
+          const focused = id === focus;
+          nodes.push({
+            isPerson: true, isAdd: false,
+            name: p.n,
+            initials: p.n.charAt(0),
+            central: !!p.central,
+            edit: isEdit,
+            aria: p.n + (isEdit ? ', modifier' : ', voir ses souvenirs'),
+            style: base,
+            avatarStyle: 'position: relative; width: ' + av + 'px; height: ' + av + 'px; box-sizing: border-box; border-radius: 50%; background: ' + col.bg + '; color: ' + col.fg + '; display: flex; align-items: center; justify-content: center; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: ' + Math.round(av * 0.4) + 'px; border: ' + (focused ? '3px solid #2347C5' : '2px solid #FFFFFF') + '; box-shadow: 0 2px 6px rgba(27,31,59,0.14)',
+            nameStyle: 'font-size: ' + (isCenter ? 16 : 13) + 'px; font-weight: ' + (focused ? 800 : 700) + '; line-height: 1.2; color: #1B1F3B',
+            countText: p.s > 0 ? p.s + ' souvenir' + (p.s > 1 ? 's' : '') : 'Aucun souvenir',
+            countStyle: 'font-size: ' + (isCenter ? 13 : 11) + 'px; color: #5B5F73; white-space: nowrap',
+            discover: isCenter && p.d > 0 ? p.d + ' à découvrir' : '',
+          });
+        });
+        if (u.m.length === 2 && !u.add) {
+          const a = off + px(u, u.m[0]) + W / 2 + av / 2;
+          const b = off + px(u, u.m[1]) + W / 2 - av / 2;
+          line(a, top + av / 2 - 1, b - a, 2);
+        }
+      });
+    };
+    addRow(U, Y_U, false);
+    addRow(C, Y_C, true);
+    addRow(L, Y_L, false);
+
+    // Traits de filiation pour TOUTES les familles visibles entre deux lignes, toujours
+    // à angle droit (jamais obliques) : descente depuis le couple, barre horizontale,
+    // descente vers chaque enfant. Ils restent tracés même s'ils sortent de l'écran.
+    const anchorY = (u, top, av, h) => (u.m.length === 2 && !u.add ? top + av / 2 : top + h);
+    const branches = (from, fromTop, fromAv, fromH, to, toTop) => {
+      if (!from || !to) return;
+      from.units.forEach((pu) => {
+        if (pu.add) return;
+        const kids = to.units.filter((k) => k.p === pu.id);
+        if (!kids.length) return;
+        const x = from.off + pu.cx;
+        const y0 = anchorY(pu, fromTop, fromAv, fromH);
+        const yb = Math.round((fromTop + fromH + toTop) / 2) + 2;
+        const xs = kids.map((k) => to.off + px(k, k.m[0]) + W / 2);
+        line(x - 1, y0, 2, yb - y0);
+        const x0 = Math.min(x, ...xs), x1 = Math.max(x, ...xs);
+        line(x0 - 1, yb, x1 - x0 + 2, 2);
+        xs.forEach((cx) => line(cx - 1, yb, 2, toTop - yb - 4));
+      });
+    };
+    branches(U, Y_U, AV_S, H_S, C, Y_C);
+    branches(C, Y_C, AV_C, H_C, L, Y_L);
+
+    // Amorces : l'arbre continue au-dessus de la ligne du haut, ou sous la ligne du bas.
+    const STUB = 22;
+    if (U) {
+      U.units.forEach((u) => {
+        if (u.add || !u.p) return;
+        const x = U.off + u.cx;
+        const y0 = anchorY(u, Y_U, AV_S, 0);
+        line(x - 1, Y_U - STUB, 2, y0 - (Y_U - STUB));
+      });
+    }
+    if (L) {
+      L.units.forEach((u) => {
+        if (u.add || !units.some((k) => k.p === u.id)) return;
+        const x = L.off + u.cx;
+        const y0 = anchorY(u, Y_L, AV_S, H_S);
+        line(x - 1, y0, 2, Y_L + H_S + STUB - y0);
+      });
+    }
+
+    const genDots = [];
+    for (let k = 0; k <= maxGen; k++) {
+      const on = k === g;
+      genDots.push({ style: 'display: block; width: ' + (on ? 10 : 7) + 'px; height: ' + (on ? 10 : 7) + 'px; border-radius: 5px; background: ' + (on ? '#2347C5' : '#C9D4F4') });
+    }
+
+    return {
+      isEdit,
+      isConsult: !isEdit,
+      screenTitle: isEdit ? 'Modifier l’arbre' : 'Connaissances',
+      showTopLabel: g === 0,
+      bandStyle: 'position: absolute; left: 0; top: ' + (Y_C - 18) + 'px; width: 390px; height: ' + (H_C + 30) + 'px; background: #FFFFFF; border-top: 1px solid #EDE6DC; border-bottom: 1px solid #EDE6DC',
+      nodes,
+      lines,
+      genDots,
+    };
+  }
+}
+</script>
+</body>
+</html>

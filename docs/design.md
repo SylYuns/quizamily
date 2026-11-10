@@ -4,7 +4,9 @@ Charte visuelle de Quizamily, posée avec la maquette de l'accueil (2026-11-10).
 
 **Maquette de référence** : « Quizamily – Accueil » (canvas Claude Design, privé, à ouvrir depuis le compte de Sylvain) — https://claude.ai/artifact/8yprgXLjTHUgu7wiKTE368. Elle montre l'accueil de la famille (écran 4) dans 7 états. Elle n'est pas cliquable : c'est une vue statique de l'organisation et du style.
 
-**Source de la maquette** : copie dans `docs/maquettes/accueil/`, pour référence (valeurs exactes, textes). `Main.dc.html` contient tout l'écran, avec un paramètre `etat` ; les autres fichiers l'importent chacun avec un état différent. Ces fichiers ne s'ouvrent pas seuls dans un navigateur : ils ont besoin de l'éditeur Claude Design. La version qui fait foi est le canvas en ligne ; recopier les fichiers ici s'il est modifié.
+**Maquette de l'arbre familial** : « Quizamily – Arbre familial » (canvas Claude Design, privé) — https://claude.ai/artifact/UgRz6PABHDepXPNebS9Kox. Famille fictive sur 4 générations, 5 écrans (écran 10 de `ecrans.md`). Source dans `docs/maquettes/arbre/` (`Main.dc.html` contient l'écran et le calcul du placement, avec les paramètres `focus` et `mode`).
+
+**Source de la maquette de l'accueil** : copie dans `docs/maquettes/accueil/`, pour référence (valeurs exactes, textes). `Main.dc.html` contient tout l'écran, avec un paramètre `etat` ; les autres fichiers l'importent chacun avec un état différent. Ces fichiers ne s'ouvrent pas seuls dans un navigateur : ils ont besoin de l'éditeur Claude Design. La version qui fait foi est le canvas en ligne ; recopier les fichiers ici s'il est modifié.
 
 ## Couleurs
 
@@ -51,3 +53,14 @@ Le rouge ne sert jamais de fond à un gros bouton : en grande surface, il évoqu
 | Remplacé par la carte « Lancer votre premier quiz » | Famille qui démarre |
 
 Le bouton n'a pas d'icône : elle prenait une ligne à elle seule et grossissait le bouton inutilement. L'étiquette « PARTICIPER AU QUIZ » est sur la première ligne, avec le badge éventuel aligné à droite.
+
+## Arbre familial
+
+- Personne : rond de couleur avec l'initiale (Fredoka), prénom, nombre de souvenirs. Ligne centrale : rond de 60 px, prénom 16 px, badge « N à découvrir » (fond bleu clair, texte bleu). Lignes du dessus et du dessous : rond de 46 px, prénom 13 px.
+- Couleurs des ronds, en rotation : bleu clair / bleu, rouge clair / rouge foncé, jaune `#FFF1D6` / `#7A4F00`, vert `#E3F4EC` / `#1E6B45`.
+- Personne centrée : contour bleu de 3 px. Personne centrale : pastille bleue avec étoile, en bas à droite du rond.
+- Génération centrée posée sur une bande blanche avec bordures `#EDE6DC`.
+- Traits : 2 px, `#AEBBE3`, toujours horizontaux ou verticaux. Le trait de couple relie les deux ronds à mi-hauteur.
+- Pas horizontal : 96 px par personne, 6 px entre conjoints, 18 px entre deux familles.
+- Mode Modifier : crayon dans une pastille blanche à contour bleu, en haut à droite du rond ; boutons d'ajout en rond pointillé bleu.
+
