@@ -6,7 +6,10 @@ Les points marqués **À décider** sont des questions ouvertes.
 
 ## Règles communes
 
-- Dans tous les écrans liés à une famille, le **nom de la famille active** est rappelé en haut.
+- **Bandeau collé en haut de l'écran**, dans tous les écrans liés à une famille :
+  - le **nom de la famille active**, sous forme de bouton : il ouvre le choix de famille (écran 3) si le joueur en a plusieurs, ou propose « Créer une autre famille » s'il n'en a qu'une ;
+  - à côté, un **petit bouton « Inviter »** qui donne le lien à partager pour rejoindre la famille (copie ou partage) ;
+  - dans un coin, un **menu burger** : déconnexion, « Créer une session maintenant » (outil de test), et plus tard profil et réglages des notifications.
 - Un joueur peut appartenir à plusieurs familles (famille recomposée, belle-famille…). Il a une fiche par famille, avec un lien de parenté propre à chacune.
 - Les emails indiquent toujours la famille concernée dans l'objet (ex : « [Famille Chardaire] Nouvelle question »).
 
@@ -16,7 +19,9 @@ Les points marqués **À décider** sont des questions ouvertes.
 Connexion
 → Accueil - choix de famille (seulement si le joueur a au moins 2 familles)
 → Accueil - famille
-→ Répondre / Ajouter un fait / Valider des réponses / Voir une révélation / Archives
+   → Participer au quiz : Répondre / Ma question / Valider des réponses / Voir la révélation
+   → Consulter les connaissances : Arbre → Récapitulatif d'une personne
+   → Ajouter un souvenir / Historique / Mes faits
 ```
 
 
@@ -79,26 +84,45 @@ Actions :
 
 ## 4. Accueil - famille
 
-But : point d'entrée dans une famille, avec accès à toutes les fonctionnalités.
+But : point d'entrée dans une famille. Le but de l'app est de proposer des quiz pour en apprendre plus sur sa famille : l'écran met donc en avant **jouer** et **apprendre**, puis contribuer.
 
-Affiche :
-- la question de la session en cours, si pas encore répondue, avec la deadline (une session = une seule question, voir `concept.md`)
-- les réponses en attente de sa validation (s'il est auteur d'un fait en saisie libre, ou s'il a pris la main)
-- les révélations récentes
-- son score de réponses (« 12 bonnes / 18 posées ») et son score de contribution (« Vous avez ajouté 5 souvenirs »)
-- quelques données sur la famille : nombre de membres, nombre de faits révélés… (liste à préciser)
-- le seuil de démarrage tant que le premier quiz n'a pas eu lieu (« 3 souvenirs ajoutés, encore 1 joueur à inviter »)
+### Organisation (refonte décidée le 2026-11-10)
 
-Actions :
-- Répondre → écran 6
-- Valider des réponses → écran 7
-- Voir une révélation → écran 8
-- Ajouter un fait → écran 5
-- Consulter les archives → écran 9
-- Inviter un membre → partage du lien d'invitation
-- Changer de famille → écran 3 (si au moins 2 familles)
+Du haut vers le bas, par ordre d'importance :
 
-**Simplifié pour l'implémentation initiale** : écran minimal pour l'instant (confirmation que la famille existe, liens vers « Ajouter un fait » et « Mes faits »), avec un bouton temporaire « Créer une session de quiz » qui appelle directement l'Edge Function `create-quiz-session` (voir plus bas) — un vrai accueil (question en cours, scores, seuil de démarrage) viendra avec les écrans 6 à 9.
+1. **Bandeau** (voir Règles communes) : nom de la famille, bouton « Inviter », menu burger.
+2. **Deux gros boutons centraux** :
+   - **« Participer au quiz »** : mène à la bonne action selon la phase du jeu (voir États ci-dessous). Son libellé, une icône ou un badge indiquent l'état.
+   - **« Consulter les connaissances »** : ouvre l'arbre familial en mode consultation (écran 10). En touchant une personne, on lit le récapitulatif de ce qu'on sait d'elle (écran 11).
+3. **« Ajouter un souvenir »** (écran 5) : moins important, mais mis en avant. **Alerte** quand il reste moins de 5 faits jamais posés dans la pioche (« Plus que 3 questions en réserve : ajoutez des souvenirs ! »).
+4. **« Historique »** (écran 12) : les questions déjà posées et le tableau des scores.
+5. **« Mes faits »** (écran 5, Mes faits), avec un **badge** quand une proposition de correction attend la décision du joueur sur l'un de ses faits.
+
+### États du bouton « Participer au quiz »
+
+| État | Ce que le bouton affiche | Où il mène |
+|---|---|---|
+| Une question t'attend | « Une question t'attend » + deadline | Répondre (écran 6) |
+| Tu as répondu, en attente de la révélation | « Réponse envoyée, révélation le … » | Répondre (consulter / modifier sa réponse jusqu'à la deadline) |
+| Tu es l'auteur de la question en cours | « Ta question est en jeu » + nombre de réponses reçues | Ma question (écran 6, vue de l'auteur) |
+| Réponses à valider | « N réponses à valider » (badge) | Valider (écran 7) |
+| Révélation disponible | « La révélation est là ! » | Révélation (écran 8) |
+| Entre deux quiz | Texte/icône « Quiz terminé » + date du prochain quiz (« Prochaine question lundi ») ; en phase de test, sans tâche planifiée : « En attente du prochain quiz » | Revoir la dernière révélation (écran 8) |
+| Plus aucun fait à piocher | « Pas de prochain quiz : ajoutez des souvenirs » | Ajouter un souvenir (écran 5) |
+
+Si plusieurs états s'appliquent en même temps (ex : l'auteur doit valider des réponses), le plus urgent l'emporte : valider > répondre > révélation disponible > en attente.
+
+### Famille qui démarre (aucun quiz n'a encore eu lieu)
+
+Le bouton « Participer au quiz » n'est pas affiché. Il est remplacé, au même endroit, par une carte **« Lancer votre premier quiz »** :
+- les étapes à franchir, avec leur avancement (ex : « ✓ 2 joueurs sur 3 », « 1 souvenir ajouté ») ;
+- deux boutons dans la carte : **« Inviter des membres »** et **« Ajouter un souvenir »**.
+
+Dès le premier quiz, la carte laisse sa place au bouton « Participer au quiz ». « Consulter les connaissances » reste affiché : l'arbre sert aussi à construire la famille au démarrage.
+
+### Existant (`src/app/home.tsx`)
+
+Écran minimal : une colonne de textes et de liens de même poids (lien d'invitation affiché en entier, « Ajouter un fait », Mes faits, Archives, Arbre, session en cours ou dernière révélation, bouton de test « Créer une session de quiz », déconnexion). À remplacer par l'organisation ci-dessus.
 
 ### Pioche et création de session (`create-quiz-session`)
 
@@ -106,11 +130,11 @@ Edge Function (`supabase/functions/create-quiz-session`), appelée par un membre
 
 1. Vérifie que l'appelant est bien membre de la famille (sinon 403).
 2. Refuse si une session est déjà `open` pour cette famille (sinon 409) — une seule session active à la fois.
-3. Pioche **un seul fait** parmi ceux de la famille, pondéré par :
-   - **fraîcheur** : jamais posé (poids max) > posé il y a longtemps > posé récemment (poids min, mais jamais exclu) ;
-   - **personne centrale** : bonus ×1.5 sur le poids si le sujet est une personne centrale (priorité, pas exclusivité).
+3. Pioche **un seul fait** parmi ceux de la famille.
+   - **Règle (décision du 2026-11-10)** : seuls les faits **jamais posés** sont piochés. Un fait déjà posé ne peut être repioché que s'il ne reste plus aucun fait jamais posé, et les joueurs en sont alors prévenus (forme à définir).
+   - Pondération entre les faits jamais posés : bonus ×1.5 si le sujet est une personne centrale (priorité, pas exclusivité).
    - Un fait déjà posé dans une session encore `open` est exclu (pas de double-pioche concurrente).
-   - La répartition entre auteurs se fait naturellement dans le temps : une fois un fait posé, sa fraîcheur retombe, laissant la place à d'autres auteurs lors des pioches suivantes (pas besoin d'une pénalité explicite puisqu'une seule question est tirée par pioche).
+   - **À corriger** : le code actuel (`pioche.ts` de l'Edge Function, et `create_quiz_session_for_family()` en SQL pour la tâche planifiée) pondère par fraîcheur et peut donc repiocher un fait déjà posé même s'il en reste de jamais posés. Les deux implémentations sont à corriger ensemble.
 4. Crée la session (`opens_at` = maintenant, `closes_at` = +7 jours), une `quiz_questions` pour le fait retenu (avec `answer_value_snapshot`, et `validator_person_id` = auteur si le type est `free_text`), et les `question_recipients` associés : tous les joueurs de la famille sauf l'auteur du fait.
 
 **Déclenchement** : deux voies coexistent.
@@ -131,6 +155,8 @@ But : renseigner une information sur un membre de la famille, et retrouver les f
 Affiche la liste des faits créés par le joueur (les plus récents en premier), avec leur état : pas encore posé, posé dans la session en cours, révélé.
 
 Pour chaque fait : la question (sujet inclus), la réponse donnée, l'anecdote si renseignée, et la date d'ajout.
+
+**Propositions de correction** : quand quelqu'un propose une correction sur un de ses faits, le joueur la voit ici (badge sur le bouton « Mes faits » de l'accueil) et l'accepte ou la refuse. Notification par email en attendant les notifications push (phase 2, applis mobiles).
 
 Actions :
 - Modifier ou supprimer un fait **pas encore posé** (réponse, anecdote) — suppression avec confirmation
@@ -263,31 +289,27 @@ Implémenté via `propose_correction`/`validate_correction` (`security definer`,
 **Simplifié pour l'implémentation initiale** : pas de « sans réponse » automatique (la règle du concept prévoit que l'absence de réponse de l'auteur transforme aussi la proposition en note, mais ça suppose des relances/notifications, pas encore construites) — seule une décision explicite de l'auteur (accepter/refuser) fait sortir une correction de l'état « en attente ».
 
 
-## 9. Archives
+## 9. Archives (fusionnées dans l'arbre, décision du 2026-11-10)
 
-But : consulter la base de connaissance de la famille, constituée par toutes les questions posées.
+L'écran « Archives » disparaît en tant que tel. Ses deux usages sont repris ailleurs :
+- **les connaissances accumulées sur une personne** : arbre en mode consultation (écran 10) → récapitulatif de la personne (écran 11) ;
+- **les questions déjà posées** : Historique (écran 12).
 
-### Version MVP (simple)
+Règle conservée : les mêmes informations pour tout le monde. Les faits pas encore posés n'apparaissent nulle part, y compris pour leur auteur (ils ne sont visibles que dans « Mes faits »).
 
-Étapes :
-1. Choisir la personne centrale (étape sautée s'il n'y en a qu'une)
-2. Liste des questions déjà révélées qui la concernent, avec leur réponse
+**Existant** (`src/app/archive.tsx`) : choix de la personne centrale, puis liste des questions révélées la concernant, détail via `src/app/reveal.tsx`. À garder jusqu'à ce que les écrans 10 à 12 le remplacent.
 
-Les archives affichent les mêmes informations pour tout le monde : les faits pas encore posés n'y apparaissent pas, y compris pour leur auteur.
-
-Action : ouvrir une question → son détail (même contenu que la révélation)
-
-### Enrichissements après le MVP (archives)
-
-- Regroupement par catégorie (naissance et enfance, jeunesse, couple…) et filtres
-- Pour chaque fait : auteur, anecdote, date de révélation, taux de bonnes réponses (« 3 joueurs sur 5 avaient trouvé »)
-- Recherche par mot-clé
-- **Frise chronologique** de la vie de chaque personne centrale, construite à partir des faits de type date et année
+**Repris dans les écrans 11 et 12** (anciennes pistes d'enrichissement des archives) : regroupement par catégorie, auteur et anecdote de chaque fait, taux de bonnes réponses, recherche par mot-clé, frise chronologique de la vie d'une personne.
 
 
 ## 10. Arbre familial
 
-But : voir qui est qui dans la famille, et créer les relations entre les personnes.
+But : **porte d'entrée vers les connaissances** de la famille (bouton « Consulter les connaissances » de l'accueil), et gestion des membres et des relations.
+
+### Deux modes
+
+- **Consultation** (mode d'arrivée) : l'arbre généalogique, épuré. Sur chaque personne, un petit compteur : « 5 souvenirs », plus « 2 à découvrir » pour ses faits pas encore posés (le nombre ne dévoile rien et donne envie de jouer). Toucher une personne → son récapitulatif (écran 11).
+- **Modification** (bouton « Modifier » dans l'écran) : ajouter des membres, créer des relations (formulaire existant + nouveaux types ci-dessous). La modification reste dans l'écran de l'arbre, pas dans le menu burger.
 
 ### Existant (`src/app/family-tree.tsx`)
 
@@ -305,3 +327,38 @@ But : voir qui est qui dans la famille, et créer les relations entre les person
 **Plus de types de relation à la création** :
 - ajouter « enfant » aux choix actuels (« conjoint », « parent »). Le résultat est le même que « parent » dans l'autre sens (`parent_of` avec les deux personnes inversées), mais c'est plus naturel selon la personne depuis laquelle on part ;
 - ajouter « frère / sœur » (adelphe), pour lier directement deux personnes dont on ne connaît pas les parents (ex : les frères et sœurs d'une grand-mère). Demande un nouveau type de relation `sibling_of`, symétrique comme `spouse_of`. Dans l'arbre, les adelphes d'une personne sont alors ceux liés directement, plus ceux qui partagent un parent enregistré. La condition « a des frères ou sœurs » du catalogue (écran 5) doit tenir compte des deux cas.
+
+
+## 11. Récapitulatif d'une personne
+
+But : lire ce que la famille sait d'une personne, sous une forme agréable, et non comme une liste de faits l'un après l'autre.
+
+Accès : depuis l'arbre en mode consultation (écran 10), en touchant une personne.
+
+Affiche :
+- en tête : la personne (photo ou placeholder, nom, lien de parenté) ;
+- une **mini-biographie rédigée**, regroupée par catégorie du catalogue (naissance et enfance, jeunesse, couple et installation, culture et premières fois, retraite, voyages et loisirs). Exemple : « Marie est née le 3 mars 1936 à Reventin. Elle a quitté l'école à 14 ans et a appris à nager à 10 ans. » ;
+- uniquement les faits **déjà révélés** (mêmes informations pour tout le monde) ;
+- s'il reste des faits pas encore posés : « 2 souvenirs à découvrir dans les prochains quiz ».
+
+Rédaction sans IA : chaque template du catalogue reçoit une **phrase de récapitulatif** (champ `recap` dans `question-templates.toml`, ex : « <sujet> est né le {réponse} »), et l'écran assemble les phrases par catégorie. L'accord au féminin et la 2e personne sont le même chantier technique que pour les questions.
+
+Actions :
+- Toucher une phrase → le détail de la question (même contenu que la révélation, écran 8) : réponses de chacun, auteur, anecdote, et proposition de correction.
+
+Pistes pour plus tard : frise chronologique construite à partir des faits de type date et année ; photos et enregistrements (pièces jointes).
+
+
+## 12. Historique
+
+But : revoir les quiz passés et les scores.
+
+Affiche :
+- la liste des **questions déjà posées**, de la plus récente à la plus ancienne : question, bonne réponse, date de révélation, taux de bonnes réponses (« 3 joueurs sur 5 avaient trouvé ») ;
+- le **tableau des scores** de la famille : score cumulé de chaque joueur (« 12 bonnes / 18 posées »), et score de contribution (nombre de souvenirs ajoutés).
+
+Actions :
+- Ouvrir une question → son détail (écran 8, avec proposition de correction).
+
+**À construire** : le score cumulé sur plusieurs sessions n'existe pas encore (seul le résultat de chaque question est calculé), il demande une agrégation en base.
+

@@ -35,7 +35,7 @@ Un fait peut aussi inclure une ou plusieurs **pièces jointes** (photo d'archive
 
 ## Arbre familial léger
 
-Un fait peut porter sur une personne seule, ou sur une **relation entre deux personnes** (mariage, filiation...). On modélise donc de vraies "Personnes" (joueur, personne centrale passive, ou simplement référencée/décédée) reliées par des relations simples (parent / conjoint / enfant), réutilisables entre plusieurs faits, avec une mini vue arbre dans l'archive. On reste volontairement à ce niveau "léger" (pas de moteur généalogique complet avec génération automatique de questions de parenté — gardé pour une v2 éventuelle).
+Un fait peut porter sur une personne seule, ou sur une **relation entre deux personnes** (mariage, filiation...). On modélise donc de vraies "Personnes" (joueur, personne centrale passive, ou simplement référencée/décédée) reliées par des relations simples (parent / conjoint / enfant), réutilisables entre plusieurs faits. L'arbre est la **porte d'entrée vers les connaissances** : en touchant une personne, on lit le récapitulatif de ce que la famille sait d'elle (voir `ecrans.md`, écrans 10 et 11). On reste volontairement à ce niveau "léger" (pas de moteur généalogique complet avec génération automatique de questions de parenté — gardé pour une v2 éventuelle).
 
 ## Boucle de jeu
 
@@ -53,9 +53,13 @@ Catalogue de prompts (centré sur les personnes centrales) → ajout d'une info 
 
 ## Pioche des questions
 
-Priorité : jamais posé > posé il y a longtemps > posé récemment (fraîcheur), avec répartition entre auteurs différents pour que la contribution de chacun ait une vraie chance d'être jouée (obtenue naturellement : une fois un fait posé, sa fraîcheur retombe, laissant la place aux faits d'autres auteurs lors des pioches suivantes). **Les personnes centrales restent prioritaires, mais ne sont plus les seuls sujets possibles** (règle assouplie le 2026-11-09 : au départ, on avait prévu 100% personnes centrales ; on autorise maintenant des faits — et donc des questions — sur n'importe quel membre, avec une pondération qui privilégie les personnes centrales).
+**Règle (décision du 2026-11-10)** : la pioche ne repose **jamais** un fait déjà posé. Elle choisit uniquement parmi les faits jamais posés. Un fait déjà posé ne peut être repioché que s'il ne reste plus aucun fait jamais posé, en prévenant les joueurs (forme à définir). Comme une seule question est tirée par semaine, la répartition entre auteurs se fait naturellement dans le temps.
 
-Implémentée (2026-11-09, corrigée le même jour pour piocher une seule question par session plutôt qu'un lot) dans l'Edge Function `create-quiz-session` (détail technique dans `docs/ecrans.md`, section « Pioche et création de session ») : un fait par session, pondéré par fraîcheur + bonus personne centrale (×1.5). Déclenchement manuel pour l'instant (pas de tâche planifiée hebdomadaire).
+**Les personnes centrales restent prioritaires, mais ne sont plus les seuls sujets possibles** (règle assouplie le 2026-11-09 : au départ, on avait prévu 100% personnes centrales ; on autorise maintenant des faits — et donc des questions — sur n'importe quel membre, avec une pondération qui privilégie les personnes centrales).
+
+La réserve de faits jamais posés peut donc vraiment s'épuiser : l'accueil affiche une **alerte quand il en reste moins de 5** (environ 5 semaines de quiz), pour inciter à ajouter des souvenirs.
+
+Implémentée (2026-11-09, corrigée le même jour pour piocher une seule question par session plutôt qu'un lot) dans l'Edge Function `create-quiz-session` (détail technique dans `docs/ecrans.md`, section « Pioche et création de session ») : un fait par session, pondéré par fraîcheur + bonus personne centrale (×1.5). **À corriger** : la pondération par fraîcheur ne respecte pas la règle ci-dessus (elle peut repiocher un fait déjà posé). Déclenchement manuel pour l'instant (pas de tâche planifiée hebdomadaire).
 
 ## Scoring
 
@@ -112,7 +116,7 @@ Le créateur de la famille (N) :
 
 Le pool de faits est fini (surtout avec seulement 1-4 personnes centrales), donc il faut encourager la contribution dans la durée :
 - Un petit **score de contribution** par membre (nombre de souvenirs ajoutés), affiché en parallèle du score de bonnes réponses.
-- Relances douces si un membre n'a encore rien ajouté, ou si le pool de faits disponibles devient bas.
+- Relances douces si un membre n'a encore rien ajouté, ou si le pool de faits disponibles devient bas (alerte sur l'accueil sous 5 faits jamais posés).
 
 ## Terminologie
 

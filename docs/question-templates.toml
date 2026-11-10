@@ -13,6 +13,8 @@
 #   slots      autres éléments à choisir par l'auteur du fait (ex : ["pays"])
 #   condition  condition sur le sujet pour que la question soit proposée
 #   note       remarque libre
+#   recap      phrase de récapitulatif pour la mini-biographie d'une personne (écran 11 de ecrans.md),
+#              ex : "<sujet> est né le {réponse}" ; à rédiger pour chaque template
 #
 # Types de réponse (kind) :
 #   date        date complète (sélecteur de date)

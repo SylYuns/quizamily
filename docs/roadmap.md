@@ -88,6 +88,7 @@ Décisions de produit ou de sécurité pas encore tranchées — à trancher ava
 - **Fuite résiduelle, `facts.answer_value`** : un fait pas encore posé reste techniquement lisible par n'importe quel membre de la famille via une requête directe (la policy RLS n'est pas conditionnée par le statut posé/révélé) — demanderait une policy plus fine ou de déplacer `answer_value` dans une table séparée pour fermer complètement (voir `docs/data-model.md`).
 - **Direction visuelle** (coloré/chaleureux, bleu-blanc-rouge — voir `concept.md`) : documentée depuis le début, jamais appliquée. Tous les écrans utilisent encore un style minimal (gris/bleu uni) pour avancer vite sur les fonctionnalités.
 - **`relationship_label` pas encore un vrai lien par paire** : reste un champ texte simple posé par le créateur de la famille sur sa propre perception (ex: "Grand-mère" = grand-mère du créateur), pas une relation stockée dans `relationships` entre le créateur et chaque personne centrale — contrairement aux liens que l'arbre familial (étape 5) sait maintenant capturer pour tout le monde. Pas bloquant, juste incohérent avec le reste du modèle.
+- **Repiocher un fait déjà posé** : autorisé seulement quand il ne reste plus aucun fait jamais posé, en prévenant les joueurs. Forme de l'avertissement à définir (message dans la question, sur l'accueil, par email ?).
 
 ## Décisions déjà prises (pour éviter de les re-discuter)
 
@@ -105,14 +106,17 @@ Décisions de produit ou de sécurité pas encore tranchées — à trancher ava
 ## Prochains sujets (à choisir, ou proposer autre chose)
 
 - Emails/notifications (nouvelle session, rappels, résultats, relances de validation) + « prise de main ».
-- Enrichissement des archives (étape 12) : regroupement par catégorie, auteur/anecdote/date de révélation/taux de bonnes réponses par fait, recherche par mot-clé, frise chronologique.
 - Réactions/commentaires sur les faits révélés.
 - Score de contribution + relances si un membre n'a rien ajouté.
 - Application de la direction visuelle (coloré, bleu-blanc-rouge).
 - Fermer les deux fuites résiduelles notées plus haut (type `list`, `facts.answer_value`).
-- **Écran d'accueil de la famille (écran 4) à retravailler** : aujourd'hui, c'est une colonne de lignes de texte et de liens les uns sous les autres. Revoir vraiment l'ergonomie et l'affichage : hiérarchie (ce qui demande une action en premier), regroupement des fonctionnalités, outils de test séparés du reste.
-- **Arbre familial (étape 5, à retravailler)** : voir écran 10 dans `docs/ecrans.md`.
-  - Affichage organisé comme un arbre généalogique : les enfants sous leurs parents, des traits entre les personnes pour représenter les relations (dans les grandes lignes, pas un vrai logiciel de généalogie).
-  - Création des relations : ajouter « enfant » aux choix actuels (« conjoint », « parent »). Même résultat que « parent » dans l'autre sens (`parent_of` avec les deux personnes inversées), mais plus naturel selon le point de vue. Ajouter aussi « frère / sœur » (adelphe) pour lier deux personnes sans connaître leurs parents : nouveau type de relation `sibling_of` (migration nécessaire).
+- **Refonte de la navigation (décidée le 2026-11-10)**, détail dans `docs/ecrans.md` (règles communes, écrans 4, 9 à 12). Ordre suggéré :
+  1. **Corriger la pioche** : ne jamais repiocher un fait déjà posé tant qu'il reste des faits jamais posés (voir `concept.md`). À corriger à la fois dans `supabase/functions/create-quiz-session/pioche.ts` et dans `create_quiz_session_for_family()` (SQL).
+  2. **Écran d'accueil (écran 4)** : bandeau famille (bouton famille, bouton « Inviter », menu burger), deux boutons centraux « Participer au quiz » (avec ses 7 états) et « Consulter les connaissances », puis « Ajouter un souvenir » (alerte sous 5 faits jamais posés), « Historique », « Mes faits » (badge corrections). Carte « Lancer votre premier quiz » pour une famille qui démarre. Maquette à faire avant le code.
+  3. **Arbre familial (écran 10)** : affichage en arbre généalogique (enfants sous leurs parents, traits pour les relations) ; mode consultation à l'arrivée avec compteurs par personne, bouton « Modifier » pour les membres et relations ; nouveaux types de relation « enfant » et « frère / sœur » (`sibling_of`, migration nécessaire).
+  4. **Récapitulatif d'une personne (écran 11)** : mini-biographie rédigée par catégorie. Demande d'écrire une phrase `recap` pour chacun des 32 templates de `question-templates.toml`.
+  5. **Historique (écran 12)** : questions déjà posées + tableau des scores. Demande le **score cumulé** inter-sessions (agrégation en base, pas encore construite).
+  6. Supprimer l'écran Archives (`src/app/archive.tsx`) une fois remplacé par les écrans 10 à 12.
+  7. Propositions de correction : badge sur « Mes faits », email en attendant les notifications push (phase 2).
 - Vraie capture par paire du lien de parenté créateur ↔ personnes centrales (`relationship_label`), voir « Points à décider ».
 - Phase 2 : notifications push, builds natifs iOS/Android.
