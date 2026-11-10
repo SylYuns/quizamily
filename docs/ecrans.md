@@ -113,7 +113,13 @@ Edge Function (`supabase/functions/create-quiz-session`), appelée par un membre
    - La répartition entre auteurs se fait naturellement dans le temps : une fois un fait posé, sa fraîcheur retombe, laissant la place à d'autres auteurs lors des pioches suivantes (pas besoin d'une pénalité explicite puisqu'une seule question est tirée par pioche).
 4. Crée la session (`opens_at` = maintenant, `closes_at` = +7 jours), une `quiz_questions` pour le fait retenu (avec `answer_value_snapshot`, et `validator_person_id` = auteur si le type est `free_text`), et les `question_recipients` associés : tous les joueurs de la famille sauf l'auteur du fait.
 
-**Simplifié pour l'implémentation initiale** : déclenchement **manuel** uniquement (bouton dans l'app) — pas de tâche planifiée hebdomadaire (`pg_cron`) ni de seuil de déclenchement automatique du premier quiz (3 joueurs actifs, voir `concept.md`), ces deux points sont repoussés à l'étape 8 du roadmap. L'Edge Function utilise la clé `service_role` (`ctx.supabaseAdmin`) pour écrire dans `quiz_sessions`/`quiz_questions`/`question_recipients`, qui n'ont pas de policy RLS d'écriture pour les joueurs (ces tables sont gérées par le système, voir `supabase/migrations/20261106130000_rls_policies.sql`).
+**Déclenchement** : deux voies coexistent.
+- **Manuelle** (bouton dans l'app, Edge Function `create-quiz-session`) : c'est la voie utilisée pendant la phase de test.
+- **Automatique** : `auto_create_quiz_sessions()`, programmée par `pg_cron` chaque lundi à 8 h (migration `20261109240000_automatic_triggering.sql`), ne pioche que pour les familles d'au moins 3 joueurs. La migration programme la tâche dès qu'elle est appliquée : si on veut rester en manuel, il faut la désactiver (`cron.unschedule`), et vérifier ce qui tourne avec `select * from cron.job;`.
+
+**À revoir** : le timing de la tâche planifiée (jour et heure de la pioche).
+
+L'Edge Function utilise la clé `service_role` (`ctx.supabaseAdmin`) pour écrire dans `quiz_sessions`/`quiz_questions`/`question_recipients`, qui n'ont pas de policy RLS d'écriture pour les joueurs (ces tables sont gérées par le système, voir `supabase/migrations/20261106130000_rls_policies.sql`).
 
 
 ## 5. Ajouter un fait
@@ -128,9 +134,9 @@ Pour chaque fait : la question (sujet inclus), la réponse donnée, l'anecdote s
 
 Actions :
 - Modifier ou supprimer un fait **pas encore posé** (réponse, anecdote) — suppression avec confirmation
-- Un fait posé ou révélé ne se modifie plus et ne se supprime plus : il passe par le mécanisme de correction (hors MVP)
+- Un fait posé ou révélé ne se modifie plus et ne se supprime plus : il passe par le mécanisme de correction (voir écran 8, Corrections)
 
-**Simplifié pour l'implémentation initiale** : le statut (« pas encore posé » / « posé dans la session en cours » / « révélé ») est calculé en vérifiant l'existence d'une ligne `quiz_questions` liée et le statut de sa session — modifier/supprimer ne sont proposés que pour un fait « pas encore posé » (cohérent avec la RLS, qui bloque déjà l'écriture une fois posé). Modifier la **personne liée** d'un fait n'est pas encore possible (dépend de la même UI que la création d'un fait avec personne liée, pas encore construite).
+**Simplifié pour l'implémentation initiale** : le statut (« pas encore posé » / « posé dans la session en cours » / « révélé ») est calculé en vérifiant l'existence d'une ligne `quiz_questions` liée et le statut de sa session — modifier/supprimer ne sont proposés que pour un fait « pas encore posé » (cohérent avec la RLS, qui bloque déjà l'écriture une fois posé). Modifier la **personne liée** ou l'**élément choisi** d'un fait n'est pas encore possible depuis « Mes faits » : ils sont affichés, mais seules la réponse et l'anecdote se modifient. L'UI de choix d'une personne liée existe maintenant à la création (voir Nouveau fait), elle pourrait être réutilisée ici.
 
 ### Nouveau fait
 
@@ -148,7 +154,11 @@ Cas particuliers :
 
 **Unicité** : une question ne peut être créée qu'une fois pour la combinaison question + sujet + personne liée ou élément choisi. Par exemple, « voyage en <pays> » peut être créée une fois par pays, et « date de mariage » une fois par conjoint en cas de remariage.
 
-**Simplifié pour l'implémentation initiale** : seules les questions **sans personne liée (`<conjoint>`) et sans élément à choisir (`<pays>`)**, et pas de type `city`/`place`, sont proposées (24 des 32 templates). Les 8 restants demandent une UI de choix/création de personne liée, pas encore construite. Photos des personnes : placeholder pour l'instant, le vrai upload est un chantier séparé.
+**État de l'implémentation** : les 32 templates sont proposés, y compris ceux avec une personne liée (`<conjoint>` : détectée automatiquement si déjà connue, sinon choisie parmi les personnes existantes ou créée à la volée), avec un élément à choisir (`<pays>`) et les types commune et lieu (migration `20261109250000_linked_person_and_slot_templates.sql`).
+
+**À tester** : les questions avec personne liée, élément à choisir, commune ou lieu n'ont pas encore été testées en conditions réelles.
+
+Photos des personnes : placeholder pour l'instant, le vrai upload est un chantier séparé.
 
 
 ## 6. Répondre
@@ -171,7 +181,9 @@ Cas particuliers :
 - Type liste : l'entrée n'existe pas → « Ajouter »
 - Le joueur est le sujet de la question (personne centrale avec un compte) : dans l'idéal, la question est formulée à la 2e personne (« En quelle année avez-vous pris l'avion… »). Pas prioritaire, même chantier technique que l'accord au féminin.
 
-**Simplifié pour l'implémentation initiale** (`src/app/respond.tsx`) : pas de notion de « question suivante » (une session n'a qu'une seule question, voir `concept.md`) — après validation, retour à l'accueil. Type liste : pas encore de bouton « Ajouter » pour une nouvelle valeur côté réponse (le champ réutilise `AnswerInput`, qui le permet déjà — à vérifier/activer). Pas de notification ni de blocage après la deadline : rien ne ferme encore automatiquement une session passée sa `closes_at` (dépend de la révélation automatique, écran 8/roadmap étape 9) donc « modifier sa réponse jusqu'à la deadline » n'est pas encore appliqué strictement. Pas de correction de score affichée (pas de QCM, pas de retour immédiat juste/faux - la correctness n'est révélée qu'à l'écran 8, pas encore construit).
+**Simplifié pour l'implémentation initiale** (`src/app/respond.tsx`) : pas de notion de « question suivante » (une session n'a qu'une seule question, voir `concept.md`) — après validation, retour à l'accueil. Type liste : pas encore de bouton « Ajouter » pour une nouvelle valeur côté réponse (le champ réutilise `AnswerInput`, qui le permet déjà — à vérifier/activer). Pas de notification. Pas de retour immédiat juste/faux : le résultat n'est connu qu'à la révélation (écran 8).
+
+**À corriger** : `submit_answer` ne vérifie ni la deadline ni l'état de la session. Un joueur peut donc répondre ou modifier sa réponse après la deadline, et même après la révélation, ce qui change son score. Il faut refuser toute réponse une fois la deadline passée ou la session clôturée, et refuser la modification d'une réponse libre déjà validée (verrouillage prévu plus haut). La fermeture automatique des sessions existe (révélation automatique, écran 8), mais elle ne bloque pas ce cas.
 
 ### Vue de l'auteur (« Ma question »)
 
@@ -226,7 +238,11 @@ Hors MVP (roadmap) : réactions et commentaires.
 
 Comme pour la pioche, **manuel pour l'instant** : un bouton « Déclencher la révélation », affiché à l'auteur sur l'écran « Ma question » (voir écran 6), disponible uniquement une fois que **tous les destinataires ont répondu** (vérifié aussi côté serveur, pas seulement par le bouton désactivé côté client). Pour les autres joueurs, une fois la révélation déclenchée, l'accueil ne propose plus « Répondre » mais « La dernière session est terminée → Voir la révélation ».
 
-**À faire plus tard** (roadmap étape 9) : passage automatique en mode révélation quand la deadline (`closes_at`) est dépassée, qu'on ait ou non reçu toutes les réponses (« pas de blocage par les retardataires », voir `concept.md`) — pour l'instant, sans cette automatisation, une question dont un destinataire ne répond jamais reste bloquée indéfiniment, ce qui est acceptable en test mais pas en production.
+**Révélation automatique** : `auto_reveal_expired_sessions()`, programmée par `pg_cron` toutes les heures (migration `20261109240000_automatic_triggering.sql`), clôture toute session dont la deadline est dépassée, qu'on ait ou non reçu toutes les réponses (« pas de blocage par les retardataires », voir `concept.md`) : les réponses manquantes sont comptées fausses. Comme pour la pioche, la migration programme la tâche dès qu'elle est appliquée (vérifier avec `select * from cron.job;`, désactiver avec `cron.unschedule` pour rester en manuel pendant les tests).
+
+**Règle (décision du 2026-11-10)** : **pas de révélation automatique tant qu'il reste une réponse à valider**. Seules les questions en saisie libre sont concernées, puisque c'est le seul type où une réponse peut être « en attente de validation ». La question attend que l'auteur valide, ou qu'un joueur prenne la main 7 jours après la deadline (voir `concept.md`) : celui qui prend la main veut faire avancer le jeu, on part du principe qu'il validera ou refusera les réponses. Une fois toutes les réponses traitées, le passage horaire suivant révèle la question, puisque la deadline est dépassée.
+
+**À corriger** : le code actuel ne respecte pas cette règle. `auto_reveal_expired_sessions()` compte les réponses en attente de validation comme fausses et clôture la session. Il faut qu'elle ignore toute session qui a encore une réponse `pending_validation`. Lié : le blocage des réponses après la deadline (voir écran 6, À corriger), d'autant plus nécessaire qu'une session peut maintenant rester ouverte longtemps après sa deadline.
 
 **Simplifié pour l'implémentation initiale** (`src/app/reveal.tsx`) : une seule question par session (voir `concept.md`), donc pas de « question suivante ». `reveal_current_question` refuse de révéler tant qu'il reste des réponses « en attente de validation » (voir écran 7) — l'auteur doit d'abord passer par `src/app/validate.tsx`. Pas de score cumulé inter-sessions (demande d'agréger plusieurs sessions passées, pas construit). Pas de réactions/commentaires (hors MVP).
 
@@ -234,7 +250,7 @@ Comme pour la pioche, **manuel pour l'instant** : un bouton « Déclencher la r�
 
 ### Corrections
 
-Affichée sur l'écran de révélation (la seule vue d'un fait posé pour l'instant, en l'absence d'archives — voir écran 9) : n'importe quel membre de la famille **sauf l'auteur du fait** peut proposer une correction (nouvelle valeur + commentaire facultatif, même champ guidé que la réponse). L'auteur accepte ou refuse :
+Affichée sur l'écran de révélation, qui sert aussi de vue détaillée d'une question depuis les archives (écran 9) : on peut donc proposer une correction juste après la révélation comme plus tard depuis les archives. N'importe quel membre de la famille **sauf l'auteur du fait** peut proposer une correction (nouvelle valeur + commentaire facultatif, même champ guidé que la réponse). L'auteur accepte ou refuse :
 - **Acceptée** : la valeur canonique du fait change, l'ancienne reste visible dans l'historique (« Corrigé le [date] : ancienne → nouvelle »), et les scores de **toutes les sessions passées** ayant utilisé ce fait sont recalculés (un même fait peut être repioché plus tard, voir « Pioche et création de session ») : les joueurs ayant répondu l'ancienne valeur passent en « annulée » (ne compte ni pour ni contre), ceux ayant répondu la nouvelle passent en « juste », les autres ne changent pas.
 - **Refusée** : les deux versions restent visibles comme une note sur le fait, sans trancher qui a raison.
 
