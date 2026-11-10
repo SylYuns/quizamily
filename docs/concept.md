@@ -74,7 +74,7 @@ Pour les templates de type saisie libre :
    - dès que tous les destinataires ont répondu, ou au plus tard 24 h avant la deadline ;
    - 24 h après la deadline ;
    - 6 jours après la deadline, pour le prévenir que les autres joueurs pourront prendre la main s'il ne valide pas.
-4. La question **n'est pas révélée** tant que des réponses restent à valider.
+4. La question **n'est pas révélée** tant que des réponses restent à valider. Si toutes les validations sont faites avant la deadline, la question est révélée normalement à la deadline. Si elles sont faites après, elle est révélée immédiatement, dès la dernière validation.
 5. **1 h après la deadline**, s'il reste des validations, les joueurs sont prévenus que la révélation attend l'auteur (ce qui les incite à le relancer eux-mêmes).
 6. **7 jours après la deadline**, les joueurs sont prévenus qu'ils peuvent **prendre la main** : le premier qui le fait peut valider les réponses à la place de l'auteur. Tout joueur peut prendre la main, y compris s'il a lui-même répondu à la question. Il ne devient pas l'auteur du fait : la prise de main ne porte que sur la validation de cette question.
 

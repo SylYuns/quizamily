@@ -100,7 +100,7 @@ export default function ValidateScreen() {
     setDecidingValue(String(group.value));
     setError("");
 
-    const { error: rpcError } = await supabase.rpc("validate_pending_answers", {
+    const { data: revealed, error: rpcError } = await supabase.rpc("validate_pending_answers", {
       p_quiz_question_id: quizQuestionId,
       p_recipient_ids: group.recipientIds,
       p_accept: accept,
@@ -108,6 +108,10 @@ export default function ValidateScreen() {
 
     if (rpcError) {
       setError(rpcError.message);
+    } else if (revealed === true) {
+      // Deadline passée et dernière validation faite : la question vient d'être révélée.
+      router.replace("/reveal");
+      return;
     } else {
       await loadPendingValidations(quizQuestionId);
     }

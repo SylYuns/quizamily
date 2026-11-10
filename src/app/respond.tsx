@@ -243,7 +243,9 @@ export default function RespondScreen() {
   if (ownQuestion) {
     const allAnswered = ownQuestion.participants.length > 0 && ownQuestion.participants.every((p) => p.answered);
     const hasPendingValidations = ownQuestion.pendingValidationCount > 0;
-    const canReveal = allAnswered && !hasPendingValidations;
+    // Les joueurs qui n'ont pas répondu ne bloquent pas la révélation (comptés faux) :
+    // seules les réponses libres encore à valider la bloquent.
+    const canReveal = !hasPendingValidations;
 
     return (
       <ThemedView style={{ flex: 1 }}>
@@ -289,18 +291,21 @@ export default function RespondScreen() {
             <ThemedText style={{ color: "#ffffff" }}>
               {revealing
                 ? "Révélation…"
-                : !allAnswered
-                  ? "En attente que tout le monde réponde"
-                  : hasPendingValidations
-                    ? "Valide d'abord les réponses en attente"
-                    : "Déclencher la révélation"}
+                : hasPendingValidations
+                  ? "Valide d'abord les réponses en attente"
+                  : "Déclencher la révélation"}
             </ThemedText>
           </Pressable>
-          {!canReveal && sessionClosesAt && (
+          {canReveal && !allAnswered && (
             <ThemedText themeColor="textSecondary" style={{ textAlign: "center", maxWidth: 320, fontSize: 12 }}>
-              Si ce n&apos;est pas fait avant le{" "}
-              {new Date(sessionClosesAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}, la
-              révélation se déclenche automatiquement (les réponses manquantes comptent faux).
+              Tout le monde n&apos;a pas encore répondu : les réponses manquantes compteront faux.
+            </ThemedText>
+          )}
+          {hasPendingValidations && sessionClosesAt && (
+            <ThemedText themeColor="textSecondary" style={{ textAlign: "center", maxWidth: 320, fontSize: 12 }}>
+              {new Date(sessionClosesAt) < new Date()
+                ? "La date limite est passée : la question sera révélée dès que tu auras validé toutes les réponses."
+                : `Valide les réponses avant le ${new Date(sessionClosesAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })} : la question sera révélée à cette date.`}
             </ThemedText>
           )}
 

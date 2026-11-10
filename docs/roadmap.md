@@ -4,7 +4,29 @@
 
 Le MVP fonctionne de bout en bout en version simple, testé avec des comptes jetables et avec un deuxième vrai compte. Construit : auth, création/rejoindre une famille (avec « réclamer un profil existant »), ajout de faits (32/32 templates, y compris personne liée `<conjoint>` et élément choisi `<pays>`), « Mes faits » (modifier/supprimer, statut posé/révélé correct), mini arbre familial (lecture + ajout de relations), pioche (manuelle + automatique hebdomadaire), réponse, validation des réponses libres (anonyme), révélation (manuelle + automatique à la deadline), correction d'un fait avec recalcul rétroactif des scores, et archives en version simple — étapes 1 à 6, 8, 9, 11 et 12 (version simple) de la liste ci-dessous. Pas commencé : étapes 7, 10, 13.
 
-**Pour reprendre le travail (ex. depuis un autre ordinateur)** : voir « Points à décider » et « Prochains sujets » plus bas sur cette page.
+**Pour reprendre le travail (ex. depuis un autre ordinateur)** : voir « À faire sur l'ordinateur avec Supabase » juste en dessous, puis « Points à décider » et « Prochains sujets » plus bas sur cette page.
+
+## À faire sur l'ordinateur avec Supabase
+
+Tâches qui ne peuvent être faites que depuis l'ordinateur relié au projet Supabase. Cocher ou retirer chaque ligne une fois faite.
+
+- [ ] **Récupérer les derniers commits** : `git pull`.
+- [ ] **Appliquer les migrations en attente** : `npx supabase db push`. Migrations concernées (2026-11-10) :
+  - `20261110100000_reveal_waits_validation_and_answer_lock.sql` : pas de révélation automatique tant qu'une réponse libre attend sa validation ; réponses refusées après la deadline ou la révélation ; verrouillage des réponses libres validées.
+  - `20261110110000_reveal_timing_rules.sql` : les non-réponses ne bloquent plus la révélation manuelle ; révélation immédiate à la dernière validation quand la deadline est passée.
+- [ ] **Vérifier les tâches planifiées** : dans l'éditeur SQL de Supabase, `select jobname, schedule, active from cron.job;`. La migration `20261109240000_automatic_triggering.sql` a programmé deux tâches : `auto-create-quiz-sessions` (lundi 8 h) et `auto-reveal-expired-sessions` (toutes les heures).
+- [ ] **Les désactiver pendant la phase de test** (déclenchement manuel uniquement) :
+  ```sql
+  select cron.unschedule('auto-create-quiz-sessions');
+  select cron.unschedule('auto-reveal-expired-sessions');
+  ```
+  Pour les réactiver plus tard (après avoir revu le timing de la pioche, voir écran 4 dans `ecrans.md`) :
+  ```sql
+  select cron.schedule('auto-create-quiz-sessions', '0 8 * * 1', $$select auto_create_quiz_sessions();$$);
+  select cron.schedule('auto-reveal-expired-sessions', '0 * * * *', $$select auto_reveal_expired_sessions();$$);
+  ```
+- [ ] **Vérifier l'app** : `npx tsc --noEmit` et `npx expo lint` (pas pu être lancés le 2026-11-10 : dépendances non installables depuis l'environnement de Claude). Fichiers modifiés : `src/app/respond.tsx`, `src/app/validate.tsx`.
+- [ ] **Tester à la main** : une question libre validée après sa deadline doit s'ouvrir directement sur la révélation ; la révélation manuelle doit fonctionner même si un joueur n'a pas répondu.
 
 ## Étapes de réalisation
 
@@ -73,7 +95,7 @@ Décisions de produit ou de sécurité pas encore tranchées — à trancher ava
 - Terminologie retenue : **« personne centrale »** (pas « personne fondatrice », « vedette », etc.).
 - Pas de QCM en V1 : les joueurs répondent avec le même champ guidé que l'auteur du fait.
 - Seuil du quiz automatique : au moins 3 joueurs dans la famille, sinon la pioche automatique hebdomadaire ne se déclenche pas pour cette famille (`auto_create_quiz_sessions()`, voir migration `20261109240000_automatic_triggering.sql`).
-- Déclenchement automatique (2026-11-10) : pioche hebdomadaire (lundi 8h) et révélation à la deadline (vérifiée toutes les heures, réponses manquantes comptées fausses ; **pas de révélation automatique tant qu'il reste une réponse libre à valider** — décision du 2026-11-10, corrigé par la migration `20261110100000_reveal_waits_validation_and_answer_lock.sql`, qui bloque aussi les réponses après la deadline ou la révélation) tournent via `pg_cron`, en plus des boutons manuels qui restent disponibles (pioche immédiate, révélation dès que tout le monde a répondu).
+- Déclenchement automatique (2026-11-10) : pioche hebdomadaire (lundi 8h) et révélation à la deadline (vérifiée toutes les heures, réponses manquantes comptées fausses ; **pas de révélation automatique tant qu'il reste une réponse libre à valider** — décision du 2026-11-10, corrigé par la migration `20261110100000_reveal_waits_validation_and_answer_lock.sql`, qui bloque aussi les réponses après la deadline ou la révélation) tournent via `pg_cron`. Pendant la phase de test, ces tâches sont à désactiver (voir « À faire sur l'ordinateur avec Supabase ») et on utilise les boutons manuels (pioche immédiate, révélation par l'auteur). **La révélation manuelle n'existe que pour la phase de test**, et n'est pas bloquée par les joueurs qui n'ont pas répondu (comptés faux). Saisie libre : validations faites avant la deadline → révélation à la deadline ; faites après → révélation immédiate à la dernière validation (`20261110110000_reveal_timing_rules.sql`).
 - Pas de choix entre plusieurs conjoints en cas de remariage (2026-11-10) : `<conjoint>` se résout sur la première relation `spouse_of` trouvée pour la personne centrale. Suffisant pour le MVP, à revoir si un cas réel de remariage se présente.
 - Arbre familial en lecture + ajout de relations et de personnes, pas de suppression/modification (2026-11-10) : une relation ou une personne ajoutée par erreur se corrige directement en base pour l'instant. Toute personne créée depuis cet écran est non centrale (`is_central = false`, `kind = 'profile'`) - devenir centrale reste un choix fait ailleurs (pas d'UI pour ça aujourd'hui).
 - Resend reste l'envoyeur d'email (sandbox, pas de domaine acheté) — ne pas reproposer de le désactiver.
