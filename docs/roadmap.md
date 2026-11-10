@@ -110,6 +110,7 @@ Décisions de produit ou de sécurité pas encore tranchées — à trancher ava
 - Score de contribution + relances si un membre n'a rien ajouté.
 - Application de la direction visuelle (coloré, bleu-blanc-rouge).
 - Fermer les deux fuites résiduelles notées plus haut (type `list`, `facts.answer_value`).
+- **Écran d'accueil de la famille (écran 4) à retravailler** : aujourd'hui, c'est une colonne de lignes de texte et de liens les uns sous les autres. Revoir vraiment l'ergonomie et l'affichage : hiérarchie (ce qui demande une action en premier), regroupement des fonctionnalités, outils de test séparés du reste.
 - **Arbre familial (étape 5, à retravailler)** : voir écran 10 dans `docs/ecrans.md`.
   - Affichage organisé comme un arbre généalogique : les enfants sous leurs parents, des traits entre les personnes pour représenter les relations (dans les grandes lignes, pas un vrai logiciel de généalogie).
   - Création des relations : ajouter « enfant » aux choix actuels (« conjoint », « parent »). Même résultat que « parent » dans l'autre sens (`parent_of` avec les deux personnes inversées), mais plus naturel selon le point de vue. Ajouter aussi « frère / sœur » (adelphe) pour lier deux personnes sans connaître leurs parents : nouveau type de relation `sibling_of` (migration nécessaire).
