@@ -351,7 +351,14 @@ La famille de l'appli, ce sont **les descendants d'un ancêtre commun, avec leur
 
 ### À faire
 
-**Implémentation** : réécrire `src/app/family-tree.tsx` selon les règles ci-dessus. Le calcul du placement (qui va sur quelle ligne, à quelle position, où passent les traits) est à écrire comme un module indépendant de l'interface, testable seul sur des familles d'exemple, dont le cas de la grande fratrie.
+**Calcul du placement : fait le 2026-11-10** dans `src/lib/family-tree-layout.ts`, module pur (sans React, Expo ni Supabase), testé par `src/lib/family-tree-layout.test.ts` (`npm run test:layout`, 19 tests : famille d'exemple, personnes non reliées, ascendance d'un conjoint ignorée, adelphes `sibling_of`, relations incohérentes, grande fratrie de 9 enfants avec conjoints et 27 petits-enfants, 200 familles aléatoires, navigation, traits). Il fournit :
+- `buildFamilyTree(personnes, relations, personneDeDépart)` : générations, couples, ancêtre commun, personnes non reliées ;
+- `layoutFamilyTree(arbre)` : position horizontale de chaque personne et de chaque couple ;
+- `rowOffsetsFor(placement, personneCentrée, milieuDeLÉcran)` : décalage de chaque ligne (crans) ;
+- `moveFocus(placement, personne, "left" | "right" | "up" | "down")` : personne centrée après un cran ;
+- `connectorSegments(placement, lignes, décalages)` : traits de couple, de filiation et amorces, à angle droit.
+
+**Reste à faire** : réécrire `src/app/family-tree.tsx` avec ce module (gestes de glissement avec crans, dessin des cartes et des traits, mode Modifier), et ajouter le type de relation `sibling_of` en base (migration).
 
 **Plus de types de relation à la création** :
 - ajouter « enfant » aux choix actuels (« conjoint », « parent »). Le résultat est le même que « parent » dans l'autre sens (`parent_of` avec les deux personnes inversées), mais c'est plus naturel selon la personne depuis laquelle on part ;
