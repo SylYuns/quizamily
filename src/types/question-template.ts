@@ -7,4 +7,5 @@ export type Template = {
   related_role: string | null;
   slots: string[] | null;
   condition: string | null;
+  recap: string | null;
 };

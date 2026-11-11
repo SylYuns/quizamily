@@ -309,7 +309,7 @@ L'écran « Archives » disparaît en tant que tel. Ses deux usages sont repris 
 
 Règle conservée : les mêmes informations pour tout le monde. Les faits pas encore posés n'apparaissent nulle part, y compris pour leur auteur (ils ne sont visibles que dans « Mes faits »).
 
-**Existant** (`src/app/archive.tsx`) : choix de la personne centrale, puis liste des questions révélées la concernant, détail via `src/app/reveal.tsx`. À garder jusqu'à ce que les écrans 10 à 12 le remplacent.
+**Existant** (`src/app/archive.tsx`) : choix de la personne centrale, puis liste des questions révélées la concernant, détail via `src/app/reveal.tsx`. À garder jusqu'à ce que les écrans 10 à 12 le remplacent entièrement : écrans 10 et 11 faits le 2026-11-11, mais l'accès au détail d'une question (et aux propositions de correction sur un fait ancien) n'existe encore que depuis `archive.tsx` — reste l'écran 12 (Historique) pour pouvoir le retirer sans perdre cet accès.
 
 **Repris dans les écrans 11 et 12** (anciennes pistes d'enrichissement des archives) : regroupement par catégorie, auteur et anecdote de chaque fait, taux de bonnes réponses, recherche par mot-clé, frise chronologique de la vie d'une personne.
 
@@ -375,8 +375,8 @@ Ce qui est fait :
 - compteurs « N souvenirs » (faits révélés) et « N à découvrir » (faits pas encore posés) ;
 - dernière personne consultée mémorisée sur l'appareil, par famille ;
 - alerte « N personnes sans relation » (ouvre le mode Modifier) ;
-- toucher une personne ouvre ses souvenirs dans les archives (`/archive?personId=…`), en attendant le récapitulatif (écran 11) ;
-- mode Modifier : toucher une personne la sélectionne ; boutons « + Conjoint·e » (si elle n'en a pas), « + Enfant » (enfant du couple), « + Frère ou sœur » (rattaché aux parents s'ils sont connus, sinon lien `sibling_of` ; pas proposé pour un conjoint), « Relier à une personne… » (conjoint·e / parent / enfant / frère ou sœur de, personnes sans relation en tête) ; encart des personnes à placer.
+- **touche une personne (2026-11-11)** : pas de navigation — l'arbre est poussé sur la gauche (~20 % de l'écran, le reste redevient plein écran en touchant « Modifier » ou en fermant le panneau) et un panneau apparaît à droite avec son récapitulatif (écran 11, voir plus bas), chargé via `get_archive_summary` (`src/lib/recap.ts` pour l'assemblage) ;
+- mode Modifier : toucher une personne la sélectionne (ferme le panneau de consultation s'il était ouvert) ; boutons « + Conjoint·e » (si elle n'en a pas), « + Enfant » (enfant du couple), « + Frère ou sœur » (rattaché aux parents s'ils sont connus, sinon lien `sibling_of` ; pas proposé pour un conjoint), « Relier à une personne… » (conjoint·e / parent / enfant / frère ou sœur de, personnes sans relation en tête) ; encart des personnes à placer.
 
 Écarts avec la maquette, à reprendre si besoin :
 - les boutons d'ajout sont dans un panneau sous l'arbre, pas en cartes pointillées dans l'arbre ;
@@ -395,18 +395,18 @@ La condition « a des frères ou sœurs » du catalogue (écran 5) tient compte 
 
 But : lire ce que la famille sait d'une personne, sous une forme agréable, et non comme une liste de faits l'un après l'autre.
 
-Accès : depuis l'arbre en mode consultation (écran 10), en touchant une personne.
+**Fait le 2026-11-11.** Accès : depuis l'arbre en mode consultation (écran 10), en touchant une personne — panneau latéral, sans changer d'écran (voir écran 10).
 
 Affiche :
-- en tête : la personne (photo ou placeholder, nom, lien de parenté) ;
-- une **mini-biographie rédigée**, regroupée par catégorie du catalogue (naissance et enfance, jeunesse, couple et installation, culture et premières fois, retraite, voyages et loisirs). Exemple : « Marie est née le 3 mars 1936 à Reventin. Elle a quitté l'école à 14 ans et a appris à nager à 10 ans. » ;
+- en tête : le nom de la personne, bouton pour fermer le panneau ;
+- une **mini-biographie rédigée**, regroupée par catégorie du catalogue (naissance et enfance, jeunesse, couple et installation, culture et premières fois, retraite, voyages et loisirs), dans l'ordre du catalogue (`sort_order`, pas la date de révélation). Exemple : « Juliette est née le 12/04/1950. Elle a eu chat comme animal de compagnie pendant son enfance. » ;
 - uniquement les faits **déjà révélés** (mêmes informations pour tout le monde) ;
-- s'il reste des faits pas encore posés : « 2 souvenirs à découvrir dans les prochains quiz ».
+- s'il reste des faits pas encore posés : « N souvenir(s) à découvrir dans les prochains quiz ».
 
-Rédaction sans IA : chaque template du catalogue reçoit une **phrase de récapitulatif** (champ `recap` dans `question-templates.toml`, ex : « <sujet> est né le {réponse} »), et l'écran assemble les phrases par catégorie. L'accord au féminin et la 2e personne sont le même chantier technique que pour les questions.
+Rédaction sans IA : chaque template du catalogue a une **phrase de récapitulatif** (champ `recap` dans `question-templates.toml`, ex : « {Sujet} est {né|née} le {réponse}. »), et `src/lib/recap.ts` assemble les phrases par catégorie. Accord au féminin géré pour `recap` (`{forme_homme|forme_femme}`, `{Sujet}`/`{sujet}` → « Il »/« il » ou « Elle »/« elle ») ; **simplification actée le 2026-11-11** par rapport à la convention `<sujet>` d'origine : le pronom en tête de la toute première phrase de la bio est remplacé par le prénom (ex : « Juliette est née... » puis « Elle a... » pour la suite), plutôt que de répéter le prénom partout. Les textes de question (`text`) restent au masculin (chantier séparé, voir `question-templates.toml`).
 
 Actions :
-- Toucher une phrase → le détail de la question (même contenu que la révélation, écran 8) : réponses de chacun, auteur, anecdote, et proposition de correction.
+- **Pas encore fait** : toucher une phrase → le détail de la question (même contenu que la révélation, écran 8) : réponses de chacun, auteur, anecdote, et proposition de correction. Pour l'instant, cet accès au détail (et aux propositions de correction sur un fait plus ancien que la dernière révélation) n'existe que via `src/app/archive.tsx`, gardé en attendant que cette action soit reprise ici et que l'écran 12 existe (voir écran 9 et `roadmap.md`).
 
 Pistes pour plus tard : frise chronologique construite à partir des faits de type date et année ; photos et enregistrements (pièces jointes).
 

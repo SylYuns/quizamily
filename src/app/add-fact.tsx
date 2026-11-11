@@ -6,6 +6,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View }
 import { AnswerInput } from "@/components/answer-input";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { CATEGORY_LABELS, CATEGORY_ORDER } from "@/constants/categories";
 import { COUNTRIES } from "@/constants/countries";
 import { Spacing } from "@/constants/theme";
 import { parseAnswerValue } from "@/lib/answer-value";
@@ -27,15 +28,6 @@ type Relationship = {
   relation_type: string;
 };
 
-const CATEGORY_LABELS: Record<string, string> = {
-  "naissance-enfance": "Naissance et enfance",
-  jeunesse: "Jeunesse",
-  "couple-installation": "Couple et installation",
-  "culture-premieres-fois": "Culture et premières fois",
-  "retraite-voyages-loisirs": "Retraite, voyages et loisirs",
-};
-
-const CATEGORY_ORDER = Object.keys(CATEGORY_LABELS);
 const MAX_VISIBLE_CATEGORIES = 3;
 const MAX_VISIBLE_PERSONS = 3;
 

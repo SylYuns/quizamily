@@ -13,8 +13,15 @@
 #   slots      autres éléments à choisir par l'auteur du fait (ex : ["pays"])
 #   condition  condition sur le sujet pour que la question soit proposée
 #   note       remarque libre
-#   recap      phrase de récapitulatif pour la mini-biographie d'une personne (écran 11 de ecrans.md),
-#              ex : "<sujet> est né le {réponse}" ; à rédiger pour chaque template
+#   (implicite) l'ORDRE des blocs dans ce fichier fixe `sort_order` en base (1 = premier bloc,
+#              32 = dernier) : l'ordre narratif du récapitulatif suit cet ordre, pas la date de
+#              révélation. Insérer un nouveau template à sa place logique, pas à la fin.
+#   recap      phrase de récapitulatif pour la mini-biographie d'une personne (écran 11 de ecrans.md) :
+#              {réponse} = valeur formatée, <conjoint>/<pays> = mêmes substitutions que `text`,
+#              {Sujet}/{sujet} = pronom "Il"/"il" ou "Elle"/"elle" selon le genre - remplacé par
+#              le prénom pour la toute première phrase de la bio (voir src/lib/recap.ts) ; à
+#              utiliser en tête de phrase ({Sujet}) quand la phrase porte sur le sujet lui-même.
+#              {forme_homme|forme_femme} = accord selon le genre (ex : {né|née}).
 #
 # Types de réponse (kind) :
 #   date        date complète (sélecteur de date)
@@ -31,8 +38,9 @@
 #
 # Listes de référence : animaux, sports, voitures, metiers, films, personnalites
 #
-# Les textes sont écrits au masculin. L'accord au féminin selon le sujet
-# (« est-il allé » → « est-elle allée ») sera géré automatiquement (solution technique à définir).
+# Les textes de question (`text`) sont écrits au masculin. L'accord au féminin selon le sujet
+# (« est-il allé » → « est-elle allée ») n'est pas géré pour `text` (reste à trancher, voir
+# roadmap.md) ; `recap` a sa propre solution ({forme_homme|forme_femme}), indépendante.
 
 
 # ---------- Naissance et enfance ----------
@@ -43,6 +51,7 @@ category = "naissance-enfance"
 status = "mvp"
 text = "Quelle est la date de naissance de <sujet> ?"
 kind = "date"
+recap = "{Sujet} est {né|née} le {réponse}."
 
 [[template]]
 id = "nom-jeune-fille"
@@ -51,6 +60,7 @@ status = "mvp"
 text = "Quel est le nom de jeune fille de <sujet> ?"
 kind = "free_text"
 condition = "femme"
+recap = "{Sujet} a pour nom de jeune fille {réponse}."
 
 [[template]]
 id = "nom-jeune-fille-mere"
@@ -58,6 +68,7 @@ category = "naissance-enfance"
 status = "mvp"
 text = "Quel est le nom de jeune fille de la mère de <sujet> ?"
 kind = "free_text"
+recap = "Le nom de jeune fille de sa mère était {réponse}."
 
 [[template]]
 id = "naissance-adresse"
@@ -65,6 +76,7 @@ category = "naissance-enfance"
 status = "mvp"
 text = "À quelle adresse vivait <sujet> à sa naissance ?"
 kind = "free_text"
+recap = "{Sujet} a vécu, à sa naissance, à {réponse}."
 
 [[template]]
 id = "naissance-age-aine"
@@ -74,6 +86,7 @@ text = "Quel âge avait l'aîné de ses frères et sœurs à la naissance de <su
 kind = "age"
 condition = "a des frères ou sœurs"
 note = "la condition ne vérifie que l'existence d'un frère/sœur enregistré, pas l'ordre de naissance (l'auteur du fait connaît la vraie réponse)"
+recap = "À sa naissance, l'aîné de ses frères et sœurs avait {réponse} ans."
 
 [[template]]
 id = "ecole-age-fin"
@@ -81,6 +94,7 @@ category = "naissance-enfance"
 status = "mvp"
 text = "Jusqu'à quel âge <sujet> est-il allé à l'école ?"
 kind = "age"
+recap = "{Sujet} a quitté l'école à {réponse} ans."
 
 [[template]]
 id = "enfance-animal"
@@ -90,6 +104,7 @@ text = "Quel animal de compagnie <sujet> a-t-il eu pendant son enfance ?"
 kind = "list"
 list = "animaux"
 note = "la liste doit contenir « aucun »"
+recap = "{Sujet} a eu {réponse} comme animal de compagnie pendant son enfance."
 
 
 # ---------- Jeunesse ----------
@@ -101,6 +116,7 @@ status = "mvp"
 text = "Quel était le sport favori de <sujet> pendant son enfance ?"
 kind = "list"
 list = "sports"
+recap = "{Sujet} pratiquait {réponse} pendant son enfance."
 
 [[template]]
 id = "premiere-voiture-conduite"
@@ -109,6 +125,7 @@ status = "mvp"
 text = "Quelle a été la première voiture conduite par <sujet> après avoir passé son permis ?"
 kind = "list"
 list = "voitures"
+recap = "Sa première voiture a été une {réponse}."
 
 [[template]]
 id = "permis-annee"
@@ -116,6 +133,7 @@ category = "jeunesse"
 status = "mvp"
 text = "En quelle année <sujet> a-t-il obtenu son permis de conduire ?"
 kind = "year"
+recap = "{Sujet} a obtenu son permis de conduire en {réponse}."
 
 [[template]]
 id = "premier-metier"
@@ -124,6 +142,7 @@ status = "mvp"
 text = "Quel a été le premier métier rémunéré de <sujet> ?"
 kind = "list"
 list = "metiers"
+recap = "Son premier métier rémunéré a été {réponse}."
 
 [[template]]
 id = "nage-age"
@@ -131,6 +150,7 @@ category = "jeunesse"
 status = "mvp"
 text = "À quel âge <sujet> a-t-il appris à nager ?"
 kind = "age"
+recap = "{Sujet} a appris à nager à {réponse} ans."
 
 [[template]]
 id = "metier-reve"
@@ -139,6 +159,7 @@ status = "mvp"
 text = "Quel métier <sujet> rêvait-il de faire quand il était enfant ?"
 kind = "list"
 list = "metiers"
+recap = "Enfant, {sujet} rêvait de devenir {réponse}."
 
 
 # ---------- Couple et installation ----------
@@ -149,6 +170,7 @@ category = "couple-installation"
 status = "mvp"
 text = "À quel âge <sujet> a-t-il quitté le domicile de ses parents ?"
 kind = "age"
+recap = "{Sujet} a quitté le domicile de ses parents à {réponse} ans."
 
 [[template]]
 id = "rencontre-annee"
@@ -157,6 +179,7 @@ status = "mvp"
 text = "En quelle année <sujet> a-t-il rencontré <conjoint> ?"
 kind = "year"
 related = "conjoint"
+recap = "{Sujet} a rencontré <conjoint> en {réponse}."
 
 [[template]]
 id = "mariage-date"
@@ -165,6 +188,7 @@ status = "mvp"
 text = "Quelle est la date de mariage de <sujet> ?"
 kind = "date"
 related = "conjoint"
+recap = "{Sujet} {s'est marié|s'est mariée} avec <conjoint> le {réponse}."
 
 [[template]]
 id = "mariage-commune"
@@ -173,6 +197,7 @@ status = "mvp"
 text = "Dans quelle commune <sujet> s'est-il marié ?"
 kind = "city"
 related = "conjoint"
+recap = "{Sujet} {s'est marié|s'est mariée} à {réponse}."
 
 [[template]]
 id = "voyage-noces"
@@ -181,6 +206,7 @@ status = "mvp"
 text = "Où <sujet> et <conjoint> sont-ils partis en voyage de noces ?"
 kind = "place"
 related = "conjoint"
+recap = "Leur voyage de noces les a menés à {réponse}."
 
 [[template]]
 id = "mariage-voiture"
@@ -190,6 +216,7 @@ text = "Quelle voiture a conduit les mariés le jour du mariage de <sujet> ?"
 kind = "list"
 list = "voitures"
 related = "conjoint"
+recap = "Le jour du mariage, les mariés sont arrivés en {réponse}."
 
 [[template]]
 id = "service-militaire-ville"
@@ -198,6 +225,7 @@ status = "mvp"
 text = "Où <sujet> a-t-il fait son service militaire ?"
 kind = "place"
 condition = "homme"
+recap = "{Sujet} a fait son service militaire à {réponse}."
 
 [[template]]
 id = "adresse-actuelle-annee"
@@ -206,6 +234,7 @@ status = "mvp"
 text = "En quelle année <sujet> a-t-il emménagé à son adresse actuelle ?"
 kind = "year"
 condition = "vivant"
+recap = "{Sujet} a emménagé à son adresse actuelle en {réponse}."
 
 
 # ---------- Culture et premières fois ----------
@@ -216,6 +245,7 @@ category = "culture-premieres-fois"
 status = "mvp"
 text = "En quelle année <sujet> est-il allé voir un concert pour la première fois ?"
 kind = "year"
+recap = "{Sujet} est {allé|allée} à son premier concert en {réponse}."
 
 [[template]]
 id = "premier-concert-artiste"
@@ -224,6 +254,7 @@ status = "mvp"
 text = "Quel artiste <sujet> est-il allé voir lors de son premier concert ?"
 kind = "list"
 list = "personnalites"
+recap = "Le premier concert de {sujet} était celui de {réponse}."
 
 [[template]]
 id = "television-annee"
@@ -231,6 +262,7 @@ category = "culture-premieres-fois"
 status = "mvp"
 text = "En quelle année <sujet> a-t-il eu une télévision à la maison ?"
 kind = "year"
+recap = "{Sujet} a eu la télévision à la maison en {réponse}."
 
 [[template]]
 id = "premier-film-cinema"
@@ -239,6 +271,7 @@ status = "mvp"
 text = "Quel film <sujet> a-t-il vu la première fois qu'il est allé au cinéma ?"
 kind = "list"
 list = "films"
+recap = "Le premier film vu par {sujet} au cinéma était {réponse}."
 
 [[template]]
 id = "ordinateur-age"
@@ -246,6 +279,7 @@ category = "culture-premieres-fois"
 status = "mvp"
 text = "À quel âge <sujet> a-t-il utilisé un ordinateur pour la première fois ?"
 kind = "age"
+recap = "{Sujet} a utilisé un ordinateur pour la première fois à {réponse} ans."
 
 
 # ---------- Retraite, voyages et loisirs ----------
@@ -256,6 +290,7 @@ category = "retraite-voyages-loisirs"
 status = "mvp"
 text = "À quelle date <sujet> a-t-il officiellement pris sa retraite ?"
 kind = "date"
+recap = "{Sujet} a pris sa retraite le {réponse}."
 
 [[template]]
 id = "premier-pays-etranger"
@@ -263,6 +298,7 @@ category = "retraite-voyages-loisirs"
 status = "mvp"
 text = "Quel pays étranger <sujet> a-t-il visité lors de son premier voyage hors de France ?"
 kind = "country"
+recap = "Le premier pays étranger visité par {sujet} a été {réponse}."
 
 [[template]]
 id = "avion-annee"
@@ -270,6 +306,7 @@ category = "retraite-voyages-loisirs"
 status = "mvp"
 text = "En quelle année <sujet> a-t-il pris l'avion pour la première fois ?"
 kind = "year"
+recap = "{Sujet} a pris l'avion pour la première fois en {réponse}."
 
 [[template]]
 id = "voyage-pays-annee"
@@ -279,6 +316,7 @@ text = "En quelle année <sujet> a-t-il effectué son voyage en <pays> ?"
 kind = "year"
 slots = ["pays"]
 note = "l'auteur choisit le pays au moment d'ajouter le fait"
+recap = "{Sujet} a voyagé en <pays> en {réponse}."
 
 [[template]]
 id = "dernier-pays-etranger"
@@ -286,6 +324,7 @@ category = "retraite-voyages-loisirs"
 status = "mvp"
 text = "Quel est le dernier pays étranger que <sujet> a visité ?"
 kind = "country"
+recap = "Le dernier pays étranger visité par {sujet} est {réponse}."
 
 [[template]]
 id = "club-associatif"
@@ -293,3 +332,4 @@ category = "retraite-voyages-loisirs"
 status = "mvp"
 text = "Quel est le nom du club associatif dont <sujet> fait partie ?"
 kind = "free_text"
+recap = "{Sujet} fait partie de {réponse}."

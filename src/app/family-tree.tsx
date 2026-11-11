@@ -36,6 +36,7 @@ import {
   type RelationType,
   type RowGeometry,
 } from "@/lib/family-tree-layout";
+import { buildRecapByCategory, type RecapCategory, type RecapFact } from "@/lib/recap";
 import { supabase } from "@/lib/supabase";
 
 type Person = {
@@ -43,6 +44,7 @@ type Person = {
   first_name: string;
   display_name: string;
   is_central: boolean;
+  gender: "homme" | "femme" | null;
 };
 
 type Relationship = {
@@ -113,6 +115,11 @@ export default function FamilyTreeScreen() {
   const [width, setWidth] = useState(390);
   const [editMode, setEditMode] = useState(false);
 
+  // ---------- Panneau "connaissances" (consultation) ----------
+  const [showPanel, setShowPanel] = useState(false);
+  const [recapCategories, setRecapCategories] = useState<RecapCategory[]>([]);
+  const [recapLoading, setRecapLoading] = useState(false);
+
   const [newPersonKind, setNewPersonKind] = useState<NewPersonKind | null>(null);
   const [newFirstName, setNewFirstName] = useState("");
   const [newLastName, setNewLastName] = useState("");
@@ -148,7 +155,7 @@ export default function FamilyTreeScreen() {
       const [{ data: personsData }, { data: relsData }, { data: factsData }] = await Promise.all([
         supabase
           .from("persons")
-          .select("id, first_name, display_name, is_central")
+          .select("id, first_name, display_name, is_central, gender")
           .eq("family_id", me.family_id)
           .order("created_at", { ascending: true }),
         supabase.from("relationships").select("id, person_a_id, person_b_id, relation_type").eq("family_id", me.family_id),
@@ -216,6 +223,56 @@ export default function FamilyTreeScreen() {
   useEffect(() => {
     if (familyId && focus) AsyncStorage.setItem(`quizamily:treeFocus:${familyId}`, focus).catch(() => {});
   }, [familyId, focus]);
+
+  // Récapitulatif (écran 11) de la personne affichée dans le panneau : get_archive_summary
+  // renvoie les faits révélés (category/recap/relatedName/slotValues), assemblés en phrases
+  // par src/lib/recap.ts plutôt qu'affichés comme une liste de questions/réponses.
+  useEffect(() => {
+    if (!showPanel || editMode || !focus) return;
+    let cancelled = false;
+
+    async function loadRecap() {
+      setRecapLoading(true);
+      const { data, error: rpcError } = await supabase.rpc("get_archive_summary", { p_person_id: focus! });
+      if (cancelled) return;
+      if (rpcError) {
+        setRecapCategories([]);
+        setRecapLoading(false);
+        return;
+      }
+      const rows =
+        (data as
+          | {
+              category: string;
+              recap: string | null;
+              relatedRole: string | null;
+              answerInputKind: string;
+              answer: string | number;
+              relatedName: string | null;
+              slotValues: Record<string, string> | null;
+            }[]
+          | null) ?? [];
+      const facts: RecapFact[] = rows.map((r) => ({
+        category: r.category,
+        recap: r.recap,
+        relatedRole: r.relatedRole,
+        answerInputKind: r.answerInputKind,
+        answer: r.answer,
+        relatedName: r.relatedName,
+        slotValues: r.slotValues,
+      }));
+      const person = personsById.get(focus!);
+      setRecapCategories(buildRecapByCategory(facts, person?.gender ?? null, person?.first_name ?? ""));
+      setRecapLoading(false);
+    }
+
+    loadRecap();
+    return () => {
+      cancelled = true;
+    };
+  }, [showPanel, editMode, focus, personsById]);
+
+  const panelWidth = Math.min(380, Math.max(260, width * 0.55));
 
   const rows = useMemo(() => {
     const list: (RowGeometry & { isCenter: boolean })[] = [];
@@ -368,7 +425,7 @@ export default function FamilyTreeScreen() {
         is_central: false,
         is_deceased: false,
       })
-      .select("id, first_name, display_name, is_central")
+      .select("id, first_name, display_name, is_central, gender")
       .single();
     if (insertError || !created) {
       setError(insertError?.message ?? "Création impossible.");
@@ -429,7 +486,10 @@ export default function FamilyTreeScreen() {
       setFocusId(personId);
       return;
     }
-    router.push({ pathname: "/archive", params: { personId } });
+    // Pas de navigation : le panneau s'ouvre à côté de l'arbre, qui reste visible et se
+    // recentre sur la personne touchée (voir docs/ecrans.md écran 10/11).
+    setFocusId(personId);
+    setShowPanel(true);
   }
 
   // ---------- Rendu ----------
@@ -471,7 +531,13 @@ export default function FamilyTreeScreen() {
             <Text style={styles.primaryButtonText}>Terminé</Text>
           </Pressable>
         ) : (
-          <Pressable onPress={() => setEditMode(true)} style={styles.outlineButton}>
+          <Pressable
+            onPress={() => {
+              setShowPanel(false);
+              setEditMode(true);
+            }}
+            style={styles.outlineButton}
+          >
             <Text style={styles.outlineButtonText}>Modifier</Text>
           </Pressable>
         )}
@@ -485,6 +551,8 @@ export default function FamilyTreeScreen() {
         </Pressable>
       )}
 
+      <View style={{ flex: 1, flexDirection: "row" }}>
+      <View style={{ flex: 1 }}>
       {!focus ? (
         <View style={styles.empty}>
           <Text style={styles.hintStrong}>Aucune personne dans la famille pour l&apos;instant.</Text>
@@ -587,7 +655,7 @@ export default function FamilyTreeScreen() {
         </View>
       )}
 
-      {!editMode && focus && (
+      {!editMode && focus && !showPanel && (
         <View style={styles.hints}>
           <Text style={styles.hintStrong}>Touche une personne pour lire ses souvenirs</Text>
           <Text style={styles.hint}>
@@ -595,6 +663,41 @@ export default function FamilyTreeScreen() {
           </Text>
         </View>
       )}
+      </View>
+
+      {!editMode && showPanel && focus && focusPerson && (
+        <View style={[styles.panel, { width: panelWidth }]}>
+          <View style={styles.panelHeader}>
+            <Text style={styles.panelHeaderName} numberOfLines={1}>
+              {focusPerson.display_name}
+            </Text>
+            <Pressable accessibilityLabel="Fermer" onPress={() => setShowPanel(false)} style={styles.iconButton}>
+              <Text style={styles.closeIcon}>✕</Text>
+            </Pressable>
+          </View>
+          <ScrollView contentContainerStyle={styles.panelContent}>
+            {recapLoading ? (
+              <ActivityIndicator color={C.blue} />
+            ) : recapCategories.length === 0 ? (
+              <Text style={styles.hint}>Aucun souvenir révélé pour l&apos;instant.</Text>
+            ) : (
+              recapCategories.map((cat) => (
+                <View key={cat.category} style={{ gap: 4 }}>
+                  <Text style={styles.recapCategoryLabel}>{cat.label}</Text>
+                  <Text style={styles.recapText}>{cat.text}</Text>
+                </View>
+              ))
+            )}
+            {!recapLoading && (counts.get(focus)?.toDiscover ?? 0) > 0 && (
+              <Text style={styles.recapDiscover}>
+                {counts.get(focus)!.toDiscover} souvenir{counts.get(focus)!.toDiscover === 1 ? "" : "s"} à découvrir
+                dans les prochains quiz.
+              </Text>
+            )}
+          </ScrollView>
+        </View>
+      )}
+      </View>
 
       {editMode && (
         <ScrollView style={styles.editPanel} contentContainerStyle={{ gap: 12, paddingBottom: 32 }}>
@@ -847,6 +950,32 @@ const styles = StyleSheet.create({
   hintStrong: { fontSize: 15, fontWeight: "700", color: C.ink, textAlign: "center" },
   hint: { fontSize: 13, color: C.inkSoft, textAlign: "center" },
   empty: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
+  panel: {
+    borderLeftWidth: 1,
+    borderLeftColor: C.border,
+    backgroundColor: C.surface,
+  },
+  panelHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: C.border,
+  },
+  panelHeaderName: { flex: 1, fontSize: 18, fontWeight: "800", color: C.ink },
+  closeIcon: { fontSize: 18, color: C.inkSoft },
+  panelContent: { gap: 18, padding: 16, paddingBottom: 32 },
+  recapCategoryLabel: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: C.blue,
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+  },
+  recapText: { fontSize: 14, lineHeight: 21, color: C.ink },
+  recapDiscover: { fontSize: 13, color: C.inkSoft, fontStyle: "italic" },
   editPanel: { flex: 1, paddingHorizontal: 16 },
   panelCard: {
     gap: 10,
