@@ -126,7 +126,15 @@ Dès le premier quiz, la carte laisse sa place au bouton « Participer au quiz �
 
 ### Existant (`src/app/home.tsx`)
 
-Écran minimal : une colonne de textes et de liens de même poids (lien d'invitation affiché en entier, « Ajouter un fait », Mes faits, Archives, Arbre, session en cours ou dernière révélation, bouton de test « Créer une session de quiz », déconnexion). À remplacer par l'organisation ci-dessus.
+**Fait le 2026-11-11**, d'après la maquette validée (charte dans `docs/design.md`, polices Fredoka/Nunito ajoutées au projet) :
+- bandeau : nom de famille (menu déroulant pour changer de famille ou en créer une autre), bouton « Inviter » (copie le lien), menu burger (« Créer une session maintenant » pour les tests, déconnexion) ;
+- bouton « Participer au quiz » avec ses 8 états (7 de la maquette + le cas rare « tu as rejoint après la pioche », en style atténué) ; distingue « La révélation est là ! » de « Quiz terminé » via un repère mémorisé sur l'appareil (`AsyncStorage`, posé par `reveal.tsx` à la consultation) — pas de notion de "vu" côté serveur ;
+- carte « Lancer votre premier quiz » tant qu'aucune session n'a jamais eu lieu pour la famille ;
+- « Consulter les connaissances » (ouvre l'arbre) avec le sous-titre « N souvenirs sur M personnes » ;
+- « Ajouter un souvenir » avec l'alerte réserve bientôt vide (moins de 5 faits jamais posés) ;
+- tuiles « Historique » (écran 12, pas encore construit — ne fait rien pour l'instant) et « Mes faits » (badge si une correction proposée sur l'un de mes faits attend ma décision, via `get_my_pending_corrections_count`).
+
+**Pas d'icônes vectorielles** (comme pour l'arbre) : glyphes en caractères ou petites formes dessinées (View), en attendant de vraies icônes. Le choix de famille (écran 3) et « Créer une autre famille » sont une liste déroulante simplifiée dans le bandeau, pas un écran dédié.
 
 ### Pioche et création de session (`create-quiz-session`)
 

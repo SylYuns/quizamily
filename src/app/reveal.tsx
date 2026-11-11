@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Redirect, router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
@@ -149,6 +150,10 @@ export default function RevealScreen() {
           setReady(true);
           return;
         }
+
+        // L'accueil (écran 4) affiche "La révélation est là !" tant que la dernière session
+        // close n'a pas été consultée ici : on marque celle-ci comme vue.
+        AsyncStorage.setItem(`quizamily:lastSeenReveal:${me.family_id}`, session.id).catch(() => {});
 
         const { data: quizQuestion } = await supabase
           .from("quiz_questions")
