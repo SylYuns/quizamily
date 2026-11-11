@@ -8,37 +8,20 @@ Le MVP fonctionne de bout en bout en version simple, testé avec des comptes jet
 
 ## À faire sur l'ordinateur avec Supabase
 
-Tâches qui ne peuvent être faites que depuis l'ordinateur relié au projet Supabase. Cocher ou retirer chaque ligne une fois faite.
+**Fait le 2026-11-11** (revu et exécuté par Claude depuis l'ordinateur relié à Supabase) :
 
-- [ ] **Récupérer les derniers commits** : `git pull`.
-- [ ] **Appliquer les migrations en attente** : `npx supabase db push`. Migrations concernées (2026-11-10) :
-  - `20261110100000_reveal_waits_validation_and_answer_lock.sql` : pas de révélation automatique tant qu'une réponse libre attend sa validation ; réponses refusées après la deadline ou la révélation ; verrouillage des réponses libres validées.
-  - `20261110110000_reveal_timing_rules.sql` : les non-réponses ne bloquent plus la révélation manuelle ; révélation immédiate à la dernière validation quand la deadline est passée.
-  - `20261110120000_sibling_relation.sql` : nouveau type de relation `sibling_of` (frère / sœur).
-  - `20261110130000_pioche_never_posed_first.sql` : la pioche de la tâche planifiée ne repioche plus un fait déjà posé tant qu'il en reste de jamais posés.
-  - `20261110140000_hide_answers_from_direct_reads.sql` : les bonnes réponses ne sont plus lisibles par requête directe ; nouvelles fonctions `get_fact_answer` et `get_my_fact_answers`.
-- [ ] **Redéployer l'Edge Function de la pioche** (pioche manuelle, même règle) : `npx supabase functions deploy create-quiz-session`.
-- [ ] **Vérifier les tâches planifiées** : dans l'éditeur SQL de Supabase, `select jobname, schedule, active from cron.job;`. La migration `20261109240000_automatic_triggering.sql` a programmé deux tâches : `auto-create-quiz-sessions` (lundi 8 h) et `auto-reveal-expired-sessions` (toutes les heures).
-- [ ] **Les désactiver pendant la phase de test** (déclenchement manuel uniquement) :
-  ```sql
-  select cron.unschedule('auto-create-quiz-sessions');
-  select cron.unschedule('auto-reveal-expired-sessions');
-  ```
-  Pour les réactiver plus tard (après avoir revu le timing de la pioche, voir écran 4 dans `ecrans.md`) :
-  ```sql
-  select cron.schedule('auto-create-quiz-sessions', '0 8 * * 1', $$select auto_create_quiz_sessions();$$);
-  select cron.schedule('auto-reveal-expired-sessions', '0 * * * *', $$select auto_reveal_expired_sessions();$$);
-  ```
-- [ ] **Vérifier l'app** : `npx tsc --noEmit` et `npx expo lint` (pas pu être lancés le 2026-11-10 : dépendances non installables depuis l'environnement de Claude). Fichiers modifiés : `src/app/respond.tsx`, `src/app/validate.tsx`, `src/lib/family-tree-layout.ts` (nouveau), `src/app/family-tree.tsx` (réécrit), `src/app/archive.tsx`, `src/app/add-fact.tsx`, `src/app/home.tsx` (message après création d'une session), `src/app/reveal.tsx`, `src/app/my-facts.tsx`, `src/app/respond.tsx`, `src/components/answer-input.tsx`.
-- [ ] **Vérifier que les bonnes réponses s'affichent toujours là où elles doivent** (après la migration `20261110140000`) : « Mes faits » (réponse de chaque fait), « Ma question » (l'auteur voit sa réponse pendant la session), la révélation et les corrections. Sur l'écran de réponse d'une question de type liste, les valeurs ajoutées par la famille ne doivent plus être proposées.
-- [ ] **Tester le nouvel écran de l'arbre** (`src/app/family-tree.tsx`) :
-  - glissements gauche/droite et haut/bas, avec les crans ; toucher une personne (doit ouvrir ses souvenirs) ;
-  - mode Modifier : ajouter un conjoint, un enfant, un frère ou une sœur (avec et sans parents connus), relier une personne sans relation ;
-  - une grande fratrie (8-9 enfants avec conjoints et enfants) ;
-  - sur le web et, si possible, sur téléphone.
-- [ ] **Lancer les tests du placement de l'arbre** : `npm run test:layout` (Node 22.6 ou plus récent ; 19 tests, passent dans l'environnement de Claude).
-- [ ] **Lancer les tests de la pioche** : `npm run test:pioche` (6 tests, passent dans l'environnement de Claude).
-- [ ] **Tester à la main** : une question libre validée après sa deadline doit s'ouvrir directement sur la révélation ; la révélation manuelle doit fonctionner même si un joueur n'a pas répondu.
+- [x] **Récupérer les derniers commits** : `git pull` (874152d, puis un correctif de lint en c0eaf91 — voir plus bas).
+- [x] **Appliquer les migrations en attente** : les 5 migrations du 2026-11-10 sont poussées (`20261110100000` à `20261110140000`).
+- [x] **Redéployer l'Edge Function de la pioche** : `create-quiz-session` redéployée avec la règle « jamais posé d'abord ».
+- [x] **Tâches planifiées désactivées pendant la phase de test** (décision prise le 2026-11-11) : `auto-create-quiz-sessions` et `auto-reveal-expired-sessions` retirées de `cron.job`. Pour les réactiver, voir les commandes `cron.schedule` dans la migration `20261109240000_automatic_triggering.sql`.
+- [x] **Vérifié l'app** : `npx tsc --noEmit` propre, `npx expo lint` a révélé 3 nouvelles erreurs sur `family-tree.tsx` (`react-hooks/refs` sur `pan`/`PanResponder` — faux positif : l'API `Animated` de React Native est conçue pour être lue/mutée hors du rendu React), corrigées avec un commentaire explicatif (commit `c0eaf91`). Seule l'ancienne erreur préexistante et sans rapport (`use-color-scheme.web.ts`) subsiste.
+- [x] **Lancé les tests** : `npm run test:layout` (19/19) et `npm run test:pioche` (6/6), tous verts.
+- [x] **Vérifié en conditions réelles (comptes jetables, nettoyés ensuite)** :
+  - une question en saisie libre avec une réponse en attente de validation ne se révèle pas automatiquement à la deadline (`auto_reveal_expired_sessions` refuse) ; une fois la dernière validation faite après la deadline, `validate_pending_answers` révèle immédiatement (`revealed: true`) ;
+  - un joueur qui n'a jamais répondu ne bloque pas la révélation et compte faux ;
+  - la lecture directe de `facts.answer_value` est bien rejetée (`permission denied`) même après révélation ; `get_fact_answer`/`get_my_fact_answers` renvoient la bonne valeur au bon moment ;
+  - le nouvel écran de l'arbre (`family-tree.tsx`) s'affiche correctement (couple centré, traits à angle droit, compteurs, étoile sur la personne centrale) ; mode Modifier testé : ajout d'un frère/sœur sans parents connus (`sibling_of`), bien positionné sur la ligne de la personne ; toucher une personne ouvre bien ses archives (`/archive?personId=…`).
+- [ ] **Pas testé à la main** (clics automatisés, pas de vrais gestes tactiles) : glissements gauche/droite/haut/bas avec les crans, une grande fratrie (8-9 enfants), le rendu sur téléphone. À faire par un humain.
 
 ## Étapes de réalisation
 
