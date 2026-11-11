@@ -256,6 +256,8 @@ export default function FamilyTreeScreen() {
 
   const panResponder = useMemo(
     () =>
+      // pan vient de useRef(...).current : l'API Animated de React Native est conçue pour être lue/mutée hors du cycle de rendu React.
+      // eslint-disable-next-line react-hooks/refs
       PanResponder.create({
         // Un toucher bref reste un appui sur la carte ; dès que le doigt glisse, l'arbre
         // prend la main (y compris quand le geste commence sur une carte).
@@ -494,6 +496,7 @@ export default function FamilyTreeScreen() {
           {...panResponder.panHandlers}
         >
           <View style={styles.centerBand} />
+          {/* eslint-disable-next-line react-hooks/refs -- idem : pan est un Animated.ValueXY stable, lu hors du rendu réactif par design. */}
           <Animated.View style={[StyleSheet.absoluteFill, { transform: pan.getTranslateTransform() }]}>
             {g === 0 && <Text style={styles.topLabel}>Haut de l&apos;arbre : les ancêtres communs</Text>}
             {segments.map((s, i) => (
