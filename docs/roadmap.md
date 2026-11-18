@@ -8,12 +8,12 @@ Le MVP fonctionne de bout en bout en version simple, testé avec des comptes jet
 
 ## À faire sur l'ordinateur avec Supabase
 
-**À faire (2026-11-18)** — accord au féminin dans les questions :
+**Fait le 2026-11-18** (revu et exécuté par Claude depuis l'ordinateur relié à Supabase) — accord au féminin dans les questions :
 
-- [ ] **Récupérer les derniers commits** : `git pull`.
-- [ ] **Appliquer la migration** `20261118100000_gendered_question_texts.sql` : `npx supabase db push`. Elle met à jour les textes des 19 questions concernées, ajoute `apply_gender_tokens()` et fait passer le genre du sujet à `substitute_question_text()` (utilisée par `get_revealed_question` et `get_archive_summary`).
-- [ ] **Vérifier l'app** : `npx tsc --noEmit`, `npx expo lint`, et les tests `npm run test:gender` (6), `npm run test:layout` (19), `npm run test:pioche` (6) — les trois passent dans l'environnement de Claude, mais `tsc` et le lint n'ont pas pu y être lancés. Fichiers modifiés : `src/lib/gender.ts` (nouveau), `src/lib/recap.ts`, `src/lib/question-text.ts`, `src/app/respond.tsx`, `src/app/my-facts.tsx`, `src/app/add-fact.tsx`.
-- [ ] **Vérifier à l'écran**, avec une personne centrale femme et une homme : le texte des questions accordé dans le choix d'une question (ajout d'un fait), l'écran de réponse, « Ma question », « Mes faits », la révélation et les archives (ex : « À quel âge Marie a-t-elle appris à nager ? »).
+- [x] **Récupérer les derniers commits** : `git pull` (8cd8b63, 8bb1506, 9ae3f4f), avance rapide propre.
+- [x] **Appliquer la migration** `20261118100000_gendered_question_texts.sql` : `npx supabase db push`. Met à jour les textes des 19 questions concernées, ajoute `apply_gender_tokens()` et fait passer le genre du sujet à `substitute_question_text()` (utilisée par `get_revealed_question` et `get_archive_summary`). Vérifié présente en base après coup.
+- [x] **Vérifié l'app** : `npx tsc --noEmit` propre, `npx expo lint` ne révèle que l'ancienne erreur préexistante et sans rapport (`use-color-scheme.web.ts`), `npm run test:gender` (6/6), `npm run test:layout` (19/19), `npm run test:pioche` (6/6) tous verts.
+- [ ] **Pas encore vérifié à l'écran** (pas demandé cette fois), avec une personne centrale femme et une homme : le texte des questions accordé dans le choix d'une question (ajout d'un fait), l'écran de réponse, « Ma question », « Mes faits », la révélation et les archives (ex : « À quel âge Marie a-t-elle appris à nager ? »).
 
 **Fait le 2026-11-11** (revu et exécuté par Claude depuis l'ordinateur relié à Supabase) :
 
