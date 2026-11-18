@@ -382,8 +382,8 @@ Ce qui est fait :
 Écarts avec la maquette, à reprendre si besoin :
 - les boutons d'ajout sont dans un panneau sous l'arbre, pas en cartes pointillées dans l'arbre ;
 - pendant un glissement horizontal, seule la ligne centrale glisse de façon continue ; les lignes du dessus et du dessous se recalent d'un coup ;
-- polices système (Fredoka et Nunito pas encore ajoutées au projet), icônes en caractères (★, ✎, ⚠, ‹) en attendant de vraies icônes ;
-- le bandeau famille (nom, inviter, menu) n'est pas encore là : il viendra avec la refonte de l'accueil.
+- polices système : Fredoka et Nunito sont dans le projet depuis l'accueil (2026-11-11), mais l'écran de l'arbre ne les utilise pas encore ; icônes en caractères (★, ✎, ⚠, ‹) en attendant de vraies icônes ;
+- le bandeau famille (nom, inviter, menu) existe sur l'accueil (2026-11-11) mais pas encore sur l'écran de l'arbre.
 
 La condition « a des frères ou sœurs » du catalogue (écran 5) tient compte des liens `sibling_of` (`src/app/add-fact.tsx`).
 

@@ -1,10 +1,10 @@
 # Roadmap
 
-## État actuel (2026-11-10)
+## État actuel (2026-11-18)
 
-Le MVP fonctionne de bout en bout en version simple, testé avec des comptes jetables et avec un deuxième vrai compte. Construit : auth, création/rejoindre une famille (avec « réclamer un profil existant »), ajout de faits (32/32 templates, y compris personne liée `<conjoint>` et élément choisi `<pays>`), « Mes faits » (modifier/supprimer, statut posé/révélé correct), nouvel accueil (écran 4, charte visuelle Fredoka/Nunito, 8 états du bouton quiz), mini arbre familial (lecture + ajout de relations, nouvelle charte, panneau de récapitulatif inline par personne — écrans 10/11), pioche (manuelle + automatique hebdomadaire, jamais repiocher tant qu'il reste du neuf), réponse, validation des réponses libres (anonyme), révélation (manuelle + automatique à la deadline, non-réponses non bloquantes), correction d'un fait avec recalcul rétroactif des scores, et archives en version simple — étapes 1 à 6, 8, 9, 11 et 12 (version simple) de la liste ci-dessous. Pas commencé : étapes 7, 10, 13.
+Le MVP fonctionne de bout en bout en version simple, testé avec des comptes jetables et avec un deuxième vrai compte. Construit : auth, création/rejoindre une famille (avec « réclamer un profil existant »), ajout de faits (32/32 templates, y compris personne liée `<conjoint>` et élément choisi `<pays>`), « Mes faits » (modifier/supprimer, statut posé/révélé correct), nouvel accueil (écran 4, charte visuelle Fredoka/Nunito, 8 états du bouton quiz), mini arbre familial (lecture + ajout de relations, nouvelle charte, panneau de récapitulatif inline par personne — écrans 10/11), pioche (manuelle + automatique hebdomadaire, jamais repiocher tant qu'il reste du neuf), réponse, validation des réponses libres (anonyme), révélation (manuelle + automatique à la deadline, non-réponses non bloquantes), correction d'un fait avec recalcul rétroactif des scores, accord au féminin/masculin des questions et du récapitulatif (2026-11-18), bonnes réponses illisibles par requête directe (2026-11-10), et archives en version simple — étapes 1 à 6, 8, 9, 11 et 12 (version simple) de la liste ci-dessous. Pas commencé : étapes 7, 10, 13. **Ce qui reste, dans l'ordre : voir « Feuille de route » en bas de page.**
 
-**Pour reprendre le travail (ex. depuis un autre ordinateur)** : voir « À faire sur l'ordinateur avec Supabase » juste en dessous, puis « Points à décider » et « Prochains sujets » plus bas sur cette page.
+**Pour reprendre le travail (ex. depuis un autre ordinateur)** : voir « À faire sur l'ordinateur avec Supabase » juste en dessous, puis « Points à décider » et « Feuille de route » plus bas sur cette page.
 
 ## À faire sur l'ordinateur avec Supabase
 
@@ -40,11 +40,11 @@ Le MVP fonctionne de bout en bout en version simple, testé avec des comptes jet
 5. Mini arbre familial (vue simple des personnes + relations). *(fait — `src/app/family-tree.tsx` : une carte par personne centrale avec conjoint·e/parents/frères et sœurs/enfants, liste des autres membres, formulaire pour lier deux personnes (conjoint ou parent-enfant), et création d'une personne manquante à la volée dans ce formulaire (ex : la génération intermédiaire entre une personne centrale et ses petits-enfants, si eux seuls ont un compte) ; reste : vraie capture par paire du lien de parenté du créateur avec chaque personne centrale, voir écran 2 dans `docs/ecrans.md`)*
 6. Logique de pioche pondérée (fraîcheur + répartition auteurs) + Edge Function de création de session. *(fait : `supabase/functions/create-quiz-session` pour le déclenchement manuel, plus `auto_create_quiz_sessions()` + tâche `pg_cron` hebdomadaire (lundi 8h) pour le déclenchement automatique — voir étape 9 pour le détail du cron)*
 7. Emails (nouvelle session, rappel, résultats).
-8. Écran de réponse au quiz + logique du seuil de déclenchement du premier quiz. *(écran de réponse fait en version simple — `src/app/respond.tsx` ; seuil appliqué : la pioche automatique ne se déclenche que pour une famille ayant au moins 3 joueurs, voir « Décisions déjà prises » — reste : verrouillage de la réponse après la deadline, actuellement sans effet puisque la révélation auto absorbe ce cas)*
-9. Révélation automatique à la deadline, calcul des scores (4 états) + validation des réponses libres par l'auteur (notifications, révélation différée, prise de main). *(fait en version simple — `src/app/reveal.tsx` + `src/app/validate.tsx` pour le déclenchement manuel par l'auteur, plus `auto_reveal_expired_sessions()` + tâche `pg_cron` horaire pour clôturer automatiquement toute session dont la deadline est dépassée (réponses manquantes ou en attente de validation comptées fausses) — reste : prise de main, notifications/relances, score cumulé inter-sessions)*
+8. Écran de réponse au quiz + logique du seuil de déclenchement du premier quiz. *(écran de réponse fait en version simple — `src/app/respond.tsx` ; seuil appliqué : la pioche automatique ne se déclenche que pour une famille ayant au moins 3 joueurs, voir « Décisions déjà prises » ; réponses refusées après la deadline ou la révélation, et réponses libres verrouillées une fois validées : fait le 2026-11-10, migration `20261110100000`)*
+9. Révélation automatique à la deadline, calcul des scores (4 états) + validation des réponses libres par l'auteur (notifications, révélation différée, prise de main). *(fait en version simple — `src/app/reveal.tsx` + `src/app/validate.tsx` pour le déclenchement manuel par l'auteur, plus `auto_reveal_expired_sessions()` + tâche `pg_cron` horaire pour clôturer automatiquement toute session dont la deadline est dépassée (réponses manquantes comptées fausses ; pas de révélation automatique tant qu'une réponse libre attend sa validation, révélation immédiate à la dernière validation si la deadline est passée — 2026-11-10) — reste : prise de main, notifications/relances ; le score cumulé inter-sessions est traité avec l'Historique, écran 12)*
 10. Réactions/commentaires sur les faits révélés.
 11. Mécanisme de correction + recalcul rétroactif des scores. *(fait — `propose_correction`/`validate_correction`, voir `docs/ecrans.md` écran 8 ; accessible aussi depuis les archives, qui réutilisent l'écran de révélation pour le détail d'une question au-delà de la dernière révélation)*
-12. Archive familiale enrichie (catégories, filtres, recherche) + score de contribution + relances. *(fait en version simple — `src/app/archive.tsx`, choix de la personne centrale puis liste des questions révélées la concernant, détail via `src/app/reveal.tsx` ; reste : regroupement par catégorie, auteur/anecdote/date de révélation/taux de bonnes réponses par fait, recherche, frise chronologique, score de contribution, relances)*
+12. Archive familiale enrichie (catégories, filtres, recherche) + score de contribution + relances. *(fait en version simple — `src/app/archive.tsx`, choix de la personne centrale puis liste des questions révélées la concernant, détail via `src/app/reveal.tsx` ; depuis le 2026-11-11, les connaissances se consultent par l'arbre et le récapitulatif d'une personne (écrans 10 et 11, regroupement par catégorie fait) ; reste : Historique (écran 12, avec taux de bonnes réponses et scores), recherche, frise chronologique, score de contribution, relances)*
 13. Polish, puis phase 2 : push notifications + builds iOS/Android.
 
 ## Scope du premier MVP partageable (test avec 2-3 personnes)
@@ -93,6 +93,8 @@ Décisions de produit ou de sécurité pas encore tranchées — à trancher ava
 - **Panneau de récapitulatif sur petit écran** : l'arbre est réduit à ~20 % de la largeur quand le panneau est ouvert (valeur choisie au hasard). Sur un téléphone de 390 px, il ne resterait qu'environ 80 px d'arbre, moins d'une carte. À revoir avant de tester sur téléphone : largeur minimale de l'arbre, ou autre présentation sur petit écran (panneau qui monte du bas, plein écran avec retour à l'arbre…).
 - **`relationship_label` pas encore un vrai lien par paire** : reste un champ texte simple posé par le créateur de la famille sur sa propre perception (ex: "Grand-mère" = grand-mère du créateur), pas une relation stockée dans `relationships` entre le créateur et chaque personne centrale — contrairement aux liens que l'arbre familial (étape 5) sait maintenant capturer pour tout le monde. Pas bloquant, juste incohérent avec le reste du modèle.
 - **Repiocher un fait déjà posé** : autorisé seulement quand il ne reste plus aucun fait jamais posé, en prévenant les joueurs. Forme de l'avertissement à définir (message dans la question, sur l'accueil, par email ?).
+- **Resend en mode test (sandbox)** : en mode test, Resend n'envoie qu'à l'adresse du propriétaire du compte. Pour un vrai test avec 2-3 familles, il faudra probablement un domaine vérifié — à rediscuter le moment venu, malgré la décision de ne pas en acheter pour l'instant (voir « Décisions déjà prises »).
+- **Validation des ajouts aux listes de référence** : une valeur ajoutée par une famille (`list_items`, statut `pending`) doit passer dans la liste globale après validation par nous (`concept.md`). Aucun moyen de le faire n'existe : back-office, simple requête SQL documentée, ou écran réservé ? À décider avec la constitution des listes (voir Feuille de route, étape 2).
 - **Monétisation** (piste ouverte le 2026-11-10, rien de décidé) : voir « Monétisation » dans `concept.md`. À trancher après le premier test, en observant ce que les familles utilisent vraiment.
 
 ## Décisions déjà prises (pour éviter de les re-discuter)
@@ -108,13 +110,55 @@ Décisions de produit ou de sécurité pas encore tranchées — à trancher ava
 - Catalogue de templates géré par nous, pas par les familles, en V1.
 - Pas de maximum technique sur le nombre de personnes centrales (recommandation UI : 1 à 4). Une nouvelle personne centrale peut être ajoutée à tout moment, sans gatekeeper.
 
-## Prochains sujets (à choisir, ou proposer autre chose)
+## Feuille de route (mise à jour le 2026-11-18)
 
-- Emails/notifications (nouvelle session, rappels, résultats, relances de validation) + « prise de main ».
-- Réactions/commentaires sur les faits révélés.
-- Score de contribution + relances si un membre n'a rien ajouté.
-- Application de la direction visuelle aux autres écrans : charte posée dans `docs/design.md` (2026-11-10), à appliquer écran par écran.
-- **Refonte de la navigation (décidée le 2026-11-10)**, détail dans `docs/ecrans.md` (règles communes, écrans 4, 9 à 12). Ordre suggéré :
+Ce qui reste à faire, dans un ordre logique. Le détail de chaque point est dans `docs/ecrans.md`, `docs/concept.md` ou plus haut dans cette page.
+
+### Étape 0 — Sur l'ordinateur relié à Supabase
+
+- La checklist du 2026-11-18 en haut de cette page (migration de l'accord au féminin, `tsc`, lint, tests, vérification à l'écran).
+- Tests manuels jamais faits :
+  - gestes de l'arbre sur téléphone, et avec une grande fratrie (8-9 enfants avec conjoints et enfants) ;
+  - questions avec personne liée (`<conjoint>`), élément choisi (`<pays>`), commune ou lieu, en conditions réelles (écran 5) ;
+  - bouton « Ajouter » d'une valeur de liste côté réponse : noté « à vérifier/activer » (écran 6).
+
+### Étape 1 — Finir la refonte de la navigation (en cours)
+
+1. **Historique (écran 12)** : questions déjà posées et tableau des scores ; demande le **score cumulé** inter-sessions (agrégation en base, pas encore construite). La tuile « Historique » de l'accueil ne fait rien pour l'instant.
+2. **Récapitulatif (écran 11) : toucher une phrase** → détail de la question (réponses de chacun, anecdote, proposer une correction).
+3. **Supprimer l'ancien écran Archives** (`src/app/archive.tsx`), une fois les points 1 et 2 faits (il reste le seul accès au détail d'une question ancienne et aux corrections).
+4. **Panneau de récapitulatif sur petit écran** : à décider puis faire (voir « Points à décider »).
+
+### Étape 2 — Rendre le jeu jouable par de vraies familles
+
+5. **Constituer les listes de référence** (animaux, sports, voitures, métiers, films, personnalités) : **elles sont vides** (seulement « aucun » dans `animaux`, voir `supabase/seed.sql`). Depuis la fermeture des fuites (2026-11-10), un joueur qui répond ne voit que les valeurs validées : il n'a donc **aucune suggestion** aujourd'hui. Sources envisagées : listes à la main (sports, animaux), nomenclature INSEE (métiers), TMDB (films), Wikipédia (voitures).
+6. **Validation des ajouts des familles vers les listes globales** : rien n'existe (voir « Points à décider »).
+7. **Appliquer la charte visuelle aux autres écrans** (réponse, validation, révélation, ajout d'un fait, Mes faits, connexion, création de famille ; l'arbre utilise encore les polices système) et remplacer les symboles (★, ✎, ⚠, ‹) par de vraies icônes.
+
+### Étape 3 — Notifications (pour que le jeu tourne sans intervention)
+
+8. **Emails** : nouvelle question ; rappels à l'auteur pour valider (quand tout le monde a répondu ou 24 h avant la deadline, puis 24 h après, puis 6 jours après) ; message aux joueurs 1 h après la deadline si la révélation attend ; résultats ; correction proposée sur un de ses faits.
+9. **Ce qui en dépend** : prise de main au bout de 7 jours (`concept.md`) ; passage automatique d'une correction restée sans réponse en note (écran 8) ; avertissement en cas de repioche (forme à décider).
+10. **Resend** : mode test limité à l'adresse du propriétaire du compte (voir « Points à décider »).
+11. **Réactiver les tâches planifiées** (désactivées pour la phase de test), après avoir revu le jour et l'heure de la pioche (lundi 8 h aujourd'hui, écran 4).
+
+### Étape 4 — Premier test avec des familles
+
+12. Choisir 2-3 familles testeuses et définir ce qui comptera comme un succès (par exemple la rétention au bout de 4 semaines, voir « Validation / audience »).
+
+### Étape 5 — Après le premier test
+
+- Réactions et commentaires sur les faits révélés (étape 10).
+- Score de contribution et relances des membres qui n'ont rien ajouté.
+- 2e personne quand le sujet répond lui-même (« avez-vous… »).
+- Récapitulatif enrichi : frise chronologique, photos et enregistrements audio (`fact_attachments`, déjà prévu dans le modèle).
+- Famille et arbre : inviter directement une personne centrale qui a un compte (écran 2), vrai lien de parenté créateur ↔ personnes centrales (`relationship_label`, voir « Points à décider »), remariage, modifier/supprimer une personne ou une relation depuis l'arbre.
+- Monétisation, décidée d'après l'usage réel (`concept.md`).
+- Phase 2 : notifications push, builds natifs iOS/Android (étape 13).
+
+### Détail de la refonte de la navigation (décidée le 2026-11-10)
+
+Détail dans `docs/ecrans.md` (règles communes, écrans 4, 9 à 12) :
   1. ~~**Corriger la pioche**~~ : **fait le 2026-11-10** (`pioche.ts` + migration `20261110130000_pioche_never_posed_first.sql`, testés).
   2. ~~**Écran d'accueil (écran 4)**~~ : **fait le 2026-11-11** (`src/app/home.tsx` réécrit, polices Fredoka/Nunito ajoutées au projet, voir `docs/ecrans.md` écran 4). Testé avec des comptes jetables sur 5 des 8 états (démarrage, question, répondu, auteur, révélation, pas-de-prochain-quiz) ; « valider » et « entre-deux » couvrent le même code que des états déjà testés (`get_pending_validations`, déjà vérifié ailleurs) mais pas revérifiés à l'écran. Reste : écran 3 (choix de famille) simplifié en menu déroulant plutôt qu'un vrai écran dédié ; tuile « Historique » sans action tant que l'écran 12 n'existe pas ; vraies icônes vectorielles (glyphes en caractères/Views pour l'instant, comme l'arbre).
   3. **Arbre familial (écran 10)** : **maquette validée le 2026-11-10** (règles complètes dans `docs/ecrans.md`, écran 10). Navigation par générations avec crans verticaux et horizontaux, traits à angle droit pour toutes les familles visibles, amorces, mode consultation à l'arrivée et bouton « Modifier » ; nouveaux types de relation « enfant » et « frère / sœur » (`sibling_of`, migration nécessaire). Module de placement **fait** (`src/lib/family-tree-layout.ts`, `npm run test:layout`), **écran réécrit** (`src/app/family-tree.tsx`) et migration `sibling_of` écrite, le 2026-11-10. **Toucher une personne (fait le 2026-11-11)** : plus de navigation vers `/archive`, panneau latéral inline (arbre poussé à ~20 % de l'écran) — voir écran 11.
@@ -122,5 +166,3 @@ Décisions de produit ou de sécurité pas encore tranchées — à trancher ava
   5. **Historique (écran 12)** : questions déjà posées + tableau des scores. Demande le **score cumulé** inter-sessions (agrégation en base, pas encore construite).
   6. Supprimer l'écran Archives (`src/app/archive.tsx`) une fois remplacé par les écrans 10 à 12 : **pas encore** — c'est aujourd'hui le seul accès au détail d'une question/proposition de correction au-delà de la dernière révélation (voir écran 9 et 11 dans `ecrans.md`), à reprendre avec l'écran 12.
   7. Propositions de correction : badge sur « Mes faits », email en attendant les notifications push (phase 2).
-- Vraie capture par paire du lien de parenté créateur ↔ personnes centrales (`relationship_label`), voir « Points à décider ».
-- Phase 2 : notifications push, builds natifs iOS/Android.
