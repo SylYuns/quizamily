@@ -376,6 +376,7 @@ Ce qui est fait :
 - dernière personne consultée mémorisée sur l'appareil, par famille ;
 - alerte « N personnes sans relation » (ouvre le mode Modifier) ;
 - **touche une personne (2026-11-11)** : pas de navigation — l'arbre est poussé sur la gauche (~20 % de l'écran, le reste redevient plein écran en touchant « Modifier » ou en fermant le panneau) et un panneau apparaît à droite avec son récapitulatif (écran 11, voir plus bas), chargé via `get_archive_summary` (`src/lib/recap.ts` pour l'assemblage) ;
+  - **À revoir (2026-11-18)** : les ~20 % ont été choisis au hasard ; sur un téléphone (390 px), l'arbre ne ferait plus qu'environ 80 px de large, moins d'une carte. Prévoir une autre présentation sur petit écran (voir « Points à décider » dans `roadmap.md`).
 - mode Modifier : toucher une personne la sélectionne (ferme le panneau de consultation s'il était ouvert) ; boutons « + Conjoint·e » (si elle n'en a pas), « + Enfant » (enfant du couple), « + Frère ou sœur » (rattaché aux parents s'ils sont connus, sinon lien `sibling_of` ; pas proposé pour un conjoint), « Relier à une personne… » (conjoint·e / parent / enfant / frère ou sœur de, personnes sans relation en tête) ; encart des personnes à placer.
 
 Écarts avec la maquette, à reprendre si besoin :
