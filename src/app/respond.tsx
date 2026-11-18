@@ -18,6 +18,7 @@ type QuestionState = {
   answerInputKind: string;
   template: Template;
   subjectName: string;
+  subjectGender: "homme" | "femme" | null;
   relatedName: string | null;
   slotValues: Record<string, string> | null;
   result: string;
@@ -97,7 +98,7 @@ export default function RespondScreen() {
       const { data: quizQuestion } = await supabase
         .from("quiz_questions")
         .select(
-          "id, facts (id, author_person_id, subject_person_id, slot_values, question_templates (*), persons:subject_person_id (display_name), relatedPerson:related_person_id (display_name))",
+          "id, facts (id, author_person_id, subject_person_id, slot_values, question_templates (*), persons:subject_person_id (display_name, gender), relatedPerson:related_person_id (display_name))",
         )
         .eq("session_id", session.id)
         .limit(1)
@@ -114,7 +115,7 @@ export default function RespondScreen() {
         subject_person_id: string;
         slot_values: Record<string, string> | null;
         question_templates: Template;
-        persons: { display_name: string } | null;
+        persons: { display_name: string; gender: "homme" | "femme" | null } | null;
         relatedPerson: { display_name: string } | null;
       };
 
@@ -147,6 +148,7 @@ export default function RespondScreen() {
             facts.persons?.display_name ?? "?",
             facts.relatedPerson?.display_name ?? null,
             facts.slot_values,
+            facts.persons?.gender ?? null,
           );
           const pendingGroups = (pendingData?.pending as { count: number }[] | undefined) ?? [];
           setOwnQuestion({
@@ -171,6 +173,7 @@ export default function RespondScreen() {
         answerInputKind: facts.question_templates.answer_input_kind,
         template: facts.question_templates,
         subjectName: facts.persons?.display_name ?? "?",
+        subjectGender: facts.persons?.gender ?? null,
         relatedName: facts.relatedPerson?.display_name ?? null,
         slotValues: facts.slot_values,
         result: recipient.result,
@@ -344,6 +347,7 @@ export default function RespondScreen() {
     question.subjectName,
     question.relatedName,
     question.slotValues,
+    question.subjectGender,
   );
 
   return (

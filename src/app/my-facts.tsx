@@ -22,6 +22,7 @@ type Fact = {
   created_at: string;
   template: Template;
   subjectName: string;
+  subjectGender: "homme" | "femme" | null;
   relatedName: string | null;
   slotValues: Record<string, string> | null;
   postedStatus: PostedStatus;
@@ -80,7 +81,7 @@ export default function MyFactsScreen() {
       const { data, error: factsError } = await supabase
         .from("facts")
         .select(
-          "id, context_text, created_at, slot_values, question_templates (*), subject:persons!subject_person_id (display_name), related:persons!related_person_id (display_name)",
+          "id, context_text, created_at, slot_values, question_templates (*), subject:persons!subject_person_id (display_name, gender), related:persons!related_person_id (display_name)",
         )
         .eq("author_person_id", me.id)
         .eq("status", "active")
@@ -130,6 +131,8 @@ export default function MyFactsScreen() {
           created_at: row.created_at,
           template: row.question_templates as unknown as Template,
           subjectName: (row.subject as unknown as { display_name: string } | null)?.display_name ?? "?",
+          subjectGender:
+            (row.subject as unknown as { gender: "homme" | "femme" | null } | null)?.gender ?? null,
           relatedName: (row.related as unknown as { display_name: string } | null)?.display_name ?? null,
           slotValues: (row.slot_values as Record<string, string> | null) ?? null,
           postedStatus: statusByFactId.get(row.id) ?? "not_posed",
@@ -245,6 +248,7 @@ export default function MyFactsScreen() {
             fact.subjectName,
             fact.relatedName,
             fact.slotValues,
+            fact.subjectGender,
           );
 
           return (

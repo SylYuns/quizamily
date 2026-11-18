@@ -406,6 +406,8 @@ Affiche :
 
 Rédaction sans IA : chaque template du catalogue a une **phrase de récapitulatif** (champ `recap` dans `question-templates.toml`, ex : « {Sujet} est {né|née} le {réponse}. »), et `src/lib/recap.ts` assemble les phrases par catégorie. Accord au féminin géré pour `recap` (`{forme_homme|forme_femme}`, `{Sujet}`/`{sujet}` → « Il »/« il » ou « Elle »/« elle ») ; **simplification actée le 2026-11-11** par rapport à la convention `<sujet>` d'origine : le pronom en tête de la toute première phrase de la bio est remplacé par le prénom (ex : « Juliette est née... » puis « Elle a... » pour la suite), plutôt que de répéter le prénom partout. Les textes de question (`text`) restent au masculin (chantier séparé, voir `question-templates.toml`).
 
+**Questions accordées aussi (2026-11-18)** : les textes de question (`template_text`) utilisent la même notation `{forme_homme|forme_femme}` ; la règle est partagée dans `src/lib/gender.ts` (questions et récapitulatif côté app) et `apply_gender_tokens()` côté base (textes assemblés par `get_revealed_question` et `get_archive_summary`). Masculin si le genre est inconnu.
+
 Actions :
 - **Pas encore fait** : toucher une phrase → le détail de la question (même contenu que la révélation, écran 8) : réponses de chacun, auteur, anecdote, et proposition de correction. Pour l'instant, cet accès au détail (et aux propositions de correction sur un fait plus ancien que la dernière révélation) n'existe que via `src/app/archive.tsx`, gardé en attendant que cette action soit reprise ici et que l'écran 12 existe (voir écran 9 et `roadmap.md`).
 

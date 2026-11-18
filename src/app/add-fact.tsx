@@ -10,6 +10,7 @@ import { CATEGORY_LABELS, CATEGORY_ORDER } from "@/constants/categories";
 import { COUNTRIES } from "@/constants/countries";
 import { Spacing } from "@/constants/theme";
 import { parseAnswerValue } from "@/lib/answer-value";
+import { resolveGenderedTokens, type Gender } from "@/lib/gender";
 import { ensureListItemExists } from "@/lib/list-items";
 import { supabase } from "@/lib/supabase";
 import { Template } from "@/types/question-template";
@@ -47,8 +48,9 @@ function substituteTemplateText(
   subjectName: string,
   relatedName: string | null,
   slotValues: Record<string, string>,
+  subjectGender: Gender = null,
 ): string {
-  let text = t.template_text.replace("<sujet>", subjectName);
+  let text = resolveGenderedTokens(t.template_text, subjectGender).replace("<sujet>", subjectName);
   if (t.related_role) {
     text = text.replace(`<${t.related_role}>`, relatedName ?? "son/sa conjoint·e");
   }
@@ -274,7 +276,8 @@ export default function AddFactScreen() {
     const query = searchText.trim().toLowerCase();
     return templates.filter((t) => {
       if (selectedCategory && t.category !== selectedCategory) return false;
-      if (query.length > 0 && !t.template_text.toLowerCase().includes(query)) return false;
+      // Recherche dans le texte accordé (masculin par défaut), pas dans la notation {il|elle}.
+      if (query.length > 0 && !resolveGenderedTokens(t.template_text, null).toLowerCase().includes(query)) return false;
       return true;
     });
   }, [templates, selectedCategory, searchText]);
@@ -610,7 +613,7 @@ export default function AddFactScreen() {
                   return (
                     <Pressable key={t.id} onPress={() => selectTemplate(t)} style={styles.questionOption}>
                       <ThemedText>
-                        {substituteTemplateText(t, subject?.display_name ?? "", knownRelated?.display_name ?? null, {})}
+                        {substituteTemplateText(t, subject?.display_name ?? "", knownRelated?.display_name ?? null, {}, subject?.gender)}
                       </ThemedText>
                     </Pressable>
                   );
@@ -633,7 +636,7 @@ export default function AddFactScreen() {
             <View style={{ gap: Spacing.three }}>
               <View style={[styles.card, styles.chipSelected]}>
                 <ThemedText style={{ color: "#ffffff" }}>
-                  {substituteTemplateText(selectedTemplate, subject?.display_name ?? "", relatedPerson?.display_name ?? null, slotValues)}
+                  {substituteTemplateText(selectedTemplate, subject?.display_name ?? "", relatedPerson?.display_name ?? null, slotValues, subject?.gender)}
                 </ThemedText>
               </View>
 

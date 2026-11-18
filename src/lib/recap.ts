@@ -5,6 +5,7 @@
 // par le prénom pour la toute première phrase de la bio), {réponse}, <conjoint>/<pays>.
 import { CATEGORY_LABELS, CATEGORY_ORDER } from "@/constants/categories";
 import { formatAnswerDisplay } from "@/lib/format-answer";
+import { resolveGenderedTokens } from "@/lib/gender";
 
 export type RecapFact = {
   category: string;
@@ -17,16 +18,6 @@ export type RecapFact = {
 };
 
 export type RecapCategory = { category: string; label: string; text: string };
-
-function resolveGenderedTokens(text: string, gender: "homme" | "femme" | null): string {
-  const isFemme = gender === "femme";
-  let result = text.replace(/\{([^{}|]+)\|([^{}|]+)\}/g, (_match, homme: string, femme: string) =>
-    isFemme ? femme : homme,
-  );
-  result = result.replace(/\{Sujet\}/g, isFemme ? "Elle" : "Il");
-  result = result.replace(/\{sujet\}/g, isFemme ? "elle" : "il");
-  return result;
-}
 
 function resolveFactSentence(fact: RecapFact, gender: "homme" | "femme" | null): string | null {
   if (!fact.recap) return null;

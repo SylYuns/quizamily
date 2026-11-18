@@ -8,6 +8,13 @@ Le MVP fonctionne de bout en bout en version simple, testé avec des comptes jet
 
 ## À faire sur l'ordinateur avec Supabase
 
+**À faire (2026-11-18)** — accord au féminin dans les questions :
+
+- [ ] **Récupérer les derniers commits** : `git pull`.
+- [ ] **Appliquer la migration** `20261118100000_gendered_question_texts.sql` : `npx supabase db push`. Elle met à jour les textes des 19 questions concernées, ajoute `apply_gender_tokens()` et fait passer le genre du sujet à `substitute_question_text()` (utilisée par `get_revealed_question` et `get_archive_summary`).
+- [ ] **Vérifier l'app** : `npx tsc --noEmit`, `npx expo lint`, et les tests `npm run test:gender` (6), `npm run test:layout` (19), `npm run test:pioche` (6) — les trois passent dans l'environnement de Claude, mais `tsc` et le lint n'ont pas pu y être lancés. Fichiers modifiés : `src/lib/gender.ts` (nouveau), `src/lib/recap.ts`, `src/lib/question-text.ts`, `src/app/respond.tsx`, `src/app/my-facts.tsx`, `src/app/add-fact.tsx`.
+- [ ] **Vérifier à l'écran**, avec une personne centrale femme et une homme : le texte des questions accordé dans le choix d'une question (ajout d'un fait), l'écran de réponse, « Ma question », « Mes faits », la révélation et les archives (ex : « À quel âge Marie a-t-elle appris à nager ? »).
+
 **Fait le 2026-11-11** (revu et exécuté par Claude depuis l'ordinateur relié à Supabase) :
 
 - [x] **Récupérer les derniers commits** : `git pull` (874152d, puis un correctif de lint en c0eaf91 — voir plus bas).
@@ -79,7 +86,7 @@ Décisions de produit ou de sécurité pas encore tranchées — à trancher ava
 
 - **Emails/notifications** : aucune vraie notification n'existe encore (nouvelle session, rappel, relance de validation, résultats) — le calcul de timing ("24h avant la deadline") existe déjà côté logique (réutilisé pour débloquer la validation anonyme), mais rien n'envoie d'email. Fournisseur : Resend reste actif, en sandbox (pas de domaine vérifié — décision déjà prise de ne pas en acheter un pour l'instant, voir ci-dessous).
 - **« Prise de main »** : un joueur reprenant la validation des réponses libres à la place de l'auteur après 7 jours (prévu dans `concept.md`) — pas construit, dépend des notifications ci-dessus.
-- **Accord grammatical féminin/masculin** : **décidé le 2026-11-18 : accord aussi dans les questions posées aux joueurs** (« En quelle année Mamie a-t-elle pris l'avion ? »). Déjà fait pour le récapitulatif (2026-11-11, `src/lib/recap.ts`, notation `{forme_homme|forme_femme}`) ; reste à l'étendre aux 32 textes de questions (`template_text`). La 2e personne quand le sujet répond lui-même (« avez-vous… ») reste souhaitable mais pas prioritaire.
+- ~~**Accord grammatical féminin/masculin**~~ : **fait le 2026-11-18** pour les questions posées aux joueurs (19 des 32 textes accordés, notation `{forme_homme|forme_femme}` commune avec le récapitulatif, module `src/lib/gender.ts` côté app et `apply_gender_tokens()` côté base, rendus identiques vérifiés sur les 32 textes × 3 genres) ; masculin si le genre est inconnu. Migration à appliquer (voir « À faire sur l'ordinateur avec Supabase »). Reste : la 2e personne quand le sujet répond lui-même (« avez-vous… »), souhaitable mais pas prioritaire.
 - ~~**Fuite résiduelle, type `list`**~~ : **corrigée le 2026-11-10**. Sur l'écran de réponse, le champ ne propose plus que les valeurs validées de la liste globale, pas celles ajoutées par la famille (dont celle que l'auteur vient d'ajouter en créant le fait) ; le joueur peut toujours taper une valeur. Reste théorique : la liste des valeurs ajoutées par la famille est lisible par une requête directe sur `list_items`, mais sans lien avec un fait.
 - ~~**Fuite résiduelle, `facts.answer_value`**~~ : **corrigée le 2026-11-10** (migration `20261110140000_hide_answers_from_direct_reads.sql`). Les colonnes `facts.answer_value`, `answer_history`, `pending_correction` et `quiz_questions.answer_value_snapshot` ne sont plus lisibles par requête directe ; l'appli passe par `get_fact_answer` (auteur, ou tout membre après révélation) et `get_my_fact_answers` (« Mes faits »).
 - **Direction visuelle** (coloré/chaleureux, bleu-blanc-rouge — charte dans `docs/design.md`) : **appliquée à l'accueil, à l'arbre et au panneau de récapitulatif** (2026-11-10/11). Reste à l'appliquer aux autres écrans (réponse, validation, révélation, ajout d'un fait, Mes faits, archives, connexion, création de famille), qui gardent un style minimal.
