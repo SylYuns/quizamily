@@ -1,0 +1,99 @@
+# Sports (question : sport favori pendant l'enfance).
+# Une valeur par ligne. Après modification : node scripts/build-list-items.mjs
+Football
+Rugby
+Basket-ball
+Handball
+Volley-ball
+Beach-volley
+Tennis
+Tennis de table
+Badminton
+Padel
+Squash
+Pelote basque
+Natation
+Natation synchronisée
+Plongeon
+Plongée sous-marine
+Water-polo
+Aviron
+Canoë-kayak
+Voile
+Planche à voile
+Surf
+Ski nautique
+Ski alpin
+Ski de fond
+Saut à ski
+Snowboard
+Biathlon
+Patinage artistique
+Patinage de vitesse
+Hockey sur glace
+Luge
+Curling
+Athlétisme
+Course à pied
+Marathon
+Cross-country
+Saut en hauteur
+Saut en longueur
+Saut à la perche
+Lancer du javelot
+Lancer du poids
+Cyclisme
+VTT
+BMX
+Triathlon
+Gymnastique
+Gymnastique rythmique
+Trampoline
+Danse
+Danse classique
+Majorettes
+Judo
+Karaté
+Taekwondo
+Aïkido
+Kung-fu
+Boxe
+Boxe française
+Lutte
+Escrime
+Tir à l'arc
+Tir sportif
+Équitation
+Golf
+Pétanque
+Boules lyonnaises
+Billard
+Fléchettes
+Bowling
+Quilles
+Échecs
+Dames
+Randonnée
+Escalade
+Alpinisme
+Spéléologie
+Course d'orientation
+Roller
+Patin à roulettes
+Skateboard
+Hockey sur gazon
+Baseball
+Football américain
+Cricket
+Sport automobile
+Karting
+Moto
+Motocross
+Parachutisme
+Parapente
+Musculation
+Fitness
+Yoga
+Aquagym
+Pêche
+Chasse

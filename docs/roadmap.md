@@ -8,6 +8,15 @@ Le MVP fonctionne de bout en bout en version simple, testé avec des comptes jet
 
 ## À faire sur l'ordinateur avec Supabase
 
+**À faire (2026-11-19)** — listes de référence (préparé depuis un environnement sans Supabase ni accès à Wikidata : migrations testées sur un Postgres local avec les droits de Supabase, script Wikidata **jamais lancé**) :
+
+- [ ] **Récupérer les derniers commits** : `git pull`.
+- [ ] **Lancer le script Wikidata** : `node scripts/wikidata-listes.mjs` (Node 18+, internet). Écrit `data/listes/films.txt` et `data/listes/personnalites/<catégorie>.txt`. Le script n'a pas pu être testé : en cas d'erreur de requête ou de délai dépassé, me donner le message ; regarder les fichiers produits (quantités, valeurs bizarres) et régler `CONFIG` en tête du script si besoin (seuils `minLinks`, nombres `max`).
+- [ ] **Générer la migration des valeurs** : `node scripts/build-list-items.mjs` (écrit une nouvelle migration `<horodatage>_list_items_data.sql` avec toutes les listes, y compris films et personnalités). La migration `20261119093355_list_items_data.sql` déjà présente contient animaux, sports, métiers et voitures : on peut la garder (la nouvelle ne réinsère pas les doublons).
+- [ ] **Appliquer les migrations** : `npx supabase db push` (`20261119090000_list_items_search.sql` : colonnes `category`/`search_key`, fonction `search_list_items`, `list_category` du premier concert ; puis la ou les migrations de valeurs).
+- [ ] **Vérifier l'app** : `npx tsc --noEmit`, `npx expo lint` (fichiers modifiés : `src/components/answer-input.tsx`, `src/lib/list-items.ts`, `src/app/add-fact.tsx`, `src/types/question-template.ts`).
+- [ ] **Vérifier à l'écran** : ajout d'un fait « voiture » (taper « reno » → Renault, Renault 4L…), valeur absente ajoutée pour la famille ; réponse à une question liste (seules les valeurs globales proposées, saisie complète possible) ; premier concert → seulement des artistes de musique.
+
 **Fait le 2026-11-18** (revu et exécuté par Claude depuis l'ordinateur relié à Supabase) — accord au féminin dans les questions :
 
 - [x] **Récupérer les derniers commits** : `git pull` (8cd8b63, 8bb1506, 9ae3f4f), avance rapide propre.
@@ -131,8 +140,8 @@ Ce qui reste à faire, dans un ordre logique. Le détail de chaque point est dan
 
 ### Étape 2 — Rendre le jeu jouable par de vraies familles
 
-5. **Constituer les listes de référence** (animaux, sports, voitures, métiers, films, personnalités) : **elles sont vides** (seulement « aucun » dans `animaux`, voir `supabase/seed.sql`). Depuis la fermeture des fuites (2026-11-10), un joueur qui répond ne voit que les valeurs validées : il n'a donc **aucune suggestion** aujourd'hui. Sources envisagées : listes à la main (sports, animaux), nomenclature INSEE (métiers), TMDB (films), Wikipédia (voitures).
-6. **Validation des ajouts des familles vers les listes globales** : rien n'existe (voir « Points à décider »).
+5. **Constituer les listes de référence** *(préparé le 2026-11-19, reste à lancer et appliquer : voir « À faire sur l'ordinateur avec Supabase »)* : fichiers texte dans `data/listes/` (mode d'emploi : `data/listes/LISEZMOI.md`), transformés en migration par `scripts/build-list-items.mjs`. À la main : animaux (42), sports (97), métiers (325, forme « masculin / féminin », métiers anciens compris), voitures (248 : marques seules + « Marque Modèle »). Depuis Wikidata (`scripts/wikidata-listes.mjs`, à lancer) : films (« Titre (année) ») et personnalités par catégorie (musique, politique, sport, cinema, television, litterature, arts, sciences). Champ de saisie : recherche au fil de la frappe côté serveur (`search_list_items`, insensible aux accents, espaces, tirets, apostrophes), 8 propositions, les plus proches d'abord ; une question peut limiter la recherche à une catégorie (`list_category`, ex : premier concert → musique).
+6. **Validation des ajouts des familles vers les listes globales** : rien n'existe (voir « Points à décider »). Principe validé le 2026-11-19, à travailler plus tard.
 7. **Appliquer la charte visuelle aux autres écrans** (réponse, validation, révélation, ajout d'un fait, Mes faits, connexion, création de famille ; l'arbre utilise encore les polices système) et remplacer les symboles (★, ✎, ⚠, ‹) par de vraies icônes.
 
 ### Étape 3 — Notifications (pour que le jeu tourne sans intervention)

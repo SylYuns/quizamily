@@ -9,6 +9,8 @@
 #
 # Champs optionnels :
 #   list       nom de la liste de référence (si kind = "list")
+#   list_category  catégorie de la liste à proposer (ex : "musique" pour personnalites) ;
+#              sans ce champ, toutes les catégories de la liste sont proposées
 #   related    personne liée nécessaire (ex : "conjoint")
 #   slots      autres éléments à choisir par l'auteur du fait (ex : ["pays"])
 #   condition  condition sur le sujet pour que la question soit proposée
@@ -37,6 +39,9 @@
 #   free_text   saisie libre, réponses des joueurs validées par l'auteur du fait
 #
 # Listes de référence : animaux, sports, voitures, metiers, films, personnalites
+#   Valeurs dans data/listes/ (voir data/listes/LISEZMOI.md).
+#   personnalites est découpée en catégories : musique, politique, sport, cinema, television,
+#   litterature, arts, sciences.
 #
 # Accord au féminin (2026-11-18) : `text` utilise la même notation que `recap`,
 # {forme_homme|forme_femme} (ex : « a-t-{il|elle} appris », « est-{il|elle} {allé|allée} »),
@@ -256,6 +261,7 @@ status = "mvp"
 text = "Quel artiste <sujet> est-{il|elle} {allé|allée} voir lors de son premier concert ?"
 kind = "list"
 list = "personnalites"
+list_category = "musique"
 recap = "Le premier concert de {sujet} était celui de {réponse}."
 
 [[template]]

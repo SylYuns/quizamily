@@ -35,10 +35,15 @@ question_templates         -- catalogue global, édité par nous (pas par les fa
   id, category, template_text, slot_config, answer_input_kind
   -- answer_input_kind: 'date' | 'year' | 'age' | 'number' | 'country' | 'city' | 'place' | 'first_name' | 'list' | 'free_text'
   -- 'place' : l'auteur du fait choisit entre pays et commune ; 'list' : liste de référence enrichissable
+  -- list_category : catégorie de list_items proposée (ex : 'musique' pour premier-concert-artiste) ; null = toutes
   -- catalogue source : docs/question-templates.toml
 
 list_items                 -- valeurs des listes de référence enrichissables (animaux, sports, voitures, metiers, films, personnalites)
   id, list_name, value
+  category                  -- sous-liste (ex : 'musique', 'politique' pour personnalites) ; null pour les listes non découpées
+  search_key                -- normalize_answer_text(value), rempli par trigger ; sert à search_list_items()
+  -- sources : data/listes/ (voir data/listes/LISEZMOI.md), migration générée par scripts/build-list-items.mjs
+  -- recherche : search_list_items(list_name, query, category, family_id, limit) — droits de l'appelant (RLS)
   status                    -- 'pending' (visible seulement dans la famille qui l'a ajoutée) | 'approved' (global, visible de toutes les familles)
   family_id                 -- rempli si status='pending' ; null une fois 'approved'
   created_by_person_id, created_at
@@ -90,7 +95,7 @@ fact_comments
 - **Destinataires** : `question_recipients` n'inclut jamais l'auteur du fait ; il inclut le sujet s'il a un compte (`kind='player'`).
 - **`answer_value_snapshot`** sur `quiz_questions` permet de recalculer le résultat de chaque `question_recipients` après une correction : comparer `answer_given` à la fois à l'ancienne valeur (snapshot) et à la nouvelle valeur (`facts.answer_value` courant).
 - **`contribution_stats`** (score de contribution par membre) est une vue calculée à partir de `facts.author_person_id`, pas une table dédiée.
-- **`list_items` (état au 2026-11-18)** : les listes de référence sont encore vides (seul `animaux` → « aucun » dans `supabase/seed.sql`), et aucun mécanisme ne fait passer une valeur `pending` d'une famille en `approved` (liste globale). À constituer avant un test avec des familles : voir « Feuille de route », étape 2, dans `roadmap.md`.
+- **`list_items` (état au 2026-11-19)** : listes préparées (`data/listes/`, voir « Feuille de route », étape 2, point 5 dans `roadmap.md`) ; films et personnalités restent à générer depuis Wikidata. Aucun mécanisme ne fait encore passer une valeur `pending` d'une famille en `approved` (liste globale). En réponse, un joueur ne voit que les valeurs `approved` : une valeur ajoutée par l'auteur du fait n'est donc pas proposée aux joueurs tant qu'elle n'est pas validée (ils doivent la taper en entier).
 - **`gender`** sert à filtrer les templates à condition (`femme`/`homme`) et à l'accord grammatical des questions et du récapitulatif (notation `{forme_homme|forme_femme}`, `src/lib/gender.ts` côté app et `apply_gender_tokens()` côté base, 2026-11-18 ; masculin si non renseigné). Si non renseigné, un template conditionné par le genre n'est simplement pas proposé (défaut permissif, pas de blocage).
 - **`fact_attachments`** : un fait peut avoir plusieurs pièces jointes (photo d'archive, enregistrement audio), affichées à la révélation comme le contexte texte. Fonctionnalité repoussée après le MVP (voir `roadmap.md`), mais le modèle de données la supporte dès maintenant.
 - **RLS en place, mais incomplet par design pour l'instant** (voir `supabase/migrations/20261106130000_rls_policies.sql`, `20261109170000_question_recipients_answer_policy.sql` et `20261109190000_reveal_and_secure_answers.sql`) : l'accès est scopé par famille partout, mais des points restent volontairement en dehors de la RLS générique :

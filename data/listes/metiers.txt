@@ -1,0 +1,353 @@
+# Métiers (questions : premier métier, métier rêvé).
+# Volontairement large dans le temps : on parle aussi de la vie des grands-parents.
+# Forme « masculin / féminin » quand les deux diffèrent.
+# Une valeur par ligne. Après modification : node scripts/build-list-items.mjs
+
+# --- Agriculture, nature
+Agriculteur / agricultrice
+Éleveur / éleveuse
+Viticulteur / viticultrice
+Vigneron / vigneronne
+Maraîcher / maraîchère
+Arboriculteur / arboricultrice
+Horticulteur / horticultrice
+Jardinier / jardinière
+Paysagiste
+Ouvrier agricole / ouvrière agricole
+Valet de ferme
+Berger / bergère
+Bûcheron / bûcheronne
+Forestier / forestière
+Garde forestier / garde forestière
+Garde-chasse
+Pêcheur / pêcheuse
+Marin-pêcheur
+Ostréiculteur / ostréicultrice
+Apiculteur / apicultrice
+Maréchal-ferrant
+Vétérinaire
+
+# --- Artisanat, bâtiment
+Maçon / maçonne
+Charpentier / charpentière
+Menuisier / menuisière
+Ébéniste
+Couvreur / couvreuse
+Plombier / plombière
+Chauffagiste
+Électricien / électricienne
+Peintre en bâtiment
+Plâtrier / plâtrière
+Carreleur / carreleuse
+Serrurier / serrurière
+Vitrier / vitrière
+Tailleur de pierre
+Forgeron / forgeronne
+Ferronnier / ferronnière
+Soudeur / soudeuse
+Chaudronnier / chaudronnière
+Tourneur / tourneuse
+Fraiseur / fraiseuse
+Ajusteur / ajusteuse
+Mécanicien / mécanicienne
+Carrossier / carrossière
+Garagiste
+Tapissier / tapissière
+Cordonnier / cordonnière
+Sellier / sellière
+Tonnelier / tonnelière
+Horloger / horlogère
+Bijoutier / bijoutière
+Orfèvre
+Potier / potière
+Céramiste
+Souffleur de verre
+Relieur / relieuse
+Imprimeur / imprimeuse
+Typographe
+Luthier / luthière
+Architecte
+Conducteur de travaux / conductrice de travaux
+Chef de chantier
+Géomètre
+Grutier / grutière
+Terrassier / terrassière
+
+# --- Industrie, mines
+Ouvrier d'usine / ouvrière d'usine
+Ouvrier spécialisé / ouvrière spécialisée
+Mineur / mineuse
+Sidérurgiste
+Métallurgiste
+Fondeur / fondeuse
+Tisserand / tisserande
+Fileur / fileuse
+Ouvrier du textile / ouvrière du textile
+Ouvrier de la chaussure / ouvrière de la chaussure
+Papetier / papetière
+Chimiste
+Technicien / technicienne
+Contremaître
+Chef d'atelier
+Dessinateur industriel / dessinatrice industrielle
+Ingénieur / ingénieure
+Électronicien / électronicienne
+Opérateur de production / opératrice de production
+Cariste
+Magasinier / magasinière
+
+# --- Alimentation, commerce, restauration
+Boulanger / boulangère
+Pâtissier / pâtissière
+Boucher / bouchère
+Charcutier / charcutière
+Poissonnier / poissonnière
+Fromager / fromagère
+Épicier / épicière
+Crémier / crémière
+Primeur
+Meunier / meunière
+Chocolatier / chocolatière
+Confiseur / confiseuse
+Traiteur
+Cuisinier / cuisinière
+Chef cuisinier / cheffe cuisinière
+Commis de cuisine
+Plongeur / plongeuse
+Serveur / serveuse
+Garçon de café
+Barman / barmaid
+Sommelier / sommelière
+Restaurateur / restauratrice
+Cafetier / cafetière
+Hôtelier / hôtelière
+Réceptionniste
+Commerçant / commerçante
+Vendeur / vendeuse
+Caissier / caissière
+Marchand ambulant / marchande ambulante
+Forain / foraine
+Représentant de commerce / représentante de commerce
+Commercial / commerciale
+Libraire
+Fleuriste
+Quincaillier / quincaillière
+Droguiste
+Buraliste
+Marchand de journaux / marchande de journaux
+Antiquaire
+Brocanteur / brocanteuse
+Pompiste
+Chef de rayon / cheffe de rayon
+Directeur de magasin / directrice de magasin
+
+# --- Mode, beauté
+Couturier / couturière
+Tailleur / tailleuse
+Modiste
+Chapelier / chapelière
+Brodeuse
+Repasseuse
+Blanchisseuse
+Lingère
+Teinturier / teinturière
+Coiffeur / coiffeuse
+Barbier
+Esthéticienne
+Maquilleur / maquilleuse
+Mannequin
+Styliste
+
+# --- Transports
+Chauffeur routier / chauffeuse routière
+Chauffeur de taxi / chauffeuse de taxi
+Chauffeur de bus / chauffeuse de bus
+Chauffeur-livreur / chauffeuse-livreuse
+Livreur / livreuse
+Déménageur / déménageuse
+Cheminot / cheminote
+Conducteur de train / conductrice de train
+Contrôleur / contrôleuse
+Aiguilleur / aiguilleuse
+Chef de gare / cheffe de gare
+Docker
+Marin
+Matelot
+Capitaine de navire
+Batelier / batelière
+Pilote de ligne
+Hôtesse de l'air / steward
+Contrôleur aérien / contrôleuse aérienne
+Mécanicien d'avion / mécanicienne d'avion
+Facteur / factrice
+Postier / postière
+Coursier / coursière
+Ambulancier / ambulancière
+Moniteur d'auto-école / monitrice d'auto-école
+
+# --- Santé, social
+Médecin
+Médecin généraliste
+Chirurgien / chirurgienne
+Dentiste
+Pharmacien / pharmacienne
+Préparateur en pharmacie / préparatrice en pharmacie
+Infirmier / infirmière
+Aide-soignant / aide-soignante
+Sage-femme
+Kinésithérapeute
+Orthophoniste
+Opticien / opticienne
+Psychologue
+Psychiatre
+Radiologue
+Laborantin / laborantine
+Auxiliaire de puériculture
+Puéricultrice
+Assistante maternelle
+Nourrice
+Aide à domicile
+Aide ménagère
+Assistant social / assistante sociale
+Éducateur spécialisé / éducatrice spécialisée
+Brancardier / brancardière
+
+# --- Enseignement, recherche, culture
+Instituteur / institutrice
+Professeur des écoles / professeure des écoles
+Professeur / professeure
+Maître d'école / maîtresse d'école
+Directeur d'école / directrice d'école
+Surveillant / surveillante
+Éducateur / éducatrice
+Moniteur de colonie / monitrice de colonie
+Animateur / animatrice
+Bibliothécaire
+Documentaliste
+Chercheur / chercheuse
+Scientifique
+Archéologue
+Historien / historienne
+Écrivain / écrivaine
+Journaliste
+Photographe
+Traducteur / traductrice
+Interprète
+Musicien / musicienne
+Chanteur / chanteuse
+Comédien / comédienne
+Acteur / actrice
+Danseur / danseuse
+Peintre
+Sculpteur / sculptrice
+Dessinateur / dessinatrice
+Graphiste
+Réalisateur / réalisatrice
+Cameraman
+Ingénieur du son / ingénieure du son
+Présentateur / présentatrice
+Animateur radio / animatrice radio
+Clown
+Artiste de cirque
+Magicien / magicienne
+
+# --- Bureau, administration, finance
+Secrétaire
+Dactylo
+Sténodactylo
+Standardiste
+Employé de bureau / employée de bureau
+Comptable
+Aide-comptable
+Expert-comptable / experte-comptable
+Banquier / banquière
+Employé de banque / employée de banque
+Guichetier / guichetière
+Assureur / assureuse
+Agent immobilier / agente immobilière
+Notaire
+Clerc de notaire
+Huissier de justice / huissière de justice
+Avocat / avocate
+Juge
+Greffier / greffière
+Fonctionnaire
+Employé de mairie / employée de mairie
+Secrétaire de mairie
+Agent des impôts / agente des impôts
+Douanier / douanière
+Inspecteur / inspectrice
+Directeur / directrice
+Cadre
+Chef d'entreprise / cheffe d'entreprise
+Commerçant indépendant / commerçante indépendante
+Gérant / gérante
+Responsable des ressources humaines
+Informaticien / informaticienne
+Développeur / développeuse
+Ingénieur informatique / ingénieure informatique
+Chef de projet / cheffe de projet
+Consultant / consultante
+Statisticien / statisticienne
+
+# --- Sécurité, défense
+Militaire
+Soldat
+Officier / officière
+Sous-officier / sous-officière
+Gendarme
+Policier / policière
+Commissaire de police
+Garde champêtre
+Pompier / pompière
+Sapeur-pompier / sapeuse-pompière
+Agent de sécurité / agente de sécurité
+Gardien de prison / gardienne de prison
+Maître-nageur / maîtresse-nageuse
+
+# --- Services, entretien
+Concierge
+Gardien d'immeuble / gardienne d'immeuble
+Agent d'entretien / agente d'entretien
+Femme de ménage
+Employé de maison / employée de maison
+Majordome
+Gouvernante
+Domestique
+Cuisinière de maison
+Chauffeur de maître
+Ramoneur / ramoneuse
+Éboueur / éboueuse
+Fossoyeur / fossoyeuse
+Croque-mort
+Agent de voirie / agente de voirie
+Jardinier municipal / jardinière municipale
+
+# --- Religion, divers
+Prêtre
+Religieuse
+Pasteur / pasteure
+Moine
+Sportif professionnel / sportive professionnelle
+Footballeur professionnel / footballeuse professionnelle
+Coureur cycliste / coureuse cycliste
+Jockey
+Entraîneur / entraîneuse
+Moniteur de ski / monitrice de ski
+Guide de montagne
+Guide touristique
+Astronaute
+Pilote de course
+Homme politique / femme politique
+Maire
+Député / députée
+Diplomate
+Explorateur / exploratrice
+Inventeur / inventrice
+Vétérinaire de zoo
+Dresseur / dresseuse
+Pâtissier-chocolatier / pâtissière-chocolatière
+Au foyer
+Étudiant / étudiante
+Apprenti / apprentie
+Sans profession

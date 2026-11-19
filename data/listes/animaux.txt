@@ -1,0 +1,44 @@
+# Animaux de compagnie et de ferme (question : animal de compagnie pendant l'enfance).
+# Une valeur par ligne. Après modification : node scripts/build-list-items.mjs
+aucun
+Chien
+Chat
+Lapin
+Cochon d'Inde
+Hamster
+Gerbille
+Souris
+Rat
+Furet
+Chinchilla
+Hérisson
+Écureuil
+Poisson rouge
+Poissons d'aquarium
+Tortue
+Perruche
+Canari
+Perroquet
+Pigeon
+Tourterelle
+Pie
+Corbeau
+Chouette
+Poule
+Coq
+Canard
+Oie
+Dinde
+Cheval
+Poney
+Âne
+Chèvre
+Mouton
+Vache
+Cochon
+Serpent
+Lézard
+Grenouille
+Escargot
+Abeilles
+Phasme

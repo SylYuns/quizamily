@@ -1,0 +1,273 @@
+# Voitures (questions : première voiture conduite après le permis, voiture des mariés).
+# Marques seules (on peut répondre « Renault ») et modèles « Marque Modèle » courants en France.
+# Une valeur par ligne. Après modification : node scripts/build-list-items.mjs
+
+# --- Marques
+Renault
+Peugeot
+Citroën
+Simca
+Talbot
+Panhard
+Matra
+Alpine
+Facel Vega
+DS
+Dacia
+Volkswagen
+Opel
+Ford
+Fiat
+Lancia
+Alfa Romeo
+Ferrari
+Maserati
+Lamborghini
+Austin
+Morris
+Mini
+Triumph
+MG
+Rover
+Jaguar
+Land Rover
+Rolls-Royce
+Bentley
+Aston Martin
+Mercedes-Benz
+BMW
+Audi
+Porsche
+Volvo
+Saab
+Seat
+Skoda
+Lada
+Toyota
+Nissan
+Datsun
+Honda
+Mazda
+Mitsubishi
+Suzuki
+Subaru
+Hyundai
+Kia
+Daewoo
+Chevrolet
+Cadillac
+Jeep
+Smart
+Tesla
+
+# --- Renault
+Renault Juvaquatre
+Renault 4CV
+Renault Frégate
+Renault Dauphine
+Renault Floride
+Renault Caravelle
+Renault 4L
+Renault 5
+Renault Super 5
+Renault 6
+Renault 8
+Renault 10
+Renault 12
+Renault 14
+Renault 15
+Renault 16
+Renault 17
+Renault 18
+Renault 19
+Renault 20
+Renault 21
+Renault 25
+Renault 30
+Renault Fuego
+Renault Estafette
+Renault Express
+Renault Clio
+Renault Twingo
+Renault Mégane
+Renault Scénic
+Renault Laguna
+Renault Safrane
+Renault Espace
+Renault Kangoo
+Renault Modus
+Renault Vel Satis
+Renault Captur
+Renault Kadjar
+Renault Zoé
+Alpine A110
+
+# --- Peugeot
+Peugeot 202
+Peugeot 203
+Peugeot 403
+Peugeot 404
+Peugeot 204
+Peugeot 304
+Peugeot 504
+Peugeot 104
+Peugeot 305
+Peugeot 505
+Peugeot 604
+Peugeot 205
+Peugeot 309
+Peugeot 405
+Peugeot 605
+Peugeot 106
+Peugeot 306
+Peugeot 406
+Peugeot 806
+Peugeot 206
+Peugeot 307
+Peugeot 407
+Peugeot 607
+Peugeot 107
+Peugeot 207
+Peugeot 308
+Peugeot 208
+Peugeot 2008
+Peugeot 3008
+Peugeot 5008
+Peugeot 508
+Peugeot Partner
+Peugeot J7
+
+# --- Citroën
+Citroën Traction Avant
+Citroën 2CV
+Citroën DS
+Citroën ID
+Citroën Ami 6
+Citroën Ami 8
+Citroën Dyane
+Citroën Méhari
+Citroën Type H
+Citroën GS
+Citroën SM
+Citroën CX
+Citroën LN
+Citroën Visa
+Citroën BX
+Citroën AX
+Citroën XM
+Citroën ZX
+Citroën Xantia
+Citroën Saxo
+Citroën Xsara
+Citroën Xsara Picasso
+Citroën C15
+Citroën Berlingo
+Citroën Évasion
+Citroën C1
+Citroën C3
+Citroën C4
+Citroën C4 Picasso
+Citroën C5
+
+# --- Simca, Talbot, Panhard, Matra
+Simca Aronde
+Simca Vedette
+Simca Ariane
+Simca 1000
+Simca 1100
+Simca 1300
+Simca 1301
+Simca 1500
+Simca 1501
+Talbot Horizon
+Talbot Solara
+Talbot Samba
+Talbot Tagora
+Matra Rancho
+Matra Bagheera
+Matra Murena
+Panhard Dyna
+Panhard PL 17
+Panhard 24
+
+# --- Dacia
+Dacia Logan
+Dacia Sandero
+Dacia Duster
+
+# --- Volkswagen
+Volkswagen Coccinelle
+Volkswagen Combi
+Volkswagen Golf
+Volkswagen Polo
+Volkswagen Passat
+Volkswagen Jetta
+Volkswagen Scirocco
+Volkswagen Touran
+
+# --- Opel
+Opel Kadett
+Opel Rekord
+Opel Ascona
+Opel Manta
+Opel Corsa
+Opel Astra
+Opel Vectra
+Opel Zafira
+
+# --- Ford
+Ford Taunus
+Ford Anglia
+Ford Capri
+Ford Escort
+Ford Fiesta
+Ford Sierra
+Ford Granada
+Ford Mondeo
+Ford Focus
+Ford Mustang
+
+# --- Fiat, Lancia, Alfa Romeo
+Fiat 500
+Fiat 600
+Fiat 126
+Fiat 127
+Fiat Panda
+Fiat Uno
+Fiat Ritmo
+Fiat Tipo
+Fiat Punto
+Lancia Delta
+Lancia Y10
+Alfa Romeo Giulietta
+
+# --- Autres marques
+Austin Mini
+Morris Mini
+Mercedes-Benz 190
+Mercedes-Benz Classe A
+Mercedes-Benz Classe C
+Mercedes-Benz Classe E
+BMW Série 3
+BMW Série 5
+Audi 80
+Audi A3
+Audi A4
+Volvo 240
+Porsche 911
+Toyota Corolla
+Toyota Yaris
+Toyota Prius
+Datsun Cherry
+Nissan Micra
+Nissan Qashqai
+Honda Civic
+Seat Ibiza
+Seat Leon
+Skoda Fabia
+Skoda Octavia
+Lada Niva
+Jeep Willys
+Land Rover Defender
+Smart Fortwo
+Tesla Model 3

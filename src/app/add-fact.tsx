@@ -375,6 +375,7 @@ export default function AddFactScreen() {
       if (selectedTemplate.answer_input_kind === "list" && selectedTemplate.list_name) {
         await ensureListItemExists({
           listName: selectedTemplate.list_name,
+          category: selectedTemplate.list_category ?? null,
           value: finalAnswer as string,
           familyId,
           personId: myPersonId,

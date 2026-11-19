@@ -187,7 +187,7 @@ Un seul écran (pas un assistant multi-étapes), avec 4 zones :
 → Confirmation, puis « Ajouter un autre fait » (le sujet et le thème restent sélectionnés) ou retour à l'accueil
 
 Cas particuliers :
-- Type liste : l'entrée n'existe pas → « Ajouter » (visible tout de suite dans la famille, base globale après validation)
+- Type liste : champ de recherche au fil de la frappe (8 propositions, insensible aux accents) ; si la valeur tapée n'est pas dans la liste, elle est ajoutée telle quelle pour la famille à l'enregistrement du fait (visible tout de suite dans la famille, base globale après validation). Une question peut limiter les propositions à une catégorie (premier concert → seulement des artistes de musique).
 - Type lieu : choix entre pays et commune
 
 **Unicité** : une question ne peut être créée qu'une fois pour la combinaison question + sujet + personne liée ou élément choisi. Par exemple, « voyage en <pays> » peut être créée une fois par pays, et « date de mariage » une fois par conjoint en cas de remariage.
@@ -216,10 +216,10 @@ Actions :
 - Modifier sa réponse jusqu'à la deadline. Exception : pour une question en saisie libre, si tout le monde a répondu avant la deadline et que l'auteur a validé les réponses, elles sont verrouillées.
 
 Cas particuliers :
-- Type liste : l'entrée n'existe pas → « Ajouter »
+- Type liste : même champ de recherche que l'auteur, mais seulement les valeurs de la liste globale (pas les ajouts de la famille, pour ne pas révéler la réponse) ; si la réponse n'y est pas, le joueur la tape en entier (comparée après normalisation).
 - Le joueur est le sujet de la question (personne centrale avec un compte) : dans l'idéal, la question est formulée à la 2e personne (« En quelle année avez-vous pris l'avion… »). Pas prioritaire, même chantier technique que l'accord au féminin.
 
-**Simplifié pour l'implémentation initiale** (`src/app/respond.tsx`) : pas de notion de « question suivante » (une session n'a qu'une seule question, voir `concept.md`) — après validation, retour à l'accueil. Type liste : pas encore de bouton « Ajouter » pour une nouvelle valeur côté réponse (le champ réutilise `AnswerInput`, qui le permet déjà — à vérifier/activer). Pas de notification. Pas de retour immédiat juste/faux : le résultat n'est connu qu'à la révélation (écran 8).
+**Simplifié pour l'implémentation initiale** (`src/app/respond.tsx`) : pas de notion de « question suivante » (une session n'a qu'une seule question, voir `concept.md`) — après validation, retour à l'accueil. Pas de notification. Pas de retour immédiat juste/faux : le résultat n'est connu qu'à la révélation (écran 8).
 
 **Blocage des réponses** (corrigé le 2026-11-10, migration `20261110100000_reveal_waits_validation_and_answer_lock.sql`) : `submit_answer` refuse toute réponse une fois la deadline passée ou la session clôturée, et refuse la modification d'une réponse libre une fois que tout le monde a répondu et que l'auteur a validé (verrouillage prévu plus haut). Une réponse modifiée avant ce verrouillage repart de zéro : une validation précédente est effacée. Le message de refus du serveur s'affiche tel quel sur l'écran.
 

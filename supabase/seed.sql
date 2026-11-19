@@ -58,7 +58,11 @@ on conflict (id) do update set
   recap = excluded.recap,
   sort_order = excluded.sort_order;
 
+-- Catégorie de liste proposée (voir list_category dans docs/question-templates.toml).
+update question_templates set list_category = 'musique' where id = 'premier-concert-artiste';
+
 -- ---------- list_items : valeur de base obligatoire ----------
+-- (les autres valeurs sont dans la migration générée par scripts/build-list-items.mjs)
 
 insert into list_items (list_name, value, status, family_id, created_by_person_id)
 values ('animaux', 'aucun', 'approved', null, null)

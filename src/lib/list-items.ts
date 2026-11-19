@@ -5,15 +5,14 @@ export async function ensureListItemExists(params: {
   value: string;
   familyId: string;
   personId: string;
+  /** Catégorie de la liste (ex : « musique » pour les personnalités), si la question en a une. */
+  category?: string | null;
 }): Promise<void> {
-  const { listName, value, familyId, personId } = params;
+  const { listName, value, familyId, personId, category = null } = params;
 
-  const { data: existingItem } = await supabase
-    .from("list_items")
-    .select("id")
-    .eq("list_name", listName)
-    .ilike("value", value)
-    .maybeSingle();
+  let lookup = supabase.from("list_items").select("id").eq("list_name", listName).ilike("value", value);
+  lookup = category ? lookup.eq("category", category) : lookup.is("category", null);
+  const { data: existingItem } = await lookup.limit(1).maybeSingle();
 
   if (!existingItem) {
     await supabase.from("list_items").insert({
@@ -22,6 +21,7 @@ export async function ensureListItemExists(params: {
       status: "pending",
       family_id: familyId,
       created_by_person_id: personId,
+      category,
     });
   }
 }

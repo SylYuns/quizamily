@@ -24,25 +24,6 @@ export function AnswerInput(props: {
   const { template, familyId, value, onChange, hideFamilyItems = false } = props;
   const kind = template.answer_input_kind;
 
-  const [listOptions, setListOptions] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (kind !== "list" || !template.list_name) return;
-    let cancelled = false;
-    let query = supabase.from("list_items").select("value, status, family_id").eq("list_name", template.list_name);
-    if (hideFamilyItems) query = query.eq("status", "approved");
-    query.then(({ data }) => {
-      if (cancelled || !data) return;
-      const options = data
-        .filter((row) => row.status === "approved" || (!hideFamilyItems && row.family_id === familyId))
-        .map((row) => row.value);
-      setListOptions(Array.from(new Set(options)).sort());
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [kind, template.list_name, familyId, hideFamilyItems]);
-
   if (kind === "date") {
     return <DateInput value={value} onChange={onChange} />;
   }
@@ -71,30 +52,118 @@ export function AnswerInput(props: {
     );
   }
 
-  if (kind === "list") {
+  if (kind === "list" && template.list_name) {
     return (
-      <View style={{ gap: Spacing.two }}>
-        <View style={styles.chipsRow}>
-          {listOptions.map((opt) => (
-            <Pressable
-              key={opt}
-              onPress={() => onChange(opt)}
-              style={[styles.chip, value === opt && styles.chipSelected]}
-            >
-              <ThemedText style={value === opt ? { color: "#ffffff" } : undefined}>{opt}</ThemedText>
-            </Pressable>
-          ))}
-        </View>
-        <ThemedText themeColor="textSecondary">Pas dans la liste ?</ThemedText>
-        <TextInput value={value} onChangeText={onChange} placeholder="Nouvelle valeur" style={styles.input} />
-      </View>
+      <ListSearchInput
+        listName={template.list_name}
+        category={template.list_category ?? null}
+        familyId={hideFamilyItems ? null : familyId}
+        value={value}
+        onChange={onChange}
+        answerMode={hideFamilyItems}
+      />
     );
   }
 
   return <TextInput value={value} onChangeText={onChange} placeholder="Réponse" style={styles.input} />;
 }
 
+type Suggestion = { value: string; is_family_item: boolean };
+
+// Champ des listes de référence (2026-11-19) : on tape quelques lettres, la base renvoie les
+// meilleures correspondances (search_list_items, sans tenir compte des accents ni des
+// majuscules). Les listes peuvent compter des milliers de valeurs : on n'affiche jamais tout.
+function ListSearchInput(props: {
+  listName: string;
+  category: string | null;
+  /** null : valeurs validées seulement (écran de réponse) ; sinon, + ajouts de cette famille. */
+  familyId: string | null;
+  value: string;
+  onChange: (v: string) => void;
+  answerMode: boolean;
+}) {
+  const { listName, category, familyId, value, onChange, answerMode } = props;
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [picked, setPicked] = useState<string | null>(null);
+
+  useEffect(() => {
+    const query = value.trim();
+    if (query.length === 0 || query === picked) {
+      setSuggestions([]);
+      return;
+    }
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      const { data } = await supabase.rpc("search_list_items", {
+        p_list_name: listName,
+        p_query: query,
+        p_category: category,
+        p_family_id: familyId,
+        p_limit: 8,
+      });
+      if (!cancelled) setSuggestions((data ?? []) as Suggestion[]);
+    }, 200);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [value, picked, listName, category, familyId]);
+
+  const typed = value.trim();
+  const exactMatch = suggestions.some((s) => s.value.toLowerCase() === typed.toLowerCase());
+
+  return (
+    <View style={{ gap: Spacing.two }}>
+      <TextInput
+        value={value}
+        onChangeText={(text) => {
+          setPicked(null);
+          onChange(text);
+        }}
+        placeholder="Tape les premières lettres…"
+        autoCorrect={false}
+        style={styles.input}
+      />
+      {suggestions.length > 0 && (
+        <View style={styles.suggestions}>
+          {suggestions.map((s) => (
+            <Pressable
+              key={`${s.value}-${s.is_family_item ? "f" : "g"}`}
+              onPress={() => {
+                setPicked(s.value);
+                onChange(s.value);
+              }}
+              style={styles.suggestion}
+            >
+              <ThemedText>{s.value}</ThemedText>
+            </Pressable>
+          ))}
+        </View>
+      )}
+      {typed.length > 0 && typed !== picked && !exactMatch && (
+        <ThemedText themeColor="textSecondary">
+          {answerMode
+            ? "Pas dans les propositions ? Tape ta réponse en entier."
+            : `« ${typed} » n'est pas dans la liste : la valeur sera ajoutée pour ta famille.`}
+        </ThemedText>
+      )}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  suggestions: {
+    borderWidth: 1,
+    borderColor: "#999999",
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  suggestion: {
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e5e5",
+  },
   input: {
     borderWidth: 1,
     borderColor: "#999999",
