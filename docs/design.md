@@ -1,6 +1,18 @@
 # Design
 
-**⚠ Charte à revoir (constat de Sylvain, 2026-11-19).** L'idée de départ était une appli très colorée, très chaleureuse, qui fasse plaisir à voir. Le résultat actuel est une page presque blanche avec quelques blocs de couleur : ce n'est pas ce qui était recherché. Piste : aller vers des tons **marron/orange** (chaleureux, agréable), avec une **police et des tuiles très rondes**, et une ambiance familiale et tendre. Pistes de réflexion à trancher dans `roadmap.md` (« Points à décider », Direction visuelle). La charte ci-dessous reste celle du code actuel tant que la nouvelle n'est pas décidée.
+**⚠ Nouvelle charte en cours (2026-11-19) : « Coucher de soleil ».** Constat de départ (Sylvain) : l'appli devait être très colorée et chaleureuse, le résultat était une page presque blanche avec quelques blocs de couleur. Trois pistes de l'accueil ont été comparées sur la maquette « Quizamily – Pistes chaleureuses » (canvas Claude Design, privé) — https://claude.ai/artifact/VWeTKrZMBXhZ3rN2N5ph9t : A « Album souvenir », **B « Coucher de soleil » (retenue)**, C « Cuisine de mamie ». Décisions :
+
+- **Piste B** : fond en dégradé abricot → orange → rose (`#FFC98A` → `#FFA36B` → `#F48A86`), cartes très arrondies (28-32 px) avec ombre pleine teintée de brun, **plus de cartes blanches** : chaque bloc a sa couleur.
+  - Quiz, action attendue : brun-orangé `#8A3A12` (ombre `#5E260B`), texte blanc, étiquette `#FFE3CF`, badge jaune `#FFD66B`, décor de soleil.
+  - Quiz, en attente (réponse envoyée, etc.) : prune « crépuscule » `#5B2333` (ombre `#3D1622`), texte blanc, lien jaune `#FFD66B`, décor de lune et d'étoiles.
+  - Connaissances : rose `#FFD9DC`. Ajouter un souvenir : jaune `#FFD66B`. Tuiles Historique / Mes faits : translucides sur le dégradé (`rgba(255,244,232,0.5)`, bordure blanche).
+  - Texte brun foncé `#3B1F14` ; secondaire `#6E4A3A` / `#6E3A3A`. Badges rouges `#C8423A`, alertes `#FDE3D3` / `#A33A2A` (inchangé dans l'esprit).
+- **Polices** : on garde **Fredoka** (titres) et **Nunito** (texte) — la police de la piste C (Sniglet) est trop ronde, difficile à lire.
+- **Bleu-blanc-rouge** : la guirlande de fanions ne s'intégrait pas ; pour l'instant, seulement sur l'**icône du menu** (trois barres bleue, blanche, rouge, dans un rond blanc) en haut à droite. Les liserés bleu/rouge des boutons disparaissent.
+- **Connaissances** : la carte montre 4 profils cliquables (voir `ecrans.md`, écran 4).
+- **Reste à faire** : valider la maquette révisée, puis réécrire ci-dessous les sections Couleurs, Formes et Règle des styles du bouton, l'appliquer à l'accueil puis à l'arbre et aux autres écrans. Les autres états du bouton quiz (réponses à valider, révélation, entre deux quiz…) sont à décliner : action = brun-orangé, attente = prune.
+
+**La charte ci-dessous est l'ancienne (2026-11-10), encore celle du code actuel.**
 
 Charte visuelle de Quizamily, posée avec la maquette de l'accueil (2026-11-10). Elle s'applique à tous les écrans au fur et à mesure qu'on les retravaille. Principes généraux dans `concept.md` (Direction visuelle) ; contenu et comportement des écrans dans `ecrans.md`.
 

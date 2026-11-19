@@ -94,6 +94,7 @@ Du haut vers le bas, par ordre d'importance :
 2. **Deux gros boutons centraux** :
    - **« Participer au quiz »** : mène à la bonne action selon la phase du jeu (voir États ci-dessous). Son libellé, une icône ou un badge indiquent l'état.
    - **« Consulter les connaissances »** (bouton blanc à liserés bleu et rouge, jamais rouge plein) : ouvre l'arbre familial en mode consultation (écran 10). En touchant une personne, on lit le récapitulatif de ce qu'on sait d'elle (écran 11).
+     **Décidé le 2026-11-19 (nouvelle charte « Coucher de soleil », voir `design.md`)** : la carte affiche aussi **4 profils** (rond coloré avec l'initiale, prénom dessous, étoile sur les personnes centrales), tirés au hasard avec un poids plus fort pour les personnes centrales (ex : ×1,5 comme la pioche). Toucher un profil ouvre directement l'arbre centré sur cette personne avec son récapitulatif ouvert (écran 10 + panneau de l'écran 11) ; toucher le titre ouvre l'arbre comme avant. À préciser : uniquement des personnes qui ont au moins un souvenir révélé ?
 3. **« Ajouter un souvenir »** (écran 5) : moins important, mais mis en avant. **Alerte** quand il reste moins de 5 faits jamais posés dans la pioche (« Plus que 3 questions en réserve : ajoutez des souvenirs ! »).
 4. **« Historique »** (écran 12) : les questions déjà posées et le tableau des scores.
 5. **« Mes faits »** (écran 5, Mes faits), avec un **badge** quand une proposition de correction attend la décision du joueur sur l'un de ses faits.
