@@ -15,6 +15,7 @@ MVP fonctionnel en version web (Expo + Supabase), en cours de test : création e
 - [docs/ecrans.md](docs/ecrans.md) — description fonctionnelle des écrans du MVP.
 - [docs/design.md](docs/design.md) — la charte visuelle (couleurs, polices, styles de boutons) et le lien vers les maquettes.
 - [docs/question-templates.toml](docs/question-templates.toml) — le catalogue des templates de questions.
+- [data/listes/LISEZMOI.md](data/listes/LISEZMOI.md) — les listes de référence (voitures, métiers, films, personnalités…) : fichiers, scripts de génération (`scripts/wikidata-listes.mjs`, `scripts/build-list-items.mjs`) et mise à jour de la base.
 
 ## Contexte
 
