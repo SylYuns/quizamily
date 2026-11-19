@@ -1,5 +1,7 @@
 # Design
 
+**⚠ Charte à revoir (constat de Sylvain, 2026-11-19).** L'idée de départ était une appli très colorée, très chaleureuse, qui fasse plaisir à voir. Le résultat actuel est une page presque blanche avec quelques blocs de couleur : ce n'est pas ce qui était recherché. Piste : aller vers des tons **marron/orange** (chaleureux, agréable), avec une **police et des tuiles très rondes**, et une ambiance familiale et tendre. Pistes de réflexion à trancher dans `roadmap.md` (« Points à décider », Direction visuelle). La charte ci-dessous reste celle du code actuel tant que la nouvelle n'est pas décidée.
+
 Charte visuelle de Quizamily, posée avec la maquette de l'accueil (2026-11-10). Elle s'applique à tous les écrans au fur et à mesure qu'on les retravaille. Principes généraux dans `concept.md` (Direction visuelle) ; contenu et comportement des écrans dans `ecrans.md`.
 
 **Maquette de référence** : « Quizamily – Accueil » (canvas Claude Design, privé, à ouvrir depuis le compte de Sylvain) — https://claude.ai/artifact/8yprgXLjTHUgu7wiKTE368. Elle montre l'accueil de la famille (écran 4) dans 7 états. Elle n'est pas cliquable : c'est une vue statique de l'organisation et du style.
