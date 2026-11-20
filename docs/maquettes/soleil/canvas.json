@@ -64,6 +64,48 @@
       "w": 390,
       "x": 2040,
       "y": 1300
+    },
+    "Fait.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 1100,
+      "y": 2600,
+      "title": "Créer · Thème et questions"
+    },
+    "FaitApercu.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 1570,
+      "y": 2600,
+      "title": "Créer · Question ouverte pour voir"
+    },
+    "FaitSaisie.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 2040,
+      "y": 2600,
+      "title": "Créer · Saisie en cours (bloquée)"
+    },
+    "FaitRecherche.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 2510,
+      "y": 2600,
+      "title": "Créer · Recherche : résultats dans d'autres thèmes"
+    },
+    "FaitComplet.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 2980,
+      "y": 2600,
+      "title": "Créer · Thème complet"
+    },
+    "FaitPoints.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 3450,
+      "y": 2600,
+      "title": "Créer · Variante du repère : points"
     }
   },
   "createdOnFiles": {
@@ -105,6 +147,13 @@
       "text": "B · Arbre familial",
       "x": 1100,
       "y": 1000
+    },
+    "titreFait": {
+      "kind": "title1",
+      "maxW": 2740,
+      "text": "B · Créer un fait",
+      "x": 1100,
+      "y": 2300
     }
   },
   "order": [
@@ -116,7 +165,13 @@
     "CuisineAttente.dc.html",
     "Arbre.dc.html",
     "ArbreRecap.dc.html",
-    "ArbreModifier.dc.html"
+    "ArbreModifier.dc.html",
+    "Fait.dc.html",
+    "FaitApercu.dc.html",
+    "FaitSaisie.dc.html",
+    "FaitRecherche.dc.html",
+    "FaitComplet.dc.html",
+    "FaitPoints.dc.html"
   ],
   "pages": [],
   "title": "Quizamily – Pistes chaleureuses"
