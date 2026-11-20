@@ -65,7 +65,7 @@ export function FamilyHeaderBar(props: {
   }
 
   return (
-    <View>
+    <View style={styles.root}>
       <View style={styles.header}>
         <Pressable onPress={() => setShowFamilyMenu((v) => !v)} style={styles.familyButton}>
           <Text style={styles.familyButtonText}>{currentFamily?.familyName ?? "Famille"}</Text>
@@ -130,6 +130,10 @@ export function FamilyHeaderBar(props: {
 }
 
 const styles = StyleSheet.create({
+  // zIndex ici, pas seulement sur le menu lui-même : sans ça, les menus (position absolute)
+  // restent dans le contexte d'empilement de ce View, qui n'a pas de priorité face aux éléments
+  // suivants de l'écran (titre, listes…) — ils s'affichaient donc derrière (constaté à l'écran).
+  root: { zIndex: 20 },
   header: {
     flexDirection: "row",
     alignItems: "center",
