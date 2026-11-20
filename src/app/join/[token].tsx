@@ -7,7 +7,18 @@ import { LoginForm } from "@/components/login-form";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Spacing } from "@/constants/theme";
+import { setPersistedFamilyId } from "@/lib/my-family";
 import { supabase } from "@/lib/supabase";
+
+// Après avoir rejoint/réclamé un profil, on atterrit explicitement sur CETTE famille (pas sur une
+// autre famille déjà mémorisée sur l'appareil) : voir src/lib/my-family.ts.
+async function goToJoinedFamily(personId: string) {
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData.user?.id;
+  const { data: person } = await supabase.from("persons").select("family_id").eq("id", personId).maybeSingle();
+  if (userId && person) await setPersistedFamilyId(userId, person.family_id);
+  router.replace({ pathname: "/home", params: person ? { family: person.family_id } : {} });
+}
 
 type Gender = "homme" | "femme" | null;
 
@@ -91,13 +102,13 @@ export default function JoinFamilyScreen() {
       setClaimingId(null);
       return;
     }
-    router.replace("/home");
+    await goToJoinedFamily(personId);
   }
 
   async function join() {
     setJoining(true);
     setError("");
-    const { error: rpcError } = await supabase.rpc("join_family_with_invite", {
+    const { data: newPersonId, error: rpcError } = await supabase.rpc("join_family_with_invite", {
       p_token: token,
       p_first_name: firstName.trim(),
       p_last_name: lastName.trim(),
@@ -108,7 +119,7 @@ export default function JoinFamilyScreen() {
       setJoining(false);
       return;
     }
-    router.replace("/home");
+    await goToJoinedFamily(newPersonId as string);
   }
 
   if (checkingSession) {

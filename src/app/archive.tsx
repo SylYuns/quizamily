@@ -28,6 +28,7 @@ export default function ArchiveScreen() {
   const [ready, setReady] = useState(false);
   const [noSession, setNoSession] = useState(false);
   const [error, setError] = useState("");
+  const [familyId, setFamilyId] = useState<string | null>(null);
 
   const [centralPersons, setCentralPersons] = useState<CentralPerson[]>([]);
   const [selectedPerson, setSelectedPerson] = useState<CentralPerson | null>(null);
@@ -52,6 +53,7 @@ export default function ArchiveScreen() {
         typeof paramFamily === "string" ? paramFamily : null,
       );
       if (!current || cancelled) return;
+      setFamilyId(current.familyId);
 
       const { data, error: personsError } = await supabase
         .from("persons")
@@ -189,7 +191,10 @@ export default function ArchiveScreen() {
                     key={entry.quizQuestionId}
                     style={styles.card}
                     onPress={() =>
-                      router.push({ pathname: "/reveal", params: { questionId: entry.quizQuestionId } })
+                      router.push({
+                        pathname: "/reveal",
+                        params: { questionId: entry.quizQuestionId, ...(familyId ? { family: familyId } : {}) },
+                      })
                     }
                   >
                     <ThemedText type="smallBold">{entry.questionText}</ThemedText>

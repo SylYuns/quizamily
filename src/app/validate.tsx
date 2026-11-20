@@ -22,6 +22,7 @@ export default function ValidateScreen() {
   const [noSession, setNoSession] = useState(false);
   const [error, setError] = useState("");
 
+  const [familyId, setFamilyId] = useState<string | null>(null);
   const [quizQuestionId, setQuizQuestionId] = useState<string | null>(null);
   const [readyToValidate, setReadyToValidate] = useState(true);
   const [autoValidated, setAutoValidated] = useState<AnswerGroup[]>([]);
@@ -56,6 +57,7 @@ export default function ValidateScreen() {
       const me = await resolveMyFamily(userId, myFamilies, paramFamily);
 
       if (!me || cancelled) return;
+      setFamilyId(me.familyId);
 
       const { data: session } = await supabase
         .from("quiz_sessions")
@@ -109,7 +111,7 @@ export default function ValidateScreen() {
       setError(rpcError.message);
     } else if (revealed === true) {
       // Deadline passée et dernière validation faite : la question vient d'être révélée.
-      router.replace("/reveal");
+      router.replace({ pathname: "/reveal", params: familyId ? { family: familyId } : {} });
       return;
     } else {
       await loadPendingValidations(quizQuestionId);

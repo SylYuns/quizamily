@@ -6,6 +6,7 @@ import { Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from "reac
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Spacing } from "@/constants/theme";
+import { setPersistedFamilyId } from "@/lib/my-family";
 import { supabase } from "@/lib/supabase";
 
 type Gender = "homme" | "femme" | null;
@@ -65,6 +66,7 @@ export default function FamilySetupScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [createdFamilyId, setCreatedFamilyId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [checkedAuth, setCheckedAuth] = useState(false);
 
@@ -209,6 +211,10 @@ export default function FamilySetupScreen() {
 
       const origin = typeof window !== "undefined" ? window.location.origin : "";
       setInviteLink(`${origin}/join/${inviteRow.token}`);
+      // On atterrira explicitement sur CETTE famille à l'étape suivante (pas sur une autre déjà
+      // mémorisée sur l'appareil, voir src/lib/my-family.ts).
+      if (userId) await setPersistedFamilyId(userId, familyId);
+      setCreatedFamilyId(familyId);
       setStep(5);
     } catch (e) {
       const message = typeof e === "object" && e !== null && "message" in e ? String(e.message) : null;
@@ -410,7 +416,10 @@ export default function FamilySetupScreen() {
             <Pressable onPress={copyInviteLink} style={styles.secondaryButton}>
               <ThemedText>{copied ? "Copié !" : "Copier le lien"}</ThemedText>
             </Pressable>
-            <Pressable onPress={() => router.replace("/home")} style={styles.primaryButton}>
+            <Pressable
+              onPress={() => router.replace({ pathname: "/home", params: createdFamilyId ? { family: createdFamilyId } : {} })}
+              style={styles.primaryButton}
+            >
               <ThemedText style={{ color: "#ffffff" }}>Continuer</ThemedText>
             </Pressable>
           </>

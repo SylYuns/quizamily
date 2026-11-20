@@ -232,7 +232,7 @@ export default function RespondScreen() {
       return;
     }
 
-    router.replace("/reveal");
+    router.replace({ pathname: "/reveal", params: { family: familyId! } });
   }
 
   if (noSession) {
@@ -281,7 +281,7 @@ export default function RespondScreen() {
           )}
 
           {hasPendingValidations && (
-            <Pressable onPress={() => router.push("/validate")}>
+            <Pressable onPress={() => router.push({ pathname: "/validate", params: { family: familyId! } })}>
               <ThemedText type="linkPrimary">
                 Valider les réponses ({ownQuestion.pendingValidationCount} en attente)
               </ThemedText>
