@@ -179,7 +179,7 @@ Actions :
 
 ### Nouveau fait
 
-**Refonte décidée le 2026-11-20 (pas encore codée)** — remplace la description « 4 zones » ci-dessous. Maquette : rangée « B · Créer un fait » du canvas « Quizamily – Pistes chaleureuses » (lien dans `design.md`), source dans `docs/maquettes/soleil/` (`Fait.dc.html`, paramètres `etat` et `repere`).
+**Refonte décidée le 2026-11-20, maquette validée, prête pour le développement (pas encore codée)** — remplace la description « 4 zones » ci-dessous. Maquette : rangée « B · Créer un fait » du canvas « Quizamily – Pistes chaleureuses » (lien dans `design.md`), source dans `docs/maquettes/soleil/` (`Fait.dc.html`, paramètres `etat` et `repere`).
 
 - **Haut de page** : barre de la famille (comme l'accueil), puis flèche retour + titre « Ajouter un souvenir ».
 - **Personnes** : rangée de ronds qui défile horizontalement ; la personne choisie est encadrée. Ordre de tri : à décider plus tard.
@@ -187,14 +187,14 @@ Actions :
 - **Repère des thèmes** au-dessus de la carte, qu'on touche pour aller directement à un thème : doit rester discret mais immédiatement compréhensible (deux variantes en maquette : rangée de noms qui défile, ou points). Les thèmes complets pour la personne vont en fin de liste.
 - **Carte du thème** : une grande carte par thème, on glisse horizontalement pour passer au suivant (on voit le bord de la carte suivante). En-tête : nom du thème + bouton « Surprends-moi » (une question au hasard du thème). Dedans, défilement vertical :
   1. les questions **à renseigner** (sans intertitre) ; les questions qu'on peut renseigner plusieurs fois (voyage par pays, mariage par conjoint) y restent toujours ;
-  2. **« Mes questions (modifiables) »** : mes faits pas encore posés, ouvrables pour modifier ma réponse ou supprimer le fait (avec confirmation) ;
+  2. **« Mes questions (modifiables) »** : mes faits pas encore posés, ouvrables pour modifier ma réponse ou supprimer le fait (avec confirmation). Tuile pleine (fond crème, bordure brune légère) : la question, puis une ligne avec « Ta réponse : … » dans une pastille (coupée par « … » si trop longue) et « ✎ Modifier » à droite ;
   3. **« Déjà renseignées »** : faits créés par d'autres ou déjà posés — la question seule, jamais la réponse, grisée et **désactivée** (pas cliquable). Voir les questions des autres ne pose pas de problème.
   Thème complet : un message « Tout est renseigné pour <personne> dans ce thème », puis les groupes 2 et 3.
 - **Recherche** : champ fixe en bas de l'écran, filtre les questions du thème affiché. Si le thème affiché n'a aucun résultat mais que d'autres en ont : le repère des thèmes l'indique (nombre de résultats par thème) et la carte propose « N questions dans <thème> » pour y aller.
 - **Choisir une question** : la tuile s'agrandit sur place (pas de changement d'écran) avec les champs (réponse, anecdote) et « Annuler » / « Enregistrer ». Si elle est trop haute, elle s'ouvre en haut de la liste et défile dans la carte. Deux états :
   - **ouverte pour voir** (juste touchée, rien de saisi) : toucher ailleurs, faire défiler, glisser ou changer de personne la referme aussitôt ; la recherche reste visible ;
   - **saisie en cours** (une valeur dans n'importe quel champ : réponse, anecdote, conjoint, pays…) : la question reste ouverte, **on ne peut plus glisser entre les thèmes ni changer de personne** jusqu'à « Enregistrer » ou « Annuler » ; la recherche est masquée et la tuile remonte au-dessus du clavier. Si on efface tout, elle redevient « ouverte pour voir ».
-- **Après « Enregistrer »** : la tuile se referme avec un « Ajouté ! » et passe dans « Mes questions » ; on reste sur l'écran (plus d'écran de confirmation).
+- **Après « Enregistrer »** : la tuile se referme et **disparaît des questions à renseigner** (son statut change) pour **réapparaître dans « Mes questions (modifiables) »**, avec un bref « Ajouté ! » ; le récapitulatif (« N en réserve ») se met à jour ; on reste sur l'écran (plus d'écran de confirmation). Exception : une question qu'on peut renseigner plusieurs fois (voyage par pays, mariage par conjoint) reste aussi dans les questions à renseigner.
 - Plus tard : flèches gauche/droite sur ordinateur, ordre des personnes.
 
 **Version actuelle (avant la refonte)** :
