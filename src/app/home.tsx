@@ -491,7 +491,9 @@ export default function HomeScreen() {
             </View>
           )}
           <View style={{ flex: 1, gap: 4 }}>
-            <Text style={styles.knowledgeTitle}>Consulter les connaissances</Text>
+            <Text style={styles.knowledgeTitle} numberOfLines={2}>
+              Consulter les connaissances
+            </Text>
             <Text style={styles.knowledgeSub}>{knowledgeSub}</Text>
           </View>
         </Pressable>
@@ -675,7 +677,7 @@ const styles = StyleSheet.create({
   },
   // 2 colonnes de ronds de 58 px : jusqu'à 4 profils en carré.
   profilesGrid: { width: 126, flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  knowledgeTitle: { fontFamily: FONTS.title, fontSize: 24, lineHeight: 27, color: S.ink },
+  knowledgeTitle: { fontFamily: FONTS.title, fontSize: 20, lineHeight: 23, color: S.ink },
   knowledgeSub: { fontSize: 15, fontFamily: FONTS.bodySemi, color: S.knowledgeInk },
 
   // ---------- Ajouter un souvenir ----------
