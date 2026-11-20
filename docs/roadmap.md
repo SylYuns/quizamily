@@ -6,9 +6,28 @@ Le MVP fonctionne de bout en bout en version simple, testé avec des comptes jet
 
 **Depuis le 2026-11-19** : listes de référence préparées (recherche au fil de la frappe, voitures, métiers, sports, animaux ; films et personnalités à générer depuis Wikidata) — **à lancer et envoyer dans Supabase**, voir juste en dessous.
 
+**Depuis le 2026-11-20** : nouvelle charte « Coucher de soleil » codée pour l'accueil et l'arbre (4 profils cliquables, récapitulatif en panneau du bas) — **à vérifier à l'écran**, voir juste en dessous.
+
 **Pour reprendre le travail (ex. depuis un autre ordinateur)** : voir « À faire sur l'ordinateur avec Supabase » juste en dessous, puis « Points à décider » et « Feuille de route » plus bas sur cette page.
 
 ## À faire sur l'ordinateur avec Supabase
+
+**À faire (2026-11-20)** — nouvelle charte « Coucher de soleil » sur l'accueil et l'arbre. Code écrit depuis un environnement sans `node_modules` : syntaxe vérifiée et tests des modules purs passés, mais **jamais compilé ni lancé**. **Aucune migration Supabase** pour ce changement (tout est côté app). Fichiers : `src/constants/soleil.ts` et `src/components/soleil.tsx` (nouveaux), `src/lib/home-profiles.ts` (+ test), `src/app/home.tsx`, `src/app/family-tree.tsx`, `package.json` (script `test:profiles`).
+
+- [ ] **Récupérer les derniers commits** : `git pull`.
+- [ ] **Vérifier le code** : `npx tsc --noEmit` et `npx expo lint`. Points les plus probables si erreur : propriétés de style `backgroundImage` / `boxShadow` (types de React Native), paramètres de `router.push({ pathname: "/family-tree", params })`. Copier les erreurs à Claude.
+- [ ] **Tests** : `npm run test:profiles` (choix des 4 profils), et toujours `npm run test:layout`, `npm run test:gender`.
+- [ ] **Lancer** : `npx expo start --web` (ou sur téléphone). Si tu publies une version web : `npx expo export --platform web` puis envoyer le dossier `dist/` sur l'hébergement.
+- [ ] **Vérifier l'accueil** (comparer avec la maquette, lien dans `docs/design.md`) :
+  - fond en **dégradé** abricot → orange → rose (s'il est orange uni : `backgroundImage` pas pris en charge, le dire à Claude, on passera par `expo-linear-gradient`) ; ombres pleines brunes sous les cartes ;
+  - menu en haut à droite = trois barres bleue, blanche, rouge ;
+  - bouton du quiz **brun-orangé** quand il y a une action (question qui t'attend, réponses à valider, révélation), **prune** sinon (réponse envoyée, ta question en jeu, quiz terminé…) ;
+  - tuile rose « Consulter les connaissances » : jusqu'à **4 ronds** (priorité aux personnes avec des souvenirs révélés, étoile sur les personnes centrales, tirage différent à chaque retour sur l'accueil) ; **toucher un rond** ouvre l'arbre centré sur la personne, panneau ouvert ; **toucher ailleurs** sur la tuile ouvre l'arbre normalement.
+- [ ] **Vérifier l'arbre** :
+  - bande translucide **pleine largeur** sur la génération centrée ; ronds colorés ; pastille prune « N à découvrir » qui ne déborde pas sur le voisin ;
+  - toucher une personne : le **panneau monte du bas** et l'arbre **remonte d'un cran** ; le début des traits vers les enfants reste visible au-dessus du panneau ; la croix ou un toucher sur l'arbre **ferme** (l'arbre redescend) ;
+  - panneau ouvert : glisser à gauche/droite **change de personne et met le panneau à jour** ; glisser vers le haut/bas **ne fait rien** ; le texte **défile** s'il est long ;
+  - mode Modifier : cartes crème, boutons bruns, « + » en pointillés ; toujours fonctionnel (ajouter un enfant, relier une personne).
 
 **À faire (2026-11-19)** — listes de référence. Préparé depuis un environnement sans Supabase ni accès à Wikidata : les migrations ont été testées sur une copie locale de la base (PostgreSQL avec les droits de Supabase), mais le script Wikidata n'a **jamais été lancé**. Mode d'emploi détaillé (ce que fait chaque commande, ce qu'elle affiche, comment régler les quantités, problèmes possibles) : **[`data/listes/LISEZMOI.md`](../data/listes/LISEZMOI.md)**.
 
@@ -114,7 +133,7 @@ Décisions de produit ou de sécurité pas encore tranchées — à trancher ava
   - **Univers familial** : album photo / boîte à souvenirs (polaroïds légèrement inclinés, coins photo, ruban adhésif, cartes postales), cuisine de grand-mère (carnet de recettes, nappe vichy, broderie), veillée au coin du feu. Petites illustrations dessinées (maison, théière, feuilles de l'arbre), couleurs de l'arbre aux teintes d'automne.
   - **Moments de joie** : animations douces (rebond des tuiles, révélation avec feuilles ou cœurs qui tombent), textes au ton affectueux (« Mamie a 3 nouveaux souvenirs »).
   - **Méthode proposée** : 2 ou 3 pistes de l'accueil en maquette côte à côte (ex : « Album souvenir » crème/kraft/manuscrit, « Coucher de soleil » dégradés orange-corail très colorés, « Cuisine de mamie » terracotta/moutarde/sauge), choisir, puis réécrire `design.md` et l'appliquer à l'accueil et à l'arbre avant les autres écrans.
-- **Panneau de récapitulatif sur petit écran** : l'arbre est réduit à ~20 % de la largeur quand le panneau est ouvert (valeur choisie au hasard). Sur un téléphone de 390 px, il ne resterait qu'environ 80 px d'arbre, moins d'une carte. À revoir avant de tester sur téléphone : largeur minimale de l'arbre, ou autre présentation sur petit écran (panneau qui monte du bas, plein écran avec retour à l'arbre…).
+- ~~**Panneau de récapitulatif sur petit écran**~~ : **tranché le 2026-11-20** — panneau qui monte du bas et arbre qui remonte d'un cran, sur toutes les tailles d'écran (voir `ecrans.md`, écran 11).
 - **`relationship_label` pas encore un vrai lien par paire** : reste un champ texte simple posé par le créateur de la famille sur sa propre perception (ex: "Grand-mère" = grand-mère du créateur), pas une relation stockée dans `relationships` entre le créateur et chaque personne centrale — contrairement aux liens que l'arbre familial (étape 5) sait maintenant capturer pour tout le monde. Pas bloquant, juste incohérent avec le reste du modèle.
 - **Repiocher un fait déjà posé** : autorisé seulement quand il ne reste plus aucun fait jamais posé, en prévenant les joueurs. Forme de l'avertissement à définir (message dans la question, sur l'accueil, par email ?).
 - **Resend en mode test (sandbox)** : en mode test, Resend n'envoie qu'à l'adresse du propriétaire du compte. Pour un vrai test avec 2-3 familles, il faudra probablement un domaine vérifié — à rediscuter le moment venu, malgré la décision de ne pas en acheter pour l'instant (voir « Décisions déjà prises »).
@@ -151,13 +170,13 @@ Ce qui reste à faire, dans un ordre logique. Le détail de chaque point est dan
 1. **Historique (écran 12)** : questions déjà posées et tableau des scores ; demande le **score cumulé** inter-sessions (agrégation en base, pas encore construite). La tuile « Historique » de l'accueil ne fait rien pour l'instant.
 2. **Récapitulatif (écran 11) : toucher une phrase** → détail de la question (réponses de chacun, anecdote, proposer une correction).
 3. **Supprimer l'ancien écran Archives** (`src/app/archive.tsx`), une fois les points 1 et 2 faits (il reste le seul accès au détail d'une question ancienne et aux corrections).
-4. **Panneau de récapitulatif sur petit écran** : à décider puis faire (voir « Points à décider »).
+4. ~~**Panneau de récapitulatif sur petit écran**~~ : décidé et codé le 2026-11-20 (panneau qui monte du bas, voir `ecrans.md` écran 11) — à vérifier à l'écran.
 
 ### Étape 2 — Rendre le jeu jouable par de vraies familles
 
 5. **Constituer les listes de référence** *(préparé le 2026-11-19, reste à lancer et appliquer : voir « À faire sur l'ordinateur avec Supabase »)* : fichiers texte dans `data/listes/` (mode d'emploi : `data/listes/LISEZMOI.md`), transformés en migration par `scripts/build-list-items.mjs`. À la main : animaux (42), sports (97), métiers (325, forme « masculin / féminin », métiers anciens compris), voitures (248 : marques seules + « Marque Modèle »). Depuis Wikidata (`scripts/wikidata-listes.mjs`, à lancer) : films (« Titre (année) ») et personnalités par catégorie (musique, politique, sport, cinema, television, litterature, arts, sciences). Champ de saisie : recherche au fil de la frappe côté serveur (`search_list_items`, insensible aux accents, espaces, tirets, apostrophes), 8 propositions, les plus proches d'abord ; une question peut limiter la recherche à une catégorie (`list_category`, ex : premier concert → musique).
 6. **Validation des ajouts des familles vers les listes globales** : rien n'existe (voir « Points à décider »). Principe validé le 2026-11-19, à travailler plus tard.
-7. **Nouvelle charte « Coucher de soleil »** (piste B retenue le 2026-11-19, voir `docs/design.md`) : valider la maquette révisée, réécrire `design.md`, puis **l'appliquer à tous les écrans** (accueil d'abord, avec les 4 profils cliquables dans « Consulter les connaissances ») (réponse, validation, révélation, ajout d'un fait, Mes faits, connexion, création de famille ; l'arbre utilise encore les polices système) et remplacer les symboles (★, ✎, ⚠, ‹) par de vraies icônes.
+7. **Nouvelle charte « Coucher de soleil »** (voir `docs/design.md`) : **codée le 2026-11-20 pour l'accueil (avec les 4 profils cliquables) et l'arbre** (à vérifier à l'écran) ; reste à l'**appliquer aux autres écrans** (réponse, validation, révélation, ajout d'un fait, Mes faits, connexion, création de famille) et à remplacer les symboles (★, ✎, ⚠, ‹) par de vraies icônes.
 
 ### Étape 3 — Notifications (pour que le jeu tourne sans intervention)
 

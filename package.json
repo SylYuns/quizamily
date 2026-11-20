@@ -49,7 +49,8 @@
     "lint": "expo lint",
     "test:layout": "node --experimental-strip-types --test src/lib/family-tree-layout.test.ts",
     "test:pioche": "node --experimental-strip-types --test supabase/functions/create-quiz-session/pioche.test.ts",
-    "test:gender": "node --experimental-strip-types --test src/lib/gender.test.ts"
+    "test:gender": "node --experimental-strip-types --test src/lib/gender.test.ts",
+    "test:profiles": "node --experimental-strip-types --test src/lib/home-profiles.test.ts"
   },
   "private": true
 }

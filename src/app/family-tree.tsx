@@ -2,15 +2,22 @@
 //
 // Consultation : 3 lignes visibles (génération centrée, précédente au-dessus, suivante en
 // dessous), glissement horizontal et vertical avec crans, traits à angle droit, compteurs de
-// souvenirs. Toucher une personne ouvre ses souvenirs (archives, en attendant le
-// récapitulatif de l'écran 11).
+// souvenirs. Toucher une personne ouvre son récapitulatif (écran 11) dans un panneau qui monte
+// du bas de l'écran ; en même temps, l'arbre remonte d'un cran (la ligne de la personne prend
+// la place de la ligne du haut) pour laisser de la place au texte, puis redescend à la
+// fermeture. Panneau ouvert : glisser à gauche ou à droite change de personne et met le
+// panneau à jour ; pas de glissement vertical ; on ferme avec la croix ou en touchant l'arbre.
 // Modifier : toucher une personne la sélectionne ; boutons pour lui ajouter un conjoint, un
 // enfant, un frère ou une sœur, ou la relier à une personne existante (dont les personnes
 // sans relation, qui ne sont pas affichées dans l'arbre).
 //
+// Paramètres d'URL (venant des profils de l'accueil) : ?person=<id> centre l'arbre sur cette
+// personne, &recap=1 ouvre directement son récapitulatif.
+//
 // Le placement est calculé par src/lib/family-tree-layout.ts (testé à part).
+// Charte « Coucher de soleil » : src/constants/soleil.ts.
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Redirect, router } from "expo-router";
+import { Redirect, router, useLocalSearchParams } from "expo-router";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -25,7 +32,8 @@ import {
   View,
 } from "react-native";
 
-import { ThemedView } from "@/components/themed-view";
+import { PersonAvatar } from "@/components/soleil";
+import { FONTS, RADIUS, S, solidShadow, sunsetBackground } from "@/constants/soleil";
 import {
   buildFamilyTree,
   connectorSegments,
@@ -59,42 +67,23 @@ type FactCounts = { revealed: number; toDiscover: number };
 type NewPersonKind = "spouse" | "child" | "sibling";
 type LinkKind = "spouse" | "parent" | "child" | "sibling";
 
-// Charte (docs/design.md).
-const C = {
-  ground: "#FFFBF6",
-  surface: "#FFFFFF",
-  ink: "#1B1F3B",
-  inkSoft: "#5B5F73",
-  border: "#E2DACE",
-  borderSoft: "#EDE6DC",
-  blue: "#2347C5",
-  blueTint: "#E7ECFB",
-  redDark: "#A81E2C",
-  redTint: "#FDE8EA",
-  line: "#AEBBE3",
-};
-const AVATAR_COLORS = [
-  { bg: "#E7ECFB", fg: "#2347C5" },
-  { bg: "#FDE8EA", fg: "#A81E2C" },
-  { bg: "#FFF1D6", fg: "#7A4F00" },
-  { bg: "#E3F4EC", fg: "#1E6B45" },
-];
-
 const SLOT = DEFAULT_METRICS.slot;
 // Lignes de l'arbre, en coordonnées de la zone de l'arbre.
 const ROW_UP = { top: 24, height: 82, avatar: 46 };
 const ROW_CENTER = { top: 196, height: 124, avatar: 60 };
 const ROW_DOWN = { top: 410, height: 82, avatar: 46 };
 const AREA_HEIGHT = 520;
+const TREE_MARGIN_TOP = 8;
+// Panneau du récapitulatif ouvert : l'arbre remonte d'un cran (la ligne centrale prend la
+// place de la ligne du haut) et le panneau commence juste sous la ligne remontée. Les traits
+// qui descendent vers les enfants restent visibles entre la ligne et le panneau.
+const PANEL_SHIFT = ROW_UP.top - ROW_CENTER.top;
+const PANEL_TOP = TREE_MARGIN_TOP + ROW_UP.top + ROW_CENTER.height + 14;
+const PANEL_HIDDEN_Y = 1200;
+const PANEL_DURATION_MS = 260;
 const SWIPE_X = 30;
 const SWIPE_Y = 40;
 const USE_NATIVE_DRIVER = Platform.OS !== "web";
-
-function colorFor(id: string) {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
-  return AVATAR_COLORS[h % AVATAR_COLORS.length];
-}
 
 function souvenirsLabel(n: number): string {
   if (n === 0) return "Aucun souvenir";
@@ -102,6 +91,10 @@ function souvenirsLabel(n: number): string {
 }
 
 export default function FamilyTreeScreen() {
+  const params = useLocalSearchParams<{ person?: string; recap?: string }>();
+  const paramPerson = typeof params.person === "string" && params.person.length > 0 ? params.person : null;
+  const paramRecap = params.recap === "1";
+
   const [ready, setReady] = useState(false);
   const [noSession, setNoSession] = useState(false);
   const [error, setError] = useState("");
@@ -119,6 +112,8 @@ export default function FamilyTreeScreen() {
   const [showPanel, setShowPanel] = useState(false);
   const [recapCategories, setRecapCategories] = useState<RecapCategory[]>([]);
   const [recapLoading, setRecapLoading] = useState(false);
+  // 0 = panneau fermé, 1 = ouvert ; pilote à la fois le panneau et le décalage de l'arbre.
+  const [panelAnim] = useState(() => new Animated.Value(0));
 
   const [newPersonKind, setNewPersonKind] = useState<NewPersonKind | null>(null);
   const [newFirstName, setNewFirstName] = useState("");
@@ -193,7 +188,14 @@ export default function FamilyTreeScreen() {
       setPersons((personsData ?? []) as Person[]);
       setRelationships((relsData ?? []) as Relationship[]);
       setCounts(byPerson);
-      if (stored) setFocusId(stored);
+      // Venant d'un profil de l'accueil : centré sur la personne (et récapitulatif ouvert,
+      // sans animation) ; sinon, dernière personne centrée sur cet appareil.
+      if (paramPerson) setFocusId(paramPerson);
+      else if (stored) setFocusId(stored);
+      if (paramPerson && paramRecap) {
+        panelAnim.setValue(1);
+        setShowPanel(true);
+      }
       setReady(true);
     }
 
@@ -201,6 +203,8 @@ export default function FamilyTreeScreen() {
     return () => {
       cancelled = true;
     };
+    // Paramètres lus une seule fois, à l'ouverture de l'écran.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ---------- Arbre et placement ----------
@@ -272,7 +276,41 @@ export default function FamilyTreeScreen() {
     };
   }, [showPanel, editMode, focus, personsById]);
 
-  const panelWidth = Math.min(380, Math.max(260, width * 0.55));
+  function openPanel() {
+    setShowPanel(true);
+    Animated.timing(panelAnim, { toValue: 1, duration: PANEL_DURATION_MS, useNativeDriver: USE_NATIVE_DRIVER }).start();
+  }
+
+  function closePanel(immediate = false) {
+    if (immediate) {
+      panelAnim.setValue(0);
+      setShowPanel(false);
+      return;
+    }
+    Animated.timing(panelAnim, { toValue: 0, duration: PANEL_DURATION_MS, useNativeDriver: USE_NATIVE_DRIVER }).start(
+      ({ finished }) => {
+        if (finished) setShowPanel(false);
+      },
+    );
+  }
+
+  // Profil de l'accueil qui n'est pas (encore) placé dans l'arbre (personne sans relation) :
+  // l'arbre retombe sur sa personne de départ, on n'ouvre donc pas le récapitulatif d'un autre.
+  useEffect(() => {
+    if (ready && paramPerson && !tree.unitOfPerson[paramPerson] && focusId === paramPerson) {
+      panelAnim.setValue(0);
+      setShowPanel(false);
+    }
+  }, [ready, paramPerson, tree, focusId, panelAnim]);
+
+  const treeShift = useMemo(
+    () => panelAnim.interpolate({ inputRange: [0, 1], outputRange: [0, PANEL_SHIFT] }),
+    [panelAnim],
+  );
+  const panelTranslate = useMemo(
+    () => panelAnim.interpolate({ inputRange: [0, 1], outputRange: [PANEL_HIDDEN_Y, 0] }),
+    [panelAnim],
+  );
 
   const rows = useMemo(() => {
     const list: (RowGeometry & { isCenter: boolean })[] = [];
@@ -293,9 +331,9 @@ export default function FamilyTreeScreen() {
   const pan = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
   const axis = useRef<"x" | "y" | null>(null);
   const pendingStart = useRef<{ x: number; y: number } | null>(null);
-  const latest = useRef({ layout, focus, centerX });
+  const latest = useRef({ layout, focus, centerX, panelOpen: showPanel });
   useEffect(() => {
-    latest.current = { layout, focus, centerX };
+    latest.current = { layout, focus, centerX, panelOpen: showPanel };
   });
 
   const settle = () => {
@@ -325,6 +363,9 @@ export default function FamilyTreeScreen() {
         },
         onPanResponderMove: (_e, gs) => {
           if (!axis.current) axis.current = Math.abs(gs.dx) > Math.abs(gs.dy) ? "x" : "y";
+          // Panneau ouvert : pas de changement de génération, l'arbre ne suit pas le doigt
+          // verticalement (il faut d'abord fermer le panneau).
+          if (axis.current === "y" && latest.current.panelOpen) return;
           pan.setValue(axis.current === "x" ? { x: gs.dx, y: 0 } : { x: 0, y: gs.dy });
         },
         onPanResponderRelease: (_e, gs) => {
@@ -347,7 +388,7 @@ export default function FamilyTreeScreen() {
             return;
           }
 
-          if (Math.abs(gs.dy) < SWIPE_Y) return settle();
+          if (latest.current.panelOpen || Math.abs(gs.dy) < SWIPE_Y) return settle();
           const move = gs.dy < 0 ? "down" : "up";
           const next = moveFocus(lay, current, move, cx);
           if (next === current) return settle();
@@ -486,21 +527,22 @@ export default function FamilyTreeScreen() {
       setFocusId(personId);
       return;
     }
-    // Pas de navigation : le panneau s'ouvre à côté de l'arbre, qui reste visible et se
-    // recentre sur la personne touchée (voir docs/ecrans.md écran 10/11).
+    // Pas de navigation : l'arbre se recentre sur la personne touchée et le panneau monte du
+    // bas de l'écran (voir docs/ecrans.md écran 10/11).
     setFocusId(personId);
-    setShowPanel(true);
+    openPanel();
   }
 
   // ---------- Rendu ----------
 
   if (noSession) return <Redirect href="/" />;
 
+
   if (!ready) {
     return (
-      <ThemedView style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <ActivityIndicator />
-      </ThemedView>
+      <View style={[styles.screen, sunsetBackground, { alignItems: "center", justifyContent: "center" }]}>
+        <ActivityIndicator color={S.action} />
+      </View>
     );
   }
 
@@ -511,9 +553,10 @@ export default function FamilyTreeScreen() {
   // Un conjoint (« pièce rapportée », 2e membre du couple) n'a pas d'ascendance dans cette
   // famille : on ne lui ajoute pas de frère ou sœur.
   const focusIsInLaw = !!focusUnit && focusUnit.members[1] === focus;
+  const focusCounts = focus ? counts.get(focus) : undefined;
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, sunsetBackground]}>
       <View style={styles.titleBar}>
         <Pressable accessibilityLabel="Retour à l'accueil" onPress={() => router.replace("/home")} style={styles.iconButton}>
           <Text style={styles.backChevron}>‹</Text>
@@ -533,170 +576,182 @@ export default function FamilyTreeScreen() {
         ) : (
           <Pressable
             onPress={() => {
-              setShowPanel(false);
+              closePanel(true);
               setEditMode(true);
             }}
-            style={styles.outlineButton}
+            style={styles.glassButton}
           >
-            <Text style={styles.outlineButtonText}>Modifier</Text>
+            <Text style={styles.glassButtonText}>✎ Modifier</Text>
           </Pressable>
         )}
       </View>
 
       {!editMode && unlinked.length > 0 && (
-        <Pressable onPress={() => setEditMode(true)} style={styles.alertChip}>
+        <Pressable
+          onPress={() => {
+            closePanel(true);
+            setEditMode(true);
+          }}
+          style={styles.alertChip}
+        >
           <Text style={styles.alertChipText}>
             ⚠ {unlinked.length === 1 ? "1 personne sans relation" : `${unlinked.length} personnes sans relation`}
           </Text>
         </Pressable>
       )}
 
-      <View style={{ flex: 1, flexDirection: "row" }}>
       <View style={{ flex: 1 }}>
-      {!focus ? (
-        <View style={styles.empty}>
-          <Text style={styles.hintStrong}>Aucune personne dans la famille pour l&apos;instant.</Text>
-        </View>
-      ) : (
-        <View
-          style={styles.treeArea}
-          onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
-          {...panResponder.panHandlers}
-        >
-          <View style={styles.centerBand} />
-          {/* eslint-disable-next-line react-hooks/refs -- idem : pan est un Animated.ValueXY stable, lu hors du rendu réactif par design. */}
-          <Animated.View style={[StyleSheet.absoluteFill, { transform: pan.getTranslateTransform() }]}>
-            {g === 0 && <Text style={styles.topLabel}>Haut de l&apos;arbre : les ancêtres communs</Text>}
-            {segments.map((s, i) => (
-              <View
-                key={`s${i}`}
-                pointerEvents="none"
-                style={{ position: "absolute", left: s.x, top: s.y, width: s.w, height: s.h, backgroundColor: C.line }}
-              />
-            ))}
-            {rows.map((row) => {
-              const off = offsets?.offsets[row.generation] ?? 0;
-              return (tree.generations[row.generation] ?? []).flatMap((unitId) =>
-                tree.units[unitId].members.map((personId) => {
-                  const left = layout.personX[personId] + off;
-                  if (left > width + SLOT * 4 || left < -SLOT * 5) return null;
-                  const p = personsById.get(personId);
-                  if (!p) return null;
-                  const c = counts.get(personId) ?? { revealed: 0, toDiscover: 0 };
-                  const col = colorFor(personId);
-                  const isFocus = personId === focus;
-                  return (
-                    <Pressable
-                      key={personId}
-                      accessibilityLabel={editMode ? `${p.first_name}, sélectionner` : `${p.first_name}, voir ses souvenirs`}
-                      onPress={() => openPerson(personId)}
-                      style={[styles.card, { left, top: row.top, width: SLOT, gap: row.isCenter ? 5 : 4 }]}
-                    >
-                      <View
-                        style={[
-                          styles.avatar,
-                          {
-                            width: row.avatar,
-                            height: row.avatar,
-                            borderRadius: row.avatar / 2,
-                            backgroundColor: col.bg,
-                            borderColor: isFocus ? C.blue : C.surface,
-                            borderWidth: isFocus ? 3 : 2,
-                          },
-                        ]}
+        {!focus ? (
+          <View style={styles.empty}>
+            <Text style={styles.hintStrong}>Aucune personne dans la famille pour l&apos;instant.</Text>
+          </View>
+        ) : (
+          <View
+            style={styles.treeArea}
+            onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+            {...panResponder.panHandlers}
+          >
+            {/* Bande de la génération centrée : pleine largeur, sans arrondis (avec des
+                arrondis, on croyait à une sélection). Elle remonte avec l'arbre. */}
+            <Animated.View style={[styles.centerBand, { transform: [{ translateY: treeShift }] }]} />
+            <Animated.View
+              style={[
+                StyleSheet.absoluteFill,
+                // eslint-disable-next-line react-hooks/refs -- pan est un Animated.ValueXY stable, lu hors du rendu réactif par design.
+                { transform: [...pan.getTranslateTransform(), { translateY: treeShift }] },
+              ]}
+            >
+              {g === 0 && !showPanel && <Text style={styles.topLabel}>Haut de l&apos;arbre : les ancêtres communs</Text>}
+              {segments.map((s, i) => (
+                <View
+                  key={`s${i}`}
+                  pointerEvents="none"
+                  style={{ position: "absolute", left: s.x, top: s.y, width: s.w, height: s.h, backgroundColor: S.line }}
+                />
+              ))}
+              {rows.map((row) => {
+                const off = offsets?.offsets[row.generation] ?? 0;
+                return (tree.generations[row.generation] ?? []).flatMap((unitId) =>
+                  tree.units[unitId].members.map((personId) => {
+                    const left = layout.personX[personId] + off;
+                    if (left > width + SLOT * 4 || left < -SLOT * 5) return null;
+                    const p = personsById.get(personId);
+                    if (!p) return null;
+                    const c = counts.get(personId) ?? { revealed: 0, toDiscover: 0 };
+                    const isFocus = personId === focus;
+                    return (
+                      <Pressable
+                        key={personId}
+                        accessibilityLabel={editMode ? `${p.first_name}, sélectionner` : `${p.first_name}, voir ses souvenirs`}
+                        onPress={() => openPerson(personId)}
+                        style={[styles.card, { left, top: row.top, width: SLOT, gap: row.isCenter ? 5 : 3 }]}
                       >
-                        <Text style={{ color: col.fg, fontWeight: "700", fontSize: Math.round(row.avatar * 0.4) }}>
-                          {p.first_name.charAt(0).toUpperCase()}
+                        <PersonAvatar
+                          personId={personId}
+                          firstName={p.first_name}
+                          size={row.avatar}
+                          isCentral={p.is_central}
+                          focused={isFocus}
+                        >
+                          {editMode && (
+                            <View style={styles.editBadge}>
+                              <Text style={styles.editBadgeText}>✎</Text>
+                            </View>
+                          )}
+                        </PersonAvatar>
+                        <Text numberOfLines={1} style={[styles.cardName, { fontSize: row.isCenter ? 18 : 14 }]}>
+                          {p.first_name}
                         </Text>
-                        {p.is_central && (
-                          <View style={styles.centralBadge}>
-                            <Text style={styles.centralBadgeText}>★</Text>
+                        <Text numberOfLines={1} style={[styles.cardCount, { fontSize: row.isCenter ? 13 : 11 }]}>
+                          {souvenirsLabel(c.revealed)}
+                        </Text>
+                        {row.isCenter && c.toDiscover > 0 && (
+                          <View style={styles.discoverPill}>
+                            <Text style={styles.discoverPillText}>{c.toDiscover} à découvrir</Text>
                           </View>
                         )}
-                        {editMode && (
-                          <View style={styles.editBadge}>
-                            <Text style={styles.editBadgeText}>✎</Text>
-                          </View>
-                        )}
-                      </View>
-                      <Text
-                        numberOfLines={1}
-                        style={{ fontSize: row.isCenter ? 16 : 13, fontWeight: isFocus ? "800" : "700", color: C.ink }}
-                      >
-                        {p.first_name}
-                      </Text>
-                      <Text numberOfLines={1} style={{ fontSize: row.isCenter ? 13 : 11, color: C.inkSoft }}>
-                        {souvenirsLabel(c.revealed)}
-                      </Text>
-                      {row.isCenter && c.toDiscover > 0 && (
-                        <View style={styles.discoverPill}>
-                          <Text style={styles.discoverPillText}>{c.toDiscover} à découvrir</Text>
-                        </View>
-                      )}
-                    </Pressable>
-                  );
-                }),
-              );
-            })}
-          </Animated.View>
-          <View pointerEvents="none" style={styles.genDots}>
-            {tree.generations.map((_, k) => (
-              <View
-                key={`g${k}`}
-                style={{
-                  width: k === g ? 10 : 7,
-                  height: k === g ? 10 : 7,
-                  borderRadius: 5,
-                  backgroundColor: k === g ? C.blue : "#C9D4F4",
-                }}
+                      </Pressable>
+                    );
+                  }),
+                );
+              })}
+            </Animated.View>
+            {!showPanel && (
+              <View pointerEvents="none" style={styles.genDots}>
+                {tree.generations.map((_, k) => (
+                  <View
+                    key={`g${k}`}
+                    style={{
+                      width: k === g ? 11 : 8,
+                      height: k === g ? 11 : 8,
+                      borderRadius: 6,
+                      backgroundColor: k === g ? S.action : "rgba(255,248,238,0.8)",
+                    }}
+                  />
+                ))}
+              </View>
+            )}
+            {/* Panneau ouvert : toucher l'arbre le ferme ; les glissements horizontaux restent
+                captés par l'arbre (panResponder, phase de capture) et changent de personne. */}
+            {showPanel && (
+              <Pressable
+                accessibilityLabel="Fermer les souvenirs"
+                onPress={() => closePanel()}
+                style={[StyleSheet.absoluteFill, { zIndex: 2 }]}
               />
-            ))}
+            )}
           </View>
-        </View>
-      )}
+        )}
 
-      {!editMode && focus && !showPanel && (
-        <View style={styles.hints}>
-          <Text style={styles.hintStrong}>Touche une personne pour lire ses souvenirs</Text>
-          <Text style={styles.hint}>
-            Glisse à gauche ou à droite pour parcourir une génération, vers le haut ou le bas pour changer de génération
-          </Text>
-        </View>
-      )}
-      </View>
-
-      {!editMode && showPanel && focus && focusPerson && (
-        <View style={[styles.panel, { width: panelWidth }]}>
-          <View style={styles.panelHeader}>
-            <Text style={styles.panelHeaderName} numberOfLines={1}>
-              {focusPerson.display_name}
+        {!editMode && focus && !showPanel && (
+          <View style={styles.hints}>
+            <Text style={styles.hintStrong}>Touche une personne pour lire ses souvenirs</Text>
+            <Text style={styles.hint}>
+              Glisse à gauche ou à droite pour parcourir une génération, vers le haut ou le bas pour changer de génération
             </Text>
-            <Pressable accessibilityLabel="Fermer" onPress={() => setShowPanel(false)} style={styles.iconButton}>
-              <Text style={styles.closeIcon}>✕</Text>
-            </Pressable>
           </View>
-          <ScrollView contentContainerStyle={styles.panelContent}>
-            {recapLoading ? (
-              <ActivityIndicator color={C.blue} />
-            ) : recapCategories.length === 0 ? (
-              <Text style={styles.hint}>Aucun souvenir révélé pour l&apos;instant.</Text>
-            ) : (
-              recapCategories.map((cat) => (
-                <View key={cat.category} style={{ gap: 4 }}>
-                  <Text style={styles.recapCategoryLabel}>{cat.label}</Text>
-                  <Text style={styles.recapText}>{cat.text}</Text>
+        )}
+
+        {!editMode && showPanel && focus && focusPerson && (
+          <Animated.View style={[styles.panel, { transform: [{ translateY: panelTranslate }] }]}>
+            <View style={styles.panelHandle} />
+            <View style={styles.panelHeader}>
+              <PersonAvatar personId={focus} firstName={focusPerson.first_name} size={50} isCentral={focusPerson.is_central} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.panelHeaderName} numberOfLines={1}>
+                  {focusPerson.display_name}
+                </Text>
+                <Text style={styles.panelHeaderSub}>{souvenirsLabel(focusCounts?.revealed ?? 0)}</Text>
+              </View>
+              <Pressable accessibilityLabel="Fermer" onPress={() => closePanel()} style={styles.closeButton}>
+                <Text style={styles.closeIcon}>✕</Text>
+              </Pressable>
+            </View>
+            {/* Le texte défile quand la personne a beaucoup de souvenirs. */}
+            <ScrollView contentContainerStyle={styles.panelContent}>
+              {recapLoading ? (
+                <ActivityIndicator color={S.action} />
+              ) : recapCategories.length === 0 ? (
+                <Text style={styles.recapEmpty}>Aucun souvenir révélé pour l&apos;instant.</Text>
+              ) : (
+                recapCategories.map((cat) => (
+                  <View key={cat.category} style={{ gap: 4 }}>
+                    <Text style={styles.recapCategoryLabel}>{cat.label}</Text>
+                    <Text style={styles.recapText}>{cat.text}</Text>
+                  </View>
+                ))
+              )}
+              {!recapLoading && (focusCounts?.toDiscover ?? 0) > 0 && (
+                <View style={styles.recapDiscover}>
+                  <Text style={styles.recapDiscoverText}>
+                    {focusCounts!.toDiscover} souvenir{focusCounts!.toDiscover === 1 ? "" : "s"} à découvrir dans les
+                    prochains quiz
+                  </Text>
                 </View>
-              ))
-            )}
-            {!recapLoading && (counts.get(focus)?.toDiscover ?? 0) > 0 && (
-              <Text style={styles.recapDiscover}>
-                {counts.get(focus)!.toDiscover} souvenir{counts.get(focus)!.toDiscover === 1 ? "" : "s"} à découvrir
-                dans les prochains quiz.
-              </Text>
-            )}
-          </ScrollView>
-        </View>
-      )}
+              )}
+            </ScrollView>
+          </Animated.View>
+        )}
       </View>
 
       {editMode && (
@@ -722,7 +777,7 @@ export default function FamilyTreeScreen() {
                   <Text style={styles.addChipText}>Relier à une personne…</Text>
                 </Pressable>
               </View>
-              <Text style={styles.hint}>Touche une autre personne de l&apos;arbre pour la sélectionner.</Text>
+              <Text style={styles.hintOnCream}>Touche une autre personne de l&apos;arbre pour la sélectionner.</Text>
             </View>
           )}
 
@@ -792,7 +847,7 @@ export default function FamilyTreeScreen() {
                   </Pressable>
                 ))}
               </View>
-              <Text style={styles.hint}>Choisis l&apos;autre personne :</Text>
+              <Text style={styles.hintOnCream}>Choisis l&apos;autre personne :</Text>
               <View style={styles.chipsRow}>
                 {[...unlinked, ...persons.filter((p) => !tree.unlinkedPersonIds.includes(p.id))]
                   .filter((p) => p.id !== focus)
@@ -828,7 +883,7 @@ export default function FamilyTreeScreen() {
           {unlinked.length > 0 && !newPersonKind && (
             <View style={styles.panelCard}>
               <Text style={styles.alertTitle}>⚠ À placer dans l&apos;arbre ({unlinked.length})</Text>
-              <Text style={styles.hint}>
+              <Text style={styles.hintOnCream}>
                 Ces personnes n&apos;ont pas encore de relation avec l&apos;arbre : sélectionne une personne de l&apos;arbre,
                 puis touche un nom pour la relier.
               </Text>
@@ -855,53 +910,65 @@ export default function FamilyTreeScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: C.ground },
-  titleBar: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 8, paddingTop: 12, paddingBottom: 4 },
+  screen: { flex: 1 },
+  titleBar: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 8, paddingTop: 14, paddingBottom: 4 },
   iconButton: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
-  backChevron: { fontSize: 32, lineHeight: 34, color: C.ink },
-  title: { fontSize: 22, fontWeight: "700", color: C.ink },
+  backChevron: { fontSize: 34, lineHeight: 36, color: S.ink },
+  title: { fontFamily: FONTS.title, fontSize: 25, color: S.ink },
   primaryButton: {
     minHeight: 44,
-    paddingHorizontal: 18,
-    borderRadius: 14,
-    backgroundColor: C.blue,
+    paddingHorizontal: 20,
+    borderRadius: RADIUS.pill,
+    backgroundColor: S.action,
+    alignItems: "center",
+    justifyContent: "center",
+    ...solidShadow(S.actionShadow, 4),
+  },
+  primaryButtonText: { color: S.white, fontFamily: FONTS.bodyHeavy, fontSize: 15 },
+  glassButton: {
+    minHeight: 44,
+    paddingHorizontal: 16,
+    borderRadius: RADIUS.pill,
+    borderWidth: 2,
+    borderColor: S.glassBorder,
+    backgroundColor: "rgba(255,248,238,0.55)",
     alignItems: "center",
     justifyContent: "center",
   },
-  primaryButtonText: { color: "#FFFFFF", fontWeight: "800", fontSize: 15 },
+  glassButtonText: { color: S.actionShadow, fontFamily: FONTS.bodyHeavy, fontSize: 15 },
   outlineButton: {
     minHeight: 44,
-    paddingHorizontal: 14,
-    borderRadius: 14,
+    paddingHorizontal: 16,
+    borderRadius: RADIUS.pill,
     borderWidth: 2,
-    borderColor: C.blue,
-    backgroundColor: C.surface,
+    borderColor: S.action,
     alignItems: "center",
     justifyContent: "center",
   },
-  outlineButtonText: { color: C.blue, fontWeight: "800", fontSize: 15 },
+  outlineButtonText: { color: S.action, fontFamily: FONTS.bodyHeavy, fontSize: 15 },
   alertChip: {
     alignSelf: "flex-start",
     marginLeft: 16,
     marginTop: 4,
     minHeight: 36,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     borderRadius: 18,
-    backgroundColor: C.redTint,
+    backgroundColor: S.alertBg,
     justifyContent: "center",
+    ...solidShadow("rgba(138,58,18,0.18)", 3),
   },
-  alertChipText: { color: C.redDark, fontWeight: "800", fontSize: 14 },
-  treeArea: { height: AREA_HEIGHT, overflow: "hidden", marginTop: 8 },
+  alertChipText: { color: S.alertInk, fontFamily: FONTS.bodyHeavy, fontSize: 14 },
+  treeArea: { height: AREA_HEIGHT, overflow: "hidden", marginTop: TREE_MARGIN_TOP },
   centerBand: {
     position: "absolute",
     left: 0,
     right: 0,
     top: ROW_CENTER.top - 16,
     height: ROW_CENTER.height + 30,
-    backgroundColor: C.surface,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: C.borderSoft,
+    backgroundColor: "rgba(255,244,232,0.45)",
+    borderTopWidth: 2,
+    borderBottomWidth: 2,
+    borderColor: S.glassBorder,
   },
   topLabel: {
     position: "absolute",
@@ -910,25 +977,12 @@ const styles = StyleSheet.create({
     top: ROW_UP.top + 28,
     textAlign: "center",
     fontSize: 14,
-    fontWeight: "700",
-    color: C.inkSoft,
+    fontFamily: FONTS.bodyBold,
+    color: S.inkOnGround,
   },
   card: { position: "absolute", alignItems: "center" },
-  avatar: { alignItems: "center", justifyContent: "center" },
-  centralBadge: {
-    position: "absolute",
-    right: -5,
-    bottom: -5,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: C.blue,
-    borderWidth: 2,
-    borderColor: C.surface,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  centralBadgeText: { color: "#FFFFFF", fontSize: 11, lineHeight: 13 },
+  cardName: { fontFamily: FONTS.title, color: S.ink, lineHeight: 21 },
+  cardCount: { fontFamily: FONTS.bodyBold, color: S.inkOnGround },
   editBadge: {
     position: "absolute",
     right: -6,
@@ -936,85 +990,131 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: C.surface,
+    backgroundColor: S.action,
     borderWidth: 2,
-    borderColor: C.blue,
+    borderColor: S.white,
     alignItems: "center",
     justifyContent: "center",
   },
-  editBadgeText: { color: C.blue, fontSize: 12, lineHeight: 14 },
-  discoverPill: { marginTop: 2, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, backgroundColor: C.blueTint },
-  discoverPillText: { color: C.blue, fontSize: 12, fontWeight: "800" },
-  genDots: { position: "absolute", right: 8, top: ROW_CENTER.top + 20, alignItems: "center", gap: 8 },
-  hints: { paddingHorizontal: 16, paddingTop: 8, alignItems: "center", gap: 6 },
-  hintStrong: { fontSize: 15, fontWeight: "700", color: C.ink, textAlign: "center" },
-  hint: { fontSize: 13, color: C.inkSoft, textAlign: "center" },
-  empty: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
-  panel: {
-    borderLeftWidth: 1,
-    borderLeftColor: C.border,
-    backgroundColor: C.surface,
+  editBadgeText: { color: S.white, fontSize: 12, lineHeight: 14 },
+  // Petite pastille : deux pastilles voisines (couple) ne doivent pas se toucher.
+  discoverPill: { marginTop: 3, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 10, backgroundColor: S.waiting },
+  discoverPillText: { color: S.waitingSoft, fontSize: 11, fontFamily: FONTS.bodyHeavy },
+  genDots: { position: "absolute", right: 10, top: ROW_CENTER.top + 20, alignItems: "center", gap: 8 },
+  hints: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: RADIUS.tile,
+    borderWidth: 2,
+    borderColor: S.glassBorder,
+    backgroundColor: S.glass,
+    alignItems: "center",
+    gap: 4,
   },
+  hintStrong: { fontSize: 15, fontFamily: FONTS.bodyHeavy, color: S.ink, textAlign: "center" },
+  hint: { fontSize: 13, fontFamily: FONTS.bodySemi, color: S.inkOnGround, textAlign: "center" },
+  hintOnCream: { fontSize: 13, fontFamily: FONTS.bodySemi, color: S.inkSoft },
+  empty: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
+
+  // ---------- Panneau du récapitulatif (monte du bas) ----------
+  panel: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: PANEL_TOP,
+    bottom: 0,
+    zIndex: 4,
+    borderTopLeftRadius: RADIUS.card,
+    borderTopRightRadius: RADIUS.card,
+    backgroundColor: S.cream,
+    boxShadow: "0px -6px 24px rgba(94,38,11,0.22)",
+  },
+  panelHandle: { alignSelf: "center", width: 44, height: 5, marginTop: 10, borderRadius: 3, backgroundColor: "#E3C9B0" },
   panelHeader: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: C.border,
+    gap: 12,
+    paddingLeft: 20,
+    paddingRight: 16,
+    paddingTop: 8,
+    paddingBottom: 10,
+    width: "100%",
+    maxWidth: 640,
+    alignSelf: "center",
   },
-  panelHeaderName: { flex: 1, fontSize: 18, fontWeight: "800", color: C.ink },
-  closeIcon: { fontSize: 18, color: C.inkSoft },
-  panelContent: { gap: 18, padding: 16, paddingBottom: 32 },
+  panelHeaderName: { fontFamily: FONTS.title, fontSize: 24, color: S.ink },
+  panelHeaderSub: { fontFamily: FONTS.bodyBold, fontSize: 14, color: S.inkSoft },
+  closeButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: S.creamStrong,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  closeIcon: { fontSize: 18, color: S.action, fontFamily: FONTS.bodyHeavy },
+  panelContent: { gap: 14, paddingHorizontal: 20, paddingTop: 4, paddingBottom: 32, width: "100%", maxWidth: 640, alignSelf: "center" },
   recapCategoryLabel: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: C.blue,
+    fontSize: 13,
+    fontFamily: FONTS.bodyHeavy,
+    color: S.action,
     textTransform: "uppercase",
-    letterSpacing: 0.4,
+    letterSpacing: 0.78,
   },
-  recapText: { fontSize: 14, lineHeight: 21, color: C.ink },
-  recapDiscover: { fontSize: 13, color: C.inkSoft, fontStyle: "italic" },
+  recapText: { fontSize: 16, lineHeight: 23, fontFamily: FONTS.body, color: S.ink },
+  recapEmpty: { fontSize: 15, fontFamily: FONTS.bodySemi, color: S.inkSoft },
+  recapDiscover: {
+    alignSelf: "flex-start",
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    backgroundColor: S.waiting,
+  },
+  recapDiscoverText: { fontSize: 14, fontFamily: FONTS.bodyHeavy, color: S.waitingSoft },
+
+  // ---------- Mode Modifier ----------
   editPanel: { flex: 1, paddingHorizontal: 16 },
   panelCard: {
     gap: 10,
-    padding: 14,
-    borderRadius: 18,
-    backgroundColor: C.surface,
-    borderWidth: 1,
-    borderColor: C.border,
+    padding: 16,
+    borderRadius: 28,
+    backgroundColor: S.cream,
+    ...solidShadow(undefined, 6),
   },
-  panelTitle: { fontSize: 16, fontWeight: "800", color: C.ink },
-  alertTitle: { fontSize: 14, fontWeight: "800", color: C.redDark },
+  panelTitle: { fontSize: 16, fontFamily: FONTS.bodyHeavy, color: S.ink },
+  alertTitle: { fontSize: 14, fontFamily: FONTS.bodyHeavy, color: S.alertInk },
   chipsRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: {
-    borderWidth: 1,
-    borderColor: C.border,
-    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: "#EAD9BD",
+    borderRadius: 18,
     paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: C.surface,
+    paddingHorizontal: 14,
+    backgroundColor: S.white,
   },
-  chipSelected: { backgroundColor: C.blue, borderColor: C.blue },
-  chipText: { color: C.ink, fontSize: 14 },
-  chipSelectedText: { color: "#FFFFFF", fontSize: 14, fontWeight: "700" },
+  chipSelected: { backgroundColor: S.action, borderColor: S.action },
+  chipText: { color: S.ink, fontSize: 14, fontFamily: FONTS.bodyBold },
+  chipSelectedText: { color: S.white, fontSize: 14, fontFamily: FONTS.bodyHeavy },
   addChip: {
     borderWidth: 2,
-    borderColor: C.blue,
+    borderColor: S.action,
     borderStyle: "dashed",
-    borderRadius: 16,
+    borderRadius: 18,
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
   },
-  addChipText: { color: C.blue, fontSize: 14, fontWeight: "800" },
+  addChipText: { color: S.action, fontSize: 14, fontFamily: FONTS.bodyHeavy },
   input: {
-    borderWidth: 1,
-    borderColor: C.border,
-    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: "#EAD9BD",
+    borderRadius: 14,
     padding: 12,
     fontSize: 16,
-    backgroundColor: C.surface,
+    fontFamily: FONTS.body,
+    color: S.ink,
+    backgroundColor: S.white,
   },
-  errorText: { color: C.redDark, fontSize: 14 },
+  errorText: { color: S.alertInk, fontSize: 14, fontFamily: FONTS.bodyBold },
 });

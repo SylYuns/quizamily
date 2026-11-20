@@ -1,0 +1,123 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "AlbumAttente.dc.html": {
+      "h": 844,
+      "title": "A · Réponse envoyée",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "Cuisine.dc.html": {
+      "h": 844,
+      "title": "C · Une question t'attend",
+      "w": 390,
+      "x": 2200,
+      "y": 0
+    },
+    "CuisineAttente.dc.html": {
+      "h": 844,
+      "title": "C · Réponse envoyée",
+      "w": 390,
+      "x": 2670,
+      "y": 0
+    },
+    "Main.dc.html": {
+      "h": 844,
+      "title": "A · Une question t'attend",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "Soleil.dc.html": {
+      "h": 844,
+      "title": "B · Une question t'attend",
+      "w": 390,
+      "x": 1100,
+      "y": 0
+    },
+    "SoleilAttente.dc.html": {
+      "h": 844,
+      "title": "B · Réponse envoyée",
+      "w": 390,
+      "x": 1570,
+      "y": 0
+    },
+    "Arbre.dc.html": {
+      "h": 844,
+      "title": "Arbre · Consultation (centré sur Marie)",
+      "w": 390,
+      "x": 1100,
+      "y": 1300
+    },
+    "ArbreRecap.dc.html": {
+      "h": 844,
+      "title": "Arbre · Profil touché depuis l'accueil (récapitulatif ouvert)",
+      "w": 390,
+      "x": 1570,
+      "y": 1300
+    },
+    "ArbreModifier.dc.html": {
+      "h": 844,
+      "title": "Arbre · Mode Modifier (centré sur Lucien)",
+      "w": 390,
+      "x": 2040,
+      "y": 1300
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-11-19T16:20:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "titreA": {
+      "kind": "title1",
+      "maxW": 860,
+      "text": "A · Album souvenir",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "titreB": {
+      "kind": "title1",
+      "maxW": 860,
+      "text": "B · Coucher de soleil",
+      "w": 240,
+      "x": 1100,
+      "y": -300
+    },
+    "titreC": {
+      "kind": "title1",
+      "maxW": 860,
+      "text": "C · Cuisine de mamie",
+      "w": 240,
+      "x": 2200,
+      "y": -300
+    },
+    "titreArbre": {
+      "kind": "title1",
+      "maxW": 1330,
+      "text": "B · Arbre familial",
+      "x": 1100,
+      "y": 1000
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "AlbumAttente.dc.html",
+    "Soleil.dc.html",
+    "SoleilAttente.dc.html",
+    "Cuisine.dc.html",
+    "CuisineAttente.dc.html",
+    "Arbre.dc.html",
+    "ArbreRecap.dc.html",
+    "ArbreModifier.dc.html"
+  ],
+  "pages": [],
+  "title": "Quizamily – Pistes chaleureuses"
+}

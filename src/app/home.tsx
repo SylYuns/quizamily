@@ -1,8 +1,12 @@
 // Accueil famille (écran 4, voir docs/ecrans.md et docs/design.md).
 //
 // Met en avant, dans l'ordre : le bouton "Participer au quiz" (son état dépend de la phase du
-// jeu en cours, voir computeQuizState), "Consulter les connaissances" (ouvre l'arbre), puis
+// jeu en cours, voir computeQuizState), "Consulter les connaissances" (ouvre l'arbre ; 4 profils
+// tirés au hasard ouvrent directement l'arbre sur la personne, récapitulatif ouvert), puis
 // "Ajouter un souvenir", "Historique" (écran 12, pas encore construit) et "Mes faits".
+//
+// Charte « Coucher de soleil » (src/constants/soleil.ts) : fond en dégradé, cartes colorées ;
+// bouton du quiz brun-orangé quand une action est attendue, prune quand on attend.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import * as Clipboard from "expo-clipboard";
@@ -10,23 +14,10 @@ import { Redirect, router } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
+import { FlagMenuIcon, PersonAvatar } from "@/components/soleil";
+import { FONTS, RADIUS, S, solidShadow, sunsetBackground } from "@/constants/soleil";
+import { pickHomeProfiles, type ProfileCandidate } from "@/lib/home-profiles";
 import { supabase } from "@/lib/supabase";
-
-const C = {
-  ground: "#FFFBF6",
-  surface: "#FFFFFF",
-  ink: "#1B1F3B",
-  inkSoft: "#5B5F73",
-  border: "#E2DACE",
-  borderSoft: "#EDE6DC",
-  blue: "#2347C5",
-  blueDark: "#1A3596",
-  blueTint: "#E7ECFB",
-  blueTintBorder: "#C9D4F4",
-  red: "#D62839",
-  redDark: "#A81E2C",
-  redTint: "#FDE8EA",
-};
 
 const PLAYERS_NEEDED_FOR_FIRST_QUIZ = 3;
 const LOW_RESERVE_THRESHOLD = 5;
@@ -60,13 +51,14 @@ export default function HomeScreen() {
 
   const [quizState, setQuizState] = useState<QuizState | null>(null);
   const [knowledgeSub, setKnowledgeSub] = useState("");
+  const [profiles, setProfiles] = useState<ProfileCandidate[]>([]);
   const [reserveAlert, setReserveAlert] = useState<string | null>(null);
   const [correctionsBadge, setCorrectionsBadge] = useState(0);
 
   async function loadFamilyDashboard(familyId: string, personId: string) {
-    const [{ data: playersData }, { data: factsData }, { data: sessionsData }, { data: correctionsCount }] =
+    const [{ data: personsData }, { data: factsData }, { data: sessionsData }, { data: correctionsCount }] =
       await Promise.all([
-        supabase.from("persons").select("id").eq("family_id", familyId).eq("kind", "player"),
+        supabase.from("persons").select("id, kind, first_name, is_central").eq("family_id", familyId),
         supabase.from("facts").select("id, subject_person_id").eq("family_id", familyId).eq("status", "active"),
         supabase
           .from("quiz_sessions")
@@ -76,7 +68,8 @@ export default function HomeScreen() {
         supabase.rpc("get_my_pending_corrections_count", { p_family_id: familyId }),
       ]);
 
-    const players = playersData ?? [];
+    const familyPersons = personsData ?? [];
+    const players = familyPersons.filter((p) => p.kind === "player");
     const facts = factsData ?? [];
     const sessions = sessionsData ?? [];
     setCorrectionsBadge((correctionsCount as number | null) ?? 0);
@@ -97,6 +90,23 @@ export default function HomeScreen() {
     }
     const neverPosedCount = facts.filter((f) => !everPosed.has(f.id)).length;
     const revealedSubjects = new Set(facts.filter((f) => revealed.has(f.id)).map((f) => f.subject_person_id));
+
+    // Profils de la tuile « Consulter les connaissances » : tirés à chaque chargement de
+    // l'accueil (règle dans src/lib/home-profiles.ts).
+    const revealedBySubject = new Map<string, number>();
+    for (const f of facts) {
+      if (revealed.has(f.id)) revealedBySubject.set(f.subject_person_id, (revealedBySubject.get(f.subject_person_id) ?? 0) + 1);
+    }
+    setProfiles(
+      pickHomeProfiles(
+        familyPersons.map((p) => ({
+          id: p.id,
+          firstName: p.first_name,
+          isCentral: p.is_central,
+          revealedCount: revealedBySubject.get(p.id) ?? 0,
+        })),
+      ),
+    );
 
     if (sessions.length === 0) {
       setQuizState({ kind: "demarrage", playersCount: players.length, factsCount: facts.length });
@@ -310,10 +320,11 @@ export default function HomeScreen() {
     setShowBurger(false);
   }
 
+
   if (loading) {
     return (
-      <View style={[styles.screen, { alignItems: "center", justifyContent: "center" }]}>
-        <ActivityIndicator color={C.blue} />
+      <View style={[styles.screen, sunsetBackground, { alignItems: "center", justifyContent: "center" }]}>
+        <ActivityIndicator color={S.action} />
       </View>
     );
   }
@@ -328,8 +339,13 @@ export default function HomeScreen() {
 
   const family = families[familyIndex];
 
+  function openTree(personId?: string) {
+    if (personId) router.push({ pathname: "/family-tree", params: { person: personId, recap: "1" } });
+    else router.push("/family-tree");
+  }
+
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, sunsetBackground]}>
       <View style={styles.header}>
         <Pressable onPress={() => setShowFamilyMenu((v) => !v)} style={styles.familyButton}>
           <Text style={styles.familyButtonText}>{family.familyName}</Text>
@@ -344,7 +360,7 @@ export default function HomeScreen() {
         </Pressable>
         <View style={{ flex: 1 }} />
         <Pressable accessibilityLabel="Menu" onPress={() => setShowBurger((v) => !v)} style={styles.burgerButton}>
-          <Text style={styles.burgerIcon}>☰</Text>
+          <FlagMenuIcon />
         </Pressable>
       </View>
 
@@ -392,9 +408,7 @@ export default function HomeScreen() {
       )}
 
       <ScrollView contentContainerStyle={styles.main}>
-        <Text style={styles.greeting}>
-          Bonjour <Text style={styles.greetingName}>{family.firstName}</Text>
-        </Text>
+        <Text style={styles.greeting}>Bonjour {family.firstName}</Text>
 
         {burgerMessage && <Text style={styles.burgerMessage}>{burgerMessage}</Text>}
 
@@ -431,34 +445,51 @@ export default function HomeScreen() {
           </View>
         ) : quizState?.kind === "strong" ? (
           <Pressable onPress={quizState.onPress} style={styles.quizStrong}>
+            {/* Décor : un soleil qui se couche dans le coin. */}
+            <View pointerEvents="none" style={[styles.decorDisc, styles.sunOuter]} />
+            <View pointerEvents="none" style={[styles.decorDisc, styles.sunInner]} />
             <View style={styles.quizStrongTop}>
-              <Text style={styles.quizLabel}>Participer au quiz</Text>
+              <Text style={[styles.quizLabel, { color: S.actionSoft }]}>Participer au quiz</Text>
               {!!quizState.badge && (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>{quizState.badge}</Text>
                 </View>
               )}
             </View>
-            <Text style={styles.quizStrongTitle}>{quizState.title}</Text>
-            <Text style={styles.quizStrongSub}>{quizState.sub}</Text>
+            <Text style={styles.quizTitle}>{quizState.title}</Text>
+            <Text style={[styles.quizSub, { color: S.actionSoft }]}>{quizState.sub}</Text>
           </Pressable>
         ) : quizState?.kind === "muted" ? (
           <Pressable onPress={quizState.onPress} style={styles.quizMuted}>
-            <Text style={[styles.quizLabel, { color: C.blue }]}>Participer au quiz</Text>
-            <Text style={styles.quizMutedTitle}>{quizState.title}</Text>
-            <Text style={styles.quizMutedSub}>{quizState.sub}</Text>
-            {quizState.link && (
-              <Text style={styles.quizMutedLink}>
-                {quizState.link} <Text>→</Text>
-              </Text>
-            )}
+            {/* Décor : une lune (deux disques superposés) et deux étoiles. */}
+            <View pointerEvents="none" style={[styles.decorDisc, styles.moonLight]} />
+            <View pointerEvents="none" style={[styles.decorDisc, styles.moonShadow]} />
+            <View pointerEvents="none" style={[styles.star, { top: 58, right: 70 }]} />
+            <View pointerEvents="none" style={[styles.star, { top: 24, right: 88, width: 4, height: 4 }]} />
+            <Text style={[styles.quizLabel, { color: S.waitingSoft }]}>Participer au quiz</Text>
+            <Text style={styles.quizTitle}>{quizState.title}</Text>
+            <Text style={[styles.quizSub, { color: S.waitingSoft }]}>{quizState.sub}</Text>
+            {quizState.link && <Text style={styles.quizMutedLink}>{quizState.link} ›</Text>}
           </Pressable>
         ) : null}
 
-        <Pressable onPress={() => router.push("/family-tree")} style={styles.knowledgeButton}>
-          <View style={styles.knowledgeIcon}>
-            <FamilyGlyph />
-          </View>
+        {/* Toucher un profil ouvre l'arbre sur la personne, récapitulatif ouvert ; toucher
+            ailleurs sur la tuile ouvre l'arbre normalement. */}
+        <Pressable onPress={() => openTree()} style={styles.knowledgeTile}>
+          {profiles.length > 0 && (
+            <View style={styles.profilesGrid}>
+              {profiles.map((p) => (
+                <Pressable
+                  key={p.id}
+                  accessibilityLabel={`Voir ${p.firstName} dans l'arbre`}
+                  onPress={() => openTree(p.id)}
+                  hitSlop={4}
+                >
+                  <PersonAvatar personId={p.id} firstName={p.firstName} size={58} isCentral={p.isCentral} />
+                </Pressable>
+              ))}
+            </View>
+          )}
           <View style={{ flex: 1, gap: 4 }}>
             <Text style={styles.knowledgeTitle}>Consulter les connaissances</Text>
             <Text style={styles.knowledgeSub}>{knowledgeSub}</Text>
@@ -516,18 +547,6 @@ function mutedState(
   return { kind: "muted", title, sub, link: link ?? undefined, onPress: onPress ?? (() => {}) };
 }
 
-// Pas de vraies icônes vectorielles pour l'instant (comme pour l'arbre familial, voir
-// docs/ecrans.md écran 10) : un petit glyphe dessiné avec des Views plutôt qu'un emoji.
-function FamilyGlyph() {
-  return (
-    <View style={{ width: 26, height: 22 }}>
-      <View style={[styles.glyphDot, { left: 7, top: 0 }]} />
-      <View style={[styles.glyphDot, { left: 0, top: 11 }]} />
-      <View style={[styles.glyphDot, { left: 14, top: 11 }]} />
-    </View>
-  );
-}
-
 function StartStep({ done, label }: { done: boolean; label: string }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
@@ -540,152 +559,136 @@ function StartStep({ done, label }: { done: boolean; label: string }) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: C.ground },
+  screen: { flex: 1 },
   header: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: C.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: C.borderSoft,
+    paddingTop: 14,
+    paddingBottom: 6,
+    width: "100%",
+    maxWidth: 480,
+    alignSelf: "center",
   },
   familyButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
     minHeight: 44,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-    borderColor: C.border,
-    borderRadius: 22,
-    backgroundColor: C.surface,
+    paddingHorizontal: 16,
+    borderWidth: 2,
+    borderColor: S.glassBorder,
+    borderRadius: RADIUS.pill,
+    backgroundColor: "rgba(255,248,238,0.55)",
   },
-  familyButtonText: { fontFamily: "Fredoka_600SemiBold", fontSize: 17, color: C.ink },
-  chevron: { fontSize: 14, color: C.ink },
+  familyButtonText: { fontFamily: FONTS.title, fontSize: 18, color: S.ink },
+  chevron: { fontSize: 14, color: S.ink },
   inviteButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: C.blueTint,
+    backgroundColor: S.action,
     alignItems: "center",
     justifyContent: "center",
   },
-  inviteIcon: { fontSize: 20, color: C.blue, fontWeight: "700" },
-  burgerButton: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
-  burgerIcon: { fontSize: 20, color: C.ink },
+  inviteIcon: { fontSize: 22, color: S.white, fontFamily: FONTS.bodyHeavy },
+  burgerButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: S.white,
+    alignItems: "center",
+    justifyContent: "center",
+    ...solidShadow("rgba(138,58,18,0.2)", 3),
+  },
   dropdown: {
     position: "absolute",
-    top: 60,
+    top: 66,
     left: 16,
     zIndex: 10,
-    backgroundColor: C.surface,
-    borderWidth: 1,
-    borderColor: C.border,
-    borderRadius: 14,
+    backgroundColor: S.cream,
+    borderRadius: 20,
     paddingVertical: 6,
     minWidth: 220,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 4,
+    ...solidShadow("rgba(138,58,18,0.25)", 5),
   },
   dropdownItem: { paddingHorizontal: 16, paddingVertical: 12 },
-  dropdownItemText: { fontFamily: "Nunito_700Bold", fontSize: 15, color: C.ink },
-  dropdownItemTextActive: { fontFamily: "Nunito_800ExtraBold", fontSize: 15, color: C.blue },
-  main: { padding: 16, paddingTop: 18, gap: 14, maxWidth: 480, width: "100%", alignSelf: "center" },
-  greeting: { fontSize: 16, color: C.inkSoft },
-  greetingName: { color: C.ink, fontFamily: "Nunito_700Bold" },
-  burgerMessage: { fontSize: 14, color: C.inkSoft },
+  dropdownItemText: { fontFamily: FONTS.bodyBold, fontSize: 15, color: S.ink },
+  dropdownItemTextActive: { fontFamily: FONTS.bodyHeavy, fontSize: 15, color: S.action },
+  main: { padding: 16, paddingTop: 8, gap: 14, maxWidth: 480, width: "100%", alignSelf: "center" },
+  greeting: { fontFamily: FONTS.title, fontSize: 26, color: S.ink },
+  burgerMessage: { fontSize: 14, fontFamily: FONTS.bodyBold, color: S.inkOnGround },
 
-  quizLabel: { fontSize: 14, fontFamily: "Nunito_700Bold", letterSpacing: 0.84, textTransform: "uppercase", opacity: 0.85 },
+  // ---------- Bouton du quiz ----------
+  quizLabel: { fontSize: 14, fontFamily: FONTS.bodyHeavy, letterSpacing: 0.84, textTransform: "uppercase" },
+  quizTitle: { fontFamily: FONTS.title, fontSize: 30, lineHeight: 33, color: S.white },
+  quizSub: { fontSize: 15, fontFamily: FONTS.bodySemi },
   quizStrong: {
-    padding: 20,
-    borderRadius: 22,
-    backgroundColor: C.blue,
+    paddingVertical: 24,
+    paddingHorizontal: 22,
+    borderRadius: RADIUS.card,
+    backgroundColor: S.action,
     gap: 10,
-    shadowColor: C.blueDark,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
+    overflow: "hidden",
+    ...solidShadow(S.actionShadow),
   },
   quizStrongTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 28 },
-  quizStrongTitle: { fontFamily: "Fredoka_600SemiBold", fontSize: 27, lineHeight: 30, color: "#FFFFFF" },
-  quizStrongSub: { fontSize: 15, color: "#FFFFFF", opacity: 0.9 },
+  quizMuted: {
+    paddingVertical: 24,
+    paddingHorizontal: 22,
+    borderRadius: RADIUS.card,
+    backgroundColor: S.waiting,
+    gap: 10,
+    overflow: "hidden",
+    ...solidShadow(S.waitingShadow),
+  },
+  quizMutedLink: { fontSize: 15, fontFamily: FONTS.bodyHeavy, color: S.sun },
+  decorDisc: { position: "absolute" },
+  sunOuter: { top: -46, right: -40, width: 150, height: 150, borderRadius: 75, backgroundColor: S.sun, opacity: 0.22 },
+  sunInner: { top: -12, right: -6, width: 82, height: 82, borderRadius: 41, backgroundColor: S.sun, opacity: 0.35 },
+  moonLight: { top: 14, right: 26, width: 46, height: 46, borderRadius: 23, backgroundColor: S.sun, opacity: 0.9 },
+  moonShadow: { top: 8, right: 14, width: 46, height: 46, borderRadius: 23, backgroundColor: S.waiting },
+  star: { position: "absolute", width: 5, height: 5, borderRadius: 3, backgroundColor: S.actionSoft },
   badge: {
-    minWidth: 28,
-    height: 28,
-    borderRadius: 14,
-    paddingHorizontal: 9,
-    backgroundColor: C.red,
+    minWidth: 30,
+    height: 30,
+    borderRadius: 15,
+    paddingHorizontal: 10,
+    backgroundColor: S.sun,
     alignItems: "center",
     justifyContent: "center",
   },
-  badgeText: { color: "#FFFFFF", fontFamily: "Nunito_800ExtraBold", fontSize: 15 },
-  quizMuted: {
-    padding: 20,
-    borderRadius: 22,
-    backgroundColor: C.surface,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: C.border,
-    borderLeftWidth: 8,
-    borderLeftColor: C.blue,
-    borderRightWidth: 8,
-    borderRightColor: C.red,
-    gap: 10,
-    shadowColor: "rgba(27,31,59,0.08)",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 14,
-  },
-  quizMutedTitle: { fontFamily: "Fredoka_600SemiBold", fontSize: 27, lineHeight: 30, color: C.ink },
-  quizMutedSub: { fontSize: 15, color: C.inkSoft },
-  quizMutedLink: { fontSize: 15, fontFamily: "Nunito_700Bold", color: C.blue },
+  badgeText: { color: S.ink, fontFamily: FONTS.bodyHeavy, fontSize: 16 },
 
-  knowledgeButton: {
+  // ---------- Connaissances ----------
+  knowledgeTile: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
-    minHeight: 112,
-    padding: 20,
-    borderRadius: 22,
-    backgroundColor: C.surface,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: C.border,
-    borderLeftWidth: 8,
-    borderLeftColor: C.blue,
-    borderRightWidth: 8,
-    borderRightColor: C.red,
-    shadowColor: "rgba(27,31,59,0.08)",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 14,
+    gap: 18,
+    minHeight: 104,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    borderRadius: RADIUS.card,
+    backgroundColor: S.knowledge,
+    ...solidShadow(),
   },
-  knowledgeIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    backgroundColor: C.blueTint,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  glyphDot: { position: "absolute", width: 11, height: 11, borderRadius: 6, backgroundColor: C.blue },
-  knowledgeTitle: { fontFamily: "Fredoka_600SemiBold", fontSize: 23, color: C.ink },
-  knowledgeSub: { fontSize: 15, color: C.inkSoft },
+  // 2 colonnes de ronds de 58 px : jusqu'à 4 profils en carré.
+  profilesGrid: { width: 126, flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  knowledgeTitle: { fontFamily: FONTS.title, fontSize: 24, lineHeight: 27, color: S.ink },
+  knowledgeSub: { fontSize: 15, fontFamily: FONTS.bodySemi, color: S.knowledgeInk },
 
-  addCard: { borderWidth: 2, borderColor: C.blueTintBorder, borderRadius: 18, backgroundColor: C.surface, overflow: "hidden" },
-  addButton: { flexDirection: "row", alignItems: "center", gap: 14, minHeight: 64, paddingHorizontal: 16, paddingVertical: 12 },
-  addIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: C.blue, alignItems: "center", justifyContent: "center" },
-  addIconText: { color: "#FFFFFF", fontSize: 22, fontWeight: "700" },
-  addTitle: { fontFamily: "Fredoka_600SemiBold", fontSize: 20, color: C.ink },
-  alertBanner: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 16, paddingVertical: 10, backgroundColor: C.redTint },
-  alertIcon: { fontSize: 16, color: C.redDark },
-  alertText: { fontSize: 14, fontFamily: "Nunito_700Bold", color: C.redDark, flexShrink: 1 },
+  // ---------- Ajouter un souvenir ----------
+  addCard: { borderRadius: 28, backgroundColor: S.sun, overflow: "hidden", ...solidShadow(undefined, 6) },
+  addButton: { flexDirection: "row", alignItems: "center", gap: 14, minHeight: 66, paddingHorizontal: 18, paddingVertical: 11 },
+  addIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: S.action, alignItems: "center", justifyContent: "center" },
+  addIconText: { color: S.white, fontSize: 24, fontFamily: FONTS.bodyHeavy },
+  addTitle: { fontFamily: FONTS.title, fontSize: 21, color: S.ink },
+  alertBanner: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 18, paddingVertical: 10, backgroundColor: S.alertBg },
+  alertIcon: { fontSize: 16, color: S.alertInk },
+  alertText: { fontSize: 14, fontFamily: FONTS.bodyHeavy, color: S.alertInk, flexShrink: 1 },
 
+  // ---------- Tuiles ----------
   tilesRow: { flexDirection: "row", gap: 12 },
   tile: {
     flex: 1,
@@ -693,43 +696,60 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
     minHeight: 60,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: C.border,
-    borderRadius: 16,
-    backgroundColor: C.surface,
+    borderWidth: 2,
+    borderColor: S.glassBorder,
+    borderRadius: RADIUS.tile,
+    backgroundColor: S.glass,
   },
-  tileText: { fontFamily: "Nunito_800ExtraBold", fontSize: 16, color: C.ink },
+  tileText: { fontFamily: FONTS.bodyHeavy, fontSize: 16, color: S.ink },
   tileBadge: {
     marginLeft: "auto",
     minWidth: 24,
     height: 24,
     borderRadius: 12,
     paddingHorizontal: 7,
-    backgroundColor: C.red,
+    backgroundColor: S.badgeRed,
     alignItems: "center",
     justifyContent: "center",
   },
-  tileBadgeText: { color: "#FFFFFF", fontSize: 13, fontFamily: "Nunito_800ExtraBold" },
+  tileBadgeText: { color: S.white, fontSize: 13, fontFamily: FONTS.bodyHeavy },
 
-  startCard: { padding: 20, borderWidth: 2, borderColor: C.blueTintBorder, borderRadius: 22, backgroundColor: C.surface, gap: 14 },
-  startTitle: { fontFamily: "Fredoka_600SemiBold", fontSize: 25, color: C.ink },
-  startSub: { fontSize: 15, lineHeight: 20, color: C.inkSoft },
+  // ---------- Famille qui démarre ----------
+  startCard: { padding: 20, borderRadius: RADIUS.card, backgroundColor: S.cream, gap: 14, ...solidShadow() },
+  startTitle: { fontFamily: FONTS.title, fontSize: 25, color: S.ink },
+  startSub: { fontSize: 15, lineHeight: 20, fontFamily: FONTS.bodySemi, color: S.inkSoft },
   stepCircle: {
     width: 26,
     height: 26,
     borderRadius: 13,
     borderWidth: 2,
-    borderColor: C.blue,
+    borderColor: S.action,
     alignItems: "center",
     justifyContent: "center",
   },
-  stepCircleDone: { backgroundColor: C.blue },
-  stepCheck: { color: "#FFFFFF", fontSize: 14, fontWeight: "700" },
-  stepLabel: { fontSize: 16, color: C.ink },
-  startButtonPrimary: { flex: 1, minHeight: 48, borderRadius: 14, backgroundColor: C.blue, alignItems: "center", justifyContent: "center" },
-  startButtonPrimaryText: { color: "#FFFFFF", fontFamily: "Nunito_800ExtraBold", fontSize: 15 },
-  startButtonSecondary: { flex: 1, minHeight: 48, borderRadius: 14, borderWidth: 2, borderColor: C.blue, alignItems: "center", justifyContent: "center" },
-  startButtonSecondaryText: { color: C.blue, fontFamily: "Nunito_800ExtraBold", fontSize: 15 },
+  stepCircleDone: { backgroundColor: S.action },
+  stepCheck: { color: S.white, fontSize: 14, fontFamily: FONTS.bodyHeavy },
+  stepLabel: { fontSize: 16, fontFamily: FONTS.bodySemi, color: S.ink },
+  startButtonPrimary: {
+    flex: 1,
+    minHeight: 48,
+    borderRadius: RADIUS.pill,
+    backgroundColor: S.action,
+    alignItems: "center",
+    justifyContent: "center",
+    ...solidShadow(S.actionShadow, 4),
+  },
+  startButtonPrimaryText: { color: S.white, fontFamily: FONTS.bodyHeavy, fontSize: 15 },
+  startButtonSecondary: {
+    flex: 1,
+    minHeight: 48,
+    borderRadius: RADIUS.pill,
+    borderWidth: 2,
+    borderColor: S.action,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  startButtonSecondaryText: { color: S.action, fontFamily: FONTS.bodyHeavy, fontSize: 15 },
 });

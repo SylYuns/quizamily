@@ -7,7 +7,8 @@ import { useColorScheme } from "react-native";
 
 import { supabase } from "@/lib/supabase";
 
-// Polices de la charte (docs/design.md), pour l'instant utilisées par l'écran d'accueil.
+// Polices de la charte (docs/design.md : Fredoka pour les titres, Nunito pour le texte),
+// utilisées par l'accueil et l'arbre (charte « Coucher de soleil », src/constants/soleil.ts).
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {

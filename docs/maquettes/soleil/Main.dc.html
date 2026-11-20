@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Album souvenir</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Caveat:wght@600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+body{margin:0}
+a{color:#A4502A}a:hover{color:#7E3A1C}
+.papier{background-image:radial-gradient(#E3CDAE 1.1px, transparent 1.4px);background-size:16px 16px}
+</style>
+</helmet>
+<div class="papier" style="width: 390px; height: 844px; box-sizing: border-box; background-color: #F5E9D7; font-family: Nunito, system-ui, sans-serif; color: #4A2E1F; display: flex; flex-direction: column; overflow: hidden">
+
+  <header style="display: flex; align-items: center; gap: 8px; padding: 14px 16px 4px">
+    <button type="button" style="display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px; border: 1.5px solid #E2CDB0; border-radius: 24px; background: #FFFDF7; font-family: 'Baloo 2', Nunito, sans-serif; font-weight: 700; font-size: 18px; color: #4A2E1F; cursor: pointer">
+      Famille Chardaire
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+    </button>
+    <button type="button" aria-label="Inviter dans la famille" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: none; border-radius: 22px; background: #F2D2B6; color: #8A3A12; cursor: pointer">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1"></path><circle cx="8.5" cy="7" r="3.5"></circle><path d="M19 8v6M22 11h-6"></path></svg>
+    </button>
+    <div style="flex-grow: 1"></div>
+    <button type="button" aria-label="Menu" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: none; border-radius: 22px; background: transparent; color: #4A2E1F; cursor: pointer">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+    </button>
+  </header>
+
+  <main style="display: flex; flex-direction: column; gap: 16px; padding: 4px 18px 16px">
+    <p style="margin: 0; font-family: Caveat, cursive; font-weight: 700; font-size: 30px; line-height: 1.1; color: #A4502A">Bonjour Sylvain !</p>
+
+    <div style="position: relative; padding-top: 8px">
+      <span aria-hidden="true" style="position: absolute; top: 0; left: 50%; z-index: 2; width: 116px; height: 26px; margin-left: -58px; border-radius: 3px; transform: rotate(-3deg); opacity: 0.9; background: linear-gradient(90deg, #2F5AA8 0 33.3%, #FFFDF7 33.3% 66.6%, #C8423A 66.6% 100%); box-shadow: 0 1px 3px rgba(74,46,31,0.25)"></span>
+      <sc-if value="{{isQuestion}}" hint-placeholder-val="{{ true }}">
+        <button type="button" style="display: flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box; padding: 10px 10px 12px; border: none; border-radius: 22px; background: #FFFDF7; color: #4A2E1F; text-align: left; cursor: pointer; transform: rotate(-1.2deg); box-shadow: 0 10px 22px rgba(90,50,20,0.20)">
+          <span style="display: flex; flex-direction: column; gap: 8px; padding: 22px 18px 18px; border-radius: 16px; background: #A4502A; color: #FFFFFF">
+            <span style="display: flex; align-items: center; justify-content: space-between; min-height: 28px">
+              <span style="font-size: 14px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #FFF4E0">Participer au quiz</span>
+              <span style="min-width: 28px; height: 28px; box-sizing: border-box; padding: 0 9px; border-radius: 14px; background: #F2B33D; color: #4A2A12; font-weight: 800; font-size: 15px; display: flex; align-items: center; justify-content: center">1</span>
+            </span>
+            <span style="font-family: 'Baloo 2', Nunito, sans-serif; font-weight: 800; font-size: 30px; line-height: 1.05">Une question t’attend</span>
+          </span>
+          <span style="padding: 0 8px; font-family: Caveat, cursive; font-weight: 700; font-size: 23px; line-height: 1.1; color: #4A2E1F">à répondre avant dimanche 22 novembre</span>
+        </button>
+      </sc-if>
+      <sc-if value="{{isWaiting}}" hint-placeholder-val="{{ false }}">
+        <button type="button" style="display: flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box; padding: 10px 10px 12px; border: none; border-radius: 22px; background: #FFFDF7; color: #4A2E1F; text-align: left; cursor: pointer; transform: rotate(-1.2deg); box-shadow: 0 8px 18px rgba(90,50,20,0.14)">
+          <span style="display: flex; flex-direction: column; gap: 8px; padding: 22px 18px 18px; border-radius: 16px; background: #F7E2C8">
+            <span style="font-size: 14px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #8A3A12">Participer au quiz</span>
+            <span style="font-family: 'Baloo 2', Nunito, sans-serif; font-weight: 800; font-size: 30px; line-height: 1.05; color: #4A2E1F">Réponse envoyée</span>
+            <span style="display: flex; align-items: center; gap: 4px; font-size: 15px; font-weight: 800; color: #8A3A12">Voir ou modifier ma réponse
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+            </span>
+          </span>
+          <span style="padding: 0 8px; font-family: Caveat, cursive; font-weight: 700; font-size: 23px; line-height: 1.1; color: #4A2E1F">révélation dimanche 22 novembre</span>
+        </button>
+      </sc-if>
+    </div>
+
+    <button type="button" style="display: flex; align-items: center; gap: 14px; box-sizing: border-box; padding: 14px 16px; border: none; border-radius: 22px; background: #FFFDF7; color: #4A2E1F; text-align: left; cursor: pointer; transform: rotate(0.8deg); box-shadow: 0 8px 18px rgba(90,50,20,0.14)">
+      <span aria-hidden="true" style="display: flex; flex-shrink: 0; padding-left: 4px">
+        <span style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 20px; border: 2.5px solid #FFFDF7; background: #F2B33D; color: #4A2A12; font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 18px">M</span>
+        <span style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin-left: -12px; border-radius: 20px; border: 2.5px solid #FFFDF7; background: #E8A598; color: #6B2A20; font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 18px">J</span>
+        <span style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin-left: -12px; border-radius: 20px; border: 2.5px solid #FFFDF7; background: #9DB98A; color: #22381B; font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 18px">O</span>
+        <span style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin-left: -12px; border-radius: 20px; border: 2.5px solid #FFFDF7; background: #8FB1D9; color: #1E3A5F; font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 18px">L</span>
+      </span>
+      <span style="display: flex; flex-direction: column; gap: 0">
+        <span style="font-family: 'Baloo 2', Nunito, sans-serif; font-weight: 800; font-size: 21px; line-height: 1.1">Consulter les connaissances</span>
+        <span style="font-family: Caveat, cursive; font-weight: 700; font-size: 21px; color: #7A5A45">24 souvenirs sur 4 personnes</span>
+      </span>
+    </button>
+
+    <div style="display: flex; flex-direction: column; border: 2px dashed #D3AC86; border-radius: 22px; background: #FFFDF7; overflow: hidden">
+      <button type="button" style="display: flex; align-items: center; gap: 14px; min-height: 66px; box-sizing: border-box; padding: 12px 16px; border: none; background: transparent; color: #4A2E1F; text-align: left; cursor: pointer">
+        <span style="display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 42px; height: 42px; border-radius: 21px; background: #A4502A; color: #FFFFFF">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+        </span>
+        <span style="font-family: 'Baloo 2', Nunito, sans-serif; font-weight: 800; font-size: 21px">Ajouter un souvenir</span>
+      </button>
+      <sc-if value="{{isQuestion}}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: #FDE3D3; color: #A33A2A; font-size: 14px; font-weight: 800">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path><path d="M12 9v4M12 17h.01"></path></svg>
+          Plus que 3 questions en réserve
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+      <button type="button" style="display: flex; align-items: center; gap: 10px; min-height: 60px; box-sizing: border-box; padding: 10px 14px; border: 1.5px solid #E2CDB0; border-radius: 20px; background: #FFFDF7; color: #4A2E1F; font-family: Nunito, sans-serif; font-weight: 800; font-size: 16px; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A4502A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+        Historique
+      </button>
+      <button type="button" style="display: flex; align-items: center; gap: 10px; min-height: 60px; box-sizing: border-box; padding: 10px 14px; border: 1.5px solid #E2CDB0; border-radius: 20px; background: #FFFDF7; color: #4A2E1F; font-family: Nunito, sans-serif; font-weight: 800; font-size: 16px; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A4502A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path></svg>
+        Mes faits
+        <sc-if value="{{isQuestion}}" hint-placeholder-val="{{ true }}">
+          <span style="margin-left: auto; min-width: 24px; height: 24px; box-sizing: border-box; padding: 0 7px; border-radius: 12px; background: #C8423A; color: #FFFFFF; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center">1</span>
+        </sc-if>
+      </button>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"etat":{"editor":"enum","default":"question","options":["question","repondu"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const etat = this.props.etat ?? 'question';
+    return { isQuestion: etat === 'question', isWaiting: etat === 'repondu' };
+  }
+}
+</script>
+</body>
+</html>
