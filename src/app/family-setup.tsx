@@ -55,6 +55,10 @@ export default function FamilySetupScreen() {
   const [myFirstName, setMyFirstName] = useState("");
   const [myLastName, setMyLastName] = useState("");
   const [myGender, setMyGender] = useState<Gender>(null);
+  // Si le joueur a déjà une famille, on connaît déjà son prénom/nom/genre (son identité ne change
+  // pas d'une famille à l'autre, voir concept.md) : pas besoin de les redemander ni de les
+  // modifier à la création d'une famille supplémentaire (ce sera un écran de profil séparé).
+  const [knownIdentity, setKnownIdentity] = useState(false);
   const [centralPersons, setCentralPersons] = useState<CentralPerson[]>([emptyCentralPerson()]);
   const [children, setChildren] = useState<ChildPerson[]>([]);
 
@@ -65,10 +69,37 @@ export default function FamilySetupScreen() {
   const [checkedAuth, setCheckedAuth] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUserId(data.user?.id ?? null);
+    let cancelled = false;
+
+    async function load() {
+      const { data: userData } = await supabase.auth.getUser();
+      const id = userData.user?.id ?? null;
+      if (cancelled) return;
+      setUserId(id);
+
+      if (id) {
+        const { data: existing } = await supabase
+          .from("persons")
+          .select("first_name, last_name, gender")
+          .eq("user_id", id)
+          .eq("kind", "player")
+          .limit(1)
+          .maybeSingle();
+        if (cancelled) return;
+        if (existing) {
+          setMyFirstName(existing.first_name);
+          setMyLastName(existing.last_name);
+          setMyGender(existing.gender);
+          setKnownIdentity(true);
+        }
+      }
       setCheckedAuth(true);
-    });
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   function updateCentralPerson(index: number, patch: Partial<CentralPerson>) {
@@ -218,7 +249,7 @@ export default function FamilySetupScreen() {
             <ThemedText type="title">Nouvelle famille</ThemedText>
             <ThemedText themeColor="textSecondary">Comment s&apos;appelle ta famille ?</ThemedText>
             <LabeledInput value={familyName} onChangeText={setFamilyName} placeholder="Nom de la famille" />
-            <NextButton disabled={!canGoNextFromStep0} onPress={() => setStep(1)} />
+            <NextButton disabled={!canGoNextFromStep0} onPress={() => setStep(knownIdentity ? 2 : 1)} />
           </>
         )}
 
@@ -288,7 +319,7 @@ export default function FamilySetupScreen() {
               </Pressable>
             )}
             <View style={styles.row}>
-              <BackButton onPress={() => setStep(1)} />
+              <BackButton onPress={() => setStep(knownIdentity ? 0 : 1)} />
               <NextButton disabled={!canGoNextFromStep2} onPress={() => setStep(3)} />
             </View>
           </>

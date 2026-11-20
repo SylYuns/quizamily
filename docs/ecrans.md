@@ -49,7 +49,7 @@ But : démarrer une famille, ou rejoindre celle où l'on a été invité.
 
 Étapes :
 1. Nom de la famille
-2. Ses propres infos de base (prénom, nom, genre — ajouté à l'implémentation, nécessaire pour les conditions femme/homme du catalogue)
+2. Ses propres infos de base (prénom, nom, genre — ajouté à l'implémentation, nécessaire pour les conditions femme/homme du catalogue). **Corrigé le 2026-11-20** : sautée si le joueur a déjà une famille — son identité ne change pas d'une famille à l'autre (voir `concept.md`), elle est reprise de sa fiche existante plutôt que redemandée (modifier son prénom/nom/genre attend un écran de profil séparé, pas encore conçu).
 3. La ou les personnes centrales (1 à 4) : prénom, nom, genre, vivante ou décédée, lien de parenté avec soi (choisi dans une liste : grand-mère, petit-fils, gendre…)
 4. Pour chaque personne centrale : créer un profil sans compte. (**Simplifié pour l'implémentation initiale** : l'option "l'inviter directement" est repoussée — elle demande un mécanisme de rattachement d'un compte à un profil déjà créé, pas encore conçu.)
 5. Lien d'invitation à partager aux autres membres — un seul lien, réutilisable par plusieurs personnes (pas à usage unique)
