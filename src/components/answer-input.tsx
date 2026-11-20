@@ -88,8 +88,11 @@ function ListSearchInput(props: {
 
   useEffect(() => {
     const query = value.trim();
-    if (query.length === 0 || query === picked) {
+    function clearSuggestions() {
       setSuggestions([]);
+    }
+    if (query.length === 0 || query === picked) {
+      clearSuggestions();
       return;
     }
     let cancelled = false;

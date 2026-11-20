@@ -28,6 +28,9 @@ yarn-error.*
 
 # macOS
 .DS_Store
+
+# Dossier de travail local de Sylvain (jamais poussé sur GitHub)
+travail/
 *.pem
 
 # local env files

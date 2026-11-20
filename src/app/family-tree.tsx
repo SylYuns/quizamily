@@ -297,10 +297,13 @@ export default function FamilyTreeScreen() {
   // Profil de l'accueil qui n'est pas (encore) placé dans l'arbre (personne sans relation) :
   // l'arbre retombe sur sa personne de départ, on n'ouvre donc pas le récapitulatif d'un autre.
   useEffect(() => {
-    if (ready && paramPerson && !tree.unitOfPerson[paramPerson] && focusId === paramPerson) {
-      panelAnim.setValue(0);
-      setShowPanel(false);
+    function closeIfOrphanProfile() {
+      if (ready && paramPerson && !tree.unitOfPerson[paramPerson] && focusId === paramPerson) {
+        panelAnim.setValue(0);
+        setShowPanel(false);
+      }
     }
+    closeIfOrphanProfile();
   }, [ready, paramPerson, tree, focusId, panelAnim]);
 
   const treeShift = useMemo(
