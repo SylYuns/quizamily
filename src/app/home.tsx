@@ -265,16 +265,7 @@ export default function HomeScreen() {
       );
       setMyPersonId(data[0].id);
 
-      const { data: inviteRow } = await supabase
-        .from("invites")
-        .select("token")
-        .eq("family_id", data[0].family_id)
-        .limit(1)
-        .maybeSingle();
-      if (inviteRow && !cancelled) {
-        const origin = typeof window !== "undefined" ? window.location.origin : "";
-        setInviteLink(`${origin}/join/${inviteRow.token}`);
-      }
+      if (!cancelled) await loadInviteLink(data[0].family_id);
 
       await loadFamilyDashboard(data[0].family_id, data[0].id);
       if (!cancelled) setLoading(false);
@@ -286,11 +277,25 @@ export default function HomeScreen() {
     };
   }, []);
 
+  async function loadInviteLink(familyId: string) {
+    const { data: inviteRow } = await supabase.from("invites").select("token").eq("family_id", familyId).limit(1).maybeSingle();
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    setInviteLink(inviteRow ? `${origin}/join/${inviteRow.token}` : null);
+  }
+
   async function copyInviteLink() {
     if (!inviteLink) return;
     await Clipboard.setStringAsync(inviteLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  function switchFamily(familyId: string) {
+    setShowFamilyMenu(false);
+    setFamilyIndex(families.findIndex((f) => f.familyId === familyId));
+    setLoading(true);
+    loadInviteLink(familyId);
+    loadFamilyDashboard(familyId, myPersonId!).then(() => setLoading(false));
   }
 
   async function createSessionNow() {
@@ -338,6 +343,8 @@ export default function HomeScreen() {
   }
 
   const family = families[familyIndex];
+  // La famille courante est toujours en tête du menu, bouton d'invitation à côté d'elle.
+  const orderedFamilies = [family, ...families.filter((f) => f.familyId !== family.familyId)];
 
   function openTree(personId?: string) {
     if (personId) router.push({ pathname: "/family-tree", params: { person: personId, recap: "1" } });
@@ -351,13 +358,6 @@ export default function HomeScreen() {
           <Text style={styles.familyButtonText}>{family.familyName}</Text>
           <Text style={styles.chevron}>⌄</Text>
         </Pressable>
-        <Pressable
-          accessibilityLabel="Inviter dans la famille"
-          onPress={copyInviteLink}
-          style={styles.inviteButton}
-        >
-          <Text style={styles.inviteIcon}>{copied ? "✓" : "+"}</Text>
-        </Pressable>
         <View style={{ flex: 1 }} />
         <Pressable accessibilityLabel="Menu" onPress={() => setShowBurger((v) => !v)} style={styles.burgerButton}>
           <FlagMenuIcon />
@@ -366,21 +366,19 @@ export default function HomeScreen() {
 
       {showFamilyMenu && (
         <View style={styles.dropdown}>
-          {families.map((f, i) => (
-            <Pressable
-              key={f.familyId}
-              onPress={() => {
-                setFamilyIndex(i);
-                setShowFamilyMenu(false);
-                setLoading(true);
-                loadFamilyDashboard(f.familyId, myPersonId!).then(() => setLoading(false));
-              }}
-              style={styles.dropdownItem}
-            >
-              <Text style={i === familyIndex ? styles.dropdownItemTextActive : styles.dropdownItemText}>
-                {f.familyName}
-              </Text>
-            </Pressable>
+          {orderedFamilies.map((f) => (
+            <View key={f.familyId} style={styles.dropdownRow}>
+              <Pressable onPress={() => switchFamily(f.familyId)} style={styles.dropdownItem}>
+                <Text style={f.familyId === family.familyId ? styles.dropdownItemTextActive : styles.dropdownItemText}>
+                  {f.familyName}
+                </Text>
+              </Pressable>
+              {f.familyId === family.familyId && (
+                <Pressable accessibilityLabel="Inviter dans la famille" onPress={copyInviteLink} style={styles.inviteButtonSmall}>
+                  <Text style={styles.inviteIconSmall}>{copied ? "✓" : "+"}</Text>
+                </Pressable>
+              )}
+            </View>
           ))}
           <Pressable onPress={() => router.push("/family-setup")} style={styles.dropdownItem}>
             <Text style={styles.dropdownItemText}>+ Créer une autre famille</Text>
@@ -586,15 +584,6 @@ const styles = StyleSheet.create({
   },
   familyButtonText: { fontFamily: FONTS.title, fontSize: 18, color: S.ink },
   chevron: { fontSize: 14, color: S.ink },
-  inviteButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: S.action,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  inviteIcon: { fontSize: 22, color: S.white, fontFamily: FONTS.bodyHeavy },
   burgerButton: {
     width: 48,
     height: 48,
@@ -615,9 +604,20 @@ const styles = StyleSheet.create({
     minWidth: 220,
     ...solidShadow("rgba(138,58,18,0.25)", 5),
   },
-  dropdownItem: { paddingHorizontal: 16, paddingVertical: 12 },
+  dropdownRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  dropdownItem: { flex: 1, paddingHorizontal: 16, paddingVertical: 12 },
   dropdownItemText: { fontFamily: FONTS.bodyBold, fontSize: 15, color: S.ink },
   dropdownItemTextActive: { fontFamily: FONTS.bodyHeavy, fontSize: 15, color: S.action },
+  inviteButtonSmall: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: S.actionSoft,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 14,
+  },
+  inviteIconSmall: { fontSize: 15, color: S.action, fontFamily: FONTS.bodyHeavy },
   main: { padding: 16, paddingTop: 8, gap: 14, maxWidth: 480, width: "100%", alignSelf: "center" },
   greeting: { fontFamily: FONTS.title, fontSize: 26, color: S.ink },
   burgerMessage: { fontSize: 14, fontFamily: FONTS.bodyBold, color: S.inkOnGround },
