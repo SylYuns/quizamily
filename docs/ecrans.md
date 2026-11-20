@@ -399,6 +399,14 @@ But : lire ce que la famille sait d'une personne, sous une forme agréable, et n
 
 **Fait le 2026-11-11.** Accès : depuis l'arbre en mode consultation (écran 10), en touchant une personne — panneau latéral, sans changer d'écran (voir écran 10).
 
+**Nouveau comportement décidé le 2026-11-20** (maquette « Coucher de soleil », voir `design.md`) — remplace le panneau latéral, en particulier sur petit écran :
+- le récapitulatif s'ouvre en **panneau qui monte du bas de l'écran** ; en même temps, la ligne de la personne touchée **remonte d'un cran** (à la place de la génération du dessus, qui sort de l'écran) pour laisser presque les deux tiers de l'écran au texte. C'est un simple décalage d'affichage, pas un défilement : à la fermeture, tout **redescend d'un cran** et on retrouve la disposition de départ ;
+- les **traits de filiation restent dessinés** : ceux qui partent de la ligne remontée vers les enfants descendent et passent sous le panneau ; une amorce au-dessus de la ligne montre que l'arbre continue vers les parents ;
+- panneau ouvert, **glisser la ligne à gauche ou à droite** change de personne et **met à jour le panneau** (feuilleter une fratrie, un couple) ;
+- panneau ouvert, **pas de glissement vers le haut ou le bas** (pas de changement de génération) : on ferme d'abord le panneau, avec la croix ou en touchant en dehors du panneau, puis on navigue ;
+- le texte du panneau **défile** quand la personne a beaucoup de souvenirs ;
+- ouvert directement depuis un profil de l'accueil (écran 4), l'arbre arrive centré sur la personne, panneau déjà ouvert.
+
 Affiche :
 - en tête : le nom de la personne, bouton pour fermer le panneau ;
 - une **mini-biographie rédigée**, regroupée par catégorie du catalogue (naissance et enfance, jeunesse, couple et installation, culture et premières fois, retraite, voyages et loisirs), dans l'ordre du catalogue (`sort_order`, pas la date de révélation). Exemple : « Juliette est née le 12/04/1950. Elle a eu chat comme animal de compagnie pendant son enfance. » ;
