@@ -4,45 +4,28 @@
 
 Le MVP fonctionne de bout en bout en version simple, testé avec des comptes jetables et avec un deuxième vrai compte. Construit : auth, création/rejoindre une famille (avec « réclamer un profil existant »), ajout de faits (32/32 templates, y compris personne liée `<conjoint>` et élément choisi `<pays>`), « Mes faits » (modifier/supprimer, statut posé/révélé correct), nouvel accueil (écran 4, charte visuelle Fredoka/Nunito, 8 états du bouton quiz), mini arbre familial (lecture + ajout de relations, nouvelle charte, panneau de récapitulatif inline par personne — écrans 10/11), pioche (manuelle + automatique hebdomadaire, jamais repiocher tant qu'il reste du neuf), réponse, validation des réponses libres (anonyme), révélation (manuelle + automatique à la deadline, non-réponses non bloquantes), correction d'un fait avec recalcul rétroactif des scores, accord au féminin/masculin des questions et du récapitulatif (2026-11-18), bonnes réponses illisibles par requête directe (2026-11-10), et archives en version simple — étapes 1 à 6, 8, 9, 11 et 12 (version simple) de la liste ci-dessous. Pas commencé : étapes 7, 10, 13. **Ce qui reste, dans l'ordre : voir « Feuille de route » en bas de page.**
 
-**Depuis le 2026-11-19** : listes de référence préparées (recherche au fil de la frappe, voitures, métiers, sports, animaux ; films et personnalités à générer depuis Wikidata) — **à lancer et envoyer dans Supabase**, voir juste en dessous.
+**Depuis le 2026-11-19** : listes de référence (recherche au fil de la frappe, voitures, métiers, sports, animaux) envoyées dans Supabase le 2026-11-20 ; films et personnalités restent à générer depuis Wikidata (voir juste en dessous).
 
-**Depuis le 2026-11-20** : nouvelle charte « Coucher de soleil » codée pour l'accueil et l'arbre (4 profils cliquables, récapitulatif en panneau du bas) — **à vérifier à l'écran**, voir juste en dessous.
+**Depuis le 2026-11-20** : nouvelle charte « Coucher de soleil » pour l'accueil et l'arbre (4 profils cliquables, récapitulatif en panneau du bas), vérifiée à l'écran le 2026-11-20 (voir juste en dessous pour ce qui reste à vérifier).
 
 **Pour reprendre le travail (ex. depuis un autre ordinateur)** : voir « À faire sur l'ordinateur avec Supabase » juste en dessous, puis « Points à décider » et « Feuille de route » plus bas sur cette page.
 
 ## À faire sur l'ordinateur avec Supabase
 
-**À faire (2026-11-20)** — nouvelle charte « Coucher de soleil » sur l'accueil et l'arbre. Code écrit depuis un environnement sans `node_modules` : syntaxe vérifiée et tests des modules purs passés, mais **jamais compilé ni lancé**. **Aucune migration Supabase** pour ce changement (tout est côté app). Fichiers : `src/constants/soleil.ts` et `src/components/soleil.tsx` (nouveaux), `src/lib/home-profiles.ts` (+ test), `src/app/home.tsx`, `src/app/family-tree.tsx`, `package.json` (script `test:profiles`).
+**Fait le 2026-11-20** (revu et exécuté par Claude depuis l'ordinateur relié à Supabase) — nouvelle charte « Coucher de soleil » sur l'accueil et l'arbre :
 
-- [ ] **Récupérer les derniers commits** : `git pull`.
-- [ ] **Vérifier le code** : `npx tsc --noEmit` et `npx expo lint`. Points les plus probables si erreur : propriétés de style `backgroundImage` / `boxShadow` (types de React Native), paramètres de `router.push({ pathname: "/family-tree", params })`. Copier les erreurs à Claude.
-- [ ] **Tests** : `npm run test:profiles` (choix des 4 profils), et toujours `npm run test:layout`, `npm run test:gender`.
-- [ ] **Lancer** : `npx expo start --web` (ou sur téléphone). Si tu publies une version web : `npx expo export --platform web` puis envoyer le dossier `dist/` sur l'hébergement.
-- [ ] **Vérifier l'accueil** (comparer avec la maquette, lien dans `docs/design.md`) :
-  - fond en **dégradé** abricot → orange → rose (s'il est orange uni : `backgroundImage` pas pris en charge, le dire à Claude, on passera par `expo-linear-gradient`) ; ombres pleines brunes sous les cartes ;
-  - menu en haut à droite = trois barres bleue, blanche, rouge ;
-  - bouton du quiz **brun-orangé** quand il y a une action (question qui t'attend, réponses à valider, révélation), **prune** sinon (réponse envoyée, ta question en jeu, quiz terminé…) ;
-  - tuile rose « Consulter les connaissances » : jusqu'à **4 ronds** (priorité aux personnes avec des souvenirs révélés, étoile sur les personnes centrales, tirage différent à chaque retour sur l'accueil) ; **toucher un rond** ouvre l'arbre centré sur la personne, panneau ouvert ; **toucher ailleurs** sur la tuile ouvre l'arbre normalement.
-- [ ] **Vérifier l'arbre** :
-  - bande translucide **pleine largeur** sur la génération centrée ; ronds colorés ; pastille prune « N à découvrir » qui ne déborde pas sur le voisin ;
-  - toucher une personne : le **panneau monte du bas** et l'arbre **remonte d'un cran** ; le début des traits vers les enfants reste visible au-dessus du panneau ; la croix ou un toucher sur l'arbre **ferme** (l'arbre redescend) ;
-  - panneau ouvert : glisser à gauche/droite **change de personne et met le panneau à jour** ; glisser vers le haut/bas **ne fait rien** ; le texte **défile** s'il est long ;
-  - mode Modifier : cartes crème, boutons bruns, « + » en pointillés ; toujours fonctionnel (ajouter un enfant, relier une personne).
+- [x] **Récupérer les derniers commits** : `git pull` (e78dc56 à 087f231), avance rapide propre.
+- [x] **Vérifié le code** : `npx tsc --noEmit` propre ; `npx expo lint` a révélé 2 nouvelles erreurs (`react-hooks/set-state-in-effect` sur `family-tree.tsx` et `answer-input.tsx`), corrigées avec le même correctif que pour `recap.ts` (commit `d30f9d8`). Seule l'ancienne erreur préexistante et sans rapport (`use-color-scheme.web.ts`) subsiste.
+- [x] **Tests** : `npm run test:profiles` (5/5), `npm run test:layout` (19/19), `npm run test:gender` (6/6), `npm run test:pioche` (6/6) tous verts.
+- [x] **Vérifié à l'écran** (compte jetable, nettoyé ensuite) : accueil avec dégradé abricot → orange → rose, ombres pleines, menu bleu-blanc-rouge, carte quiz brun-orangé (état « action », avec une famille toute neuve) ; tuile « Consulter les connaissances » avec ronds de profils cliquables ; toucher un rond ouvre bien l'arbre centré sur la personne, panneau ouvert, pas de navigation ; panneau du bas (récapitulatif) avec bande translucide pleine largeur sur l'arbre remonté d'un cran, texte accordé correct, fermeture par la croix ou en touchant l'arbre ; mode Modifier restylé, fonctionnel.
+- [ ] **Pas vérifié** : l'état « prune » du bouton quiz (besoin d'un quiz déjà en cours), le glissement horizontal avec mise à jour du panneau, le rendu sur téléphone.
 
-**À faire (2026-11-19)** — listes de référence. Préparé depuis un environnement sans Supabase ni accès à Wikidata : les migrations ont été testées sur une copie locale de la base (PostgreSQL avec les droits de Supabase), mais le script Wikidata n'a **jamais été lancé**. Mode d'emploi détaillé (ce que fait chaque commande, ce qu'elle affiche, comment régler les quantités, problèmes possibles) : **[`data/listes/LISEZMOI.md`](../data/listes/LISEZMOI.md)**.
+**Fait le 2026-11-20** (revu et exécuté par Claude depuis l'ordinateur relié à Supabase) — listes de référence :
 
-- [ ] **Récupérer les derniers commits** : `git pull`.
-- [ ] **Générer films et personnalités depuis Wikidata** : `node scripts/wikidata-listes.mjs` (Node 18 ou plus récent, internet, pas de compte nécessaire, quelques minutes). Écrit `data/listes/films.txt` (« Titre (année) ») et `data/listes/personnalites/<catégorie>.txt` pour les 8 catégories : musique, politique, sport, cinema, television, litterature, arts, sciences. Affiche le nombre de valeurs par fichier.
-  - En cas d'erreur : copier le message à Claude (les listes réussies sont quand même écrites).
-  - Ouvrir quelques fichiers produits : quantités raisonnables ? noms attendus présents (Johnny Hallyday, Charles de Gaulle, « La Grande Vadrouille (1966) »…) ? valeurs bizarres ?
-  - Trop ou pas assez de valeurs : régler `CONFIG` en tête du script (`minLinks` = nombre minimum de Wikipédias qui parlent du film ou de la personne, `max` = nombre gardé), puis relancer seulement la liste concernée (ex : `node scripts/wikidata-listes.mjs musique`).
-- [ ] **Transformer les fichiers en migration** : `node scripts/build-list-items.mjs`. Écrit une nouvelle migration `supabase/migrations/<date et heure>_list_items_data.sql` qui contient toutes les listes (y compris animaux, sports, métiers, voitures). Affiche le nombre de valeurs par liste et les doublons ignorés. La migration `20261119093355_list_items_data.sql` déjà présente reste en place : la nouvelle ne réinsère pas ce qui existe.
-- [ ] **Envoyer dans Supabase** : `npx supabase db push`. Applique `20261119090000_list_items_search.sql` (colonnes `category` et `search_key` de `list_items`, fonction de recherche `search_list_items`, champ `list_category` des templates réglé à `musique` pour le premier concert), puis les migrations de valeurs. Vérifier ensuite dans Supabase que la table `list_items` contient le nombre de lignes annoncé par l'étape précédente.
-- [ ] **Vérifier le code** : `npx tsc --noEmit` et `npx expo lint`. Fichiers modifiés, jamais compilés pour de vrai (pas de `node_modules` dans l'environnement de Claude, seulement une vérification de syntaxe) : `src/components/answer-input.tsx`, `src/lib/list-items.ts`, `src/app/add-fact.tsx`, `src/types/question-template.ts`.
-- [ ] **Vérifier à l'écran** :
-  - ajout d'un fait « première voiture » : taper « reno » propose « Renault », puis des modèles ; taper « 4l » trouve « Renault 4L » ; une voiture absente (ex : « Renault Nervasport ») est acceptée et réapparaît dans les propositions pour un autre fait de la même famille ;
-  - réponse à une question à liste : seules les valeurs de la liste commune sont proposées (pas la valeur ajoutée par l'auteur) ; on peut taper sa réponse en entier, et elle est comptée juste si elle correspond (accents et majuscules ignorés) ;
-  - question du premier concert : seuls des artistes de musique sont proposés (pas Charles de Gaulle).
+- [x] **Récupérer les derniers commits** : `git pull` (inclus dans le pull ci-dessus : e78dc56, 73bc33a).
+- [x] **Envoyé dans Supabase** : `npx supabase db push` — `20261119090000_list_items_search.sql` et `20261119093355_list_items_data.sql` appliquées. Vérifié : `list_items` contient 42 animaux, 98 sports, 325 métiers, 249 voitures.
+- [x] **Vérifié le code** : inclus dans le `tsc`/lint/tests ci-dessus.
+- [ ] **Pas fait** : générer films et personnalités depuis Wikidata (`node scripts/wikidata-listes.mjs`, besoin d'accès internet à Wikidata, pas lancé) ; vérification à l'écran de la recherche au fil de la frappe (« reno » → Renault, etc.) et du filtre par catégorie du premier concert.
 
 **Fait le 2026-11-18** (revu et exécuté par Claude depuis l'ordinateur relié à Supabase) — accord au féminin dans les questions :
 
