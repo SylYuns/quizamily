@@ -1,4 +1,4 @@
-import { Redirect, router } from "expo-router";
+import { Redirect, router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
@@ -8,6 +8,7 @@ import { ThemedView } from "@/components/themed-view";
 import { Spacing } from "@/constants/theme";
 import { parseAnswerValue } from "@/lib/answer-value";
 import { formatAnswerDisplay } from "@/lib/format-answer";
+import { listMyFamilies, resolveMyFamily } from "@/lib/my-family";
 import { substituteQuestionText } from "@/lib/question-text";
 import { supabase } from "@/lib/supabase";
 import { Template } from "@/types/question-template";
@@ -40,6 +41,9 @@ type OwnQuestionState = {
 };
 
 export default function RespondScreen() {
+  const params = useLocalSearchParams<{ family?: string }>();
+  const paramFamily = typeof params.family === "string" && params.family.length > 0 ? params.family : null;
+
   const [ready, setReady] = useState(false);
   const [noSession, setNoSession] = useState(false);
   const [error, setError] = useState("");
@@ -66,21 +70,16 @@ export default function RespondScreen() {
         return;
       }
 
-      const { data: me } = await supabase
-        .from("persons")
-        .select("id, family_id")
-        .eq("user_id", userId)
-        .eq("kind", "player")
-        .limit(1)
-        .maybeSingle();
+      const myFamilies = await listMyFamilies(userId);
+      const me = await resolveMyFamily(userId, myFamilies, paramFamily);
 
       if (!me || cancelled) return;
-      setFamilyId(me.family_id);
+      setFamilyId(me.familyId);
 
       const { data: session } = await supabase
         .from("quiz_sessions")
         .select("id, closes_at")
-        .eq("family_id", me.family_id)
+        .eq("family_id", me.familyId)
         .eq("status", "open")
         .limit(1)
         .maybeSingle();
@@ -123,12 +122,12 @@ export default function RespondScreen() {
         .from("question_recipients")
         .select("id, answer_given, result")
         .eq("quiz_question_id", quizQuestion.id)
-        .eq("person_id", me.id)
+        .eq("person_id", me.personId)
         .maybeSingle();
 
       if (cancelled) return;
       if (!recipient) {
-        if (facts.author_person_id === me.id) {
+        if (facts.author_person_id === me.personId) {
           // C'est mon propre fait : lire sa réponse m'est toujours permis.
           // La bonne réponse n'est plus lisible directement sur facts (migration
           // 20261110140000) : get_fact_answer la renvoie à l'auteur.
@@ -190,7 +189,7 @@ export default function RespondScreen() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [paramFamily]);
 
   async function submitAnswer() {
     if (!question) return;

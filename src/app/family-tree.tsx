@@ -44,6 +44,7 @@ import {
   type RelationType,
   type RowGeometry,
 } from "@/lib/family-tree-layout";
+import { listMyFamilies, resolveMyFamily } from "@/lib/my-family";
 import { buildRecapByCategory, type RecapCategory, type RecapFact } from "@/lib/recap";
 import { supabase } from "@/lib/supabase";
 
@@ -91,9 +92,10 @@ function souvenirsLabel(n: number): string {
 }
 
 export default function FamilyTreeScreen() {
-  const params = useLocalSearchParams<{ person?: string; recap?: string }>();
+  const params = useLocalSearchParams<{ person?: string; recap?: string; family?: string }>();
   const paramPerson = typeof params.person === "string" && params.person.length > 0 ? params.person : null;
   const paramRecap = params.recap === "1";
+  const paramFamily = typeof params.family === "string" && params.family.length > 0 ? params.family : null;
 
   const [ready, setReady] = useState(false);
   const [noSession, setNoSession] = useState(false);
@@ -137,24 +139,19 @@ export default function FamilyTreeScreen() {
         return;
       }
 
-      const { data: me } = await supabase
-        .from("persons")
-        .select("family_id")
-        .eq("user_id", userId)
-        .eq("kind", "player")
-        .limit(1)
-        .maybeSingle();
-      if (!me || cancelled) return;
-      setFamilyId(me.family_id);
+      const myFamilies = await listMyFamilies(userId);
+      const current = await resolveMyFamily(userId, myFamilies, paramFamily);
+      if (!current || cancelled) return;
+      setFamilyId(current.familyId);
 
       const [{ data: personsData }, { data: relsData }, { data: factsData }] = await Promise.all([
         supabase
           .from("persons")
           .select("id, first_name, display_name, is_central, gender")
-          .eq("family_id", me.family_id)
+          .eq("family_id", current.familyId)
           .order("created_at", { ascending: true }),
-        supabase.from("relationships").select("id, person_a_id, person_b_id, relation_type").eq("family_id", me.family_id),
-        supabase.from("facts").select("id, subject_person_id").eq("family_id", me.family_id).eq("status", "active"),
+        supabase.from("relationships").select("id, person_a_id, person_b_id, relation_type").eq("family_id", current.familyId),
+        supabase.from("facts").select("id, subject_person_id").eq("family_id", current.familyId).eq("status", "active"),
       ]);
 
       // Statut de chaque fait : révélé (session clôturée), posé (session en cours) ou pas encore posé.
@@ -183,7 +180,7 @@ export default function FamilyTreeScreen() {
         byPerson.set(f.subject_person_id, c);
       }
 
-      const stored = await AsyncStorage.getItem(`quizamily:treeFocus:${me.family_id}`).catch(() => null);
+      const stored = await AsyncStorage.getItem(`quizamily:treeFocus:${current.familyId}`).catch(() => null);
       if (cancelled) return;
       setPersons((personsData ?? []) as Person[]);
       setRelationships((relsData ?? []) as Relationship[]);

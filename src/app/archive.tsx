@@ -6,6 +6,7 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Spacing } from "@/constants/theme";
 import { formatAnswerDisplay } from "@/lib/format-answer";
+import { listMyFamilies, resolveMyFamily } from "@/lib/my-family";
 import { supabase } from "@/lib/supabase";
 
 type CentralPerson = {
@@ -23,7 +24,7 @@ type ArchiveEntry = {
 export default function ArchiveScreen() {
   // Ouvert depuis l'arbre familial (écran 10) : la personne touchée est présélectionnée,
   // même si ce n'est pas une personne centrale. En attendant le récapitulatif (écran 11).
-  const { personId } = useLocalSearchParams<{ personId?: string }>();
+  const { personId, family: paramFamily } = useLocalSearchParams<{ personId?: string; family?: string }>();
   const [ready, setReady] = useState(false);
   const [noSession, setNoSession] = useState(false);
   const [error, setError] = useState("");
@@ -44,20 +45,18 @@ export default function ArchiveScreen() {
         return;
       }
 
-      const { data: me } = await supabase
-        .from("persons")
-        .select("family_id")
-        .eq("user_id", userId)
-        .eq("kind", "player")
-        .limit(1)
-        .maybeSingle();
-
-      if (!me || cancelled) return;
+      const myFamilies = await listMyFamilies(userId);
+      const current = await resolveMyFamily(
+        userId,
+        myFamilies,
+        typeof paramFamily === "string" ? paramFamily : null,
+      );
+      if (!current || cancelled) return;
 
       const { data, error: personsError } = await supabase
         .from("persons")
         .select("id, display_name")
-        .eq("family_id", me.family_id)
+        .eq("family_id", current.familyId)
         .eq("is_central", true)
         .order("display_name", { ascending: true });
 
@@ -78,7 +77,7 @@ export default function ArchiveScreen() {
           const { data: other } = await supabase
             .from("persons")
             .select("id, display_name")
-            .eq("family_id", me.family_id)
+            .eq("family_id", current.familyId)
             .eq("id", personId)
             .maybeSingle();
           if (cancelled) return;
@@ -94,7 +93,7 @@ export default function ArchiveScreen() {
     return () => {
       cancelled = true;
     };
-  }, [personId]);
+  }, [personId, paramFamily]);
 
   useEffect(() => {
     if (!selectedPerson) return;

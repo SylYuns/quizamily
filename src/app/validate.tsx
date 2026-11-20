@@ -1,10 +1,11 @@
-import { Redirect, router } from "expo-router";
+import { Redirect, router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Spacing } from "@/constants/theme";
+import { listMyFamilies, resolveMyFamily } from "@/lib/my-family";
 import { supabase } from "@/lib/supabase";
 
 type AnswerGroup = {
@@ -14,6 +15,9 @@ type AnswerGroup = {
 };
 
 export default function ValidateScreen() {
+  const params = useLocalSearchParams<{ family?: string }>();
+  const paramFamily = typeof params.family === "string" && params.family.length > 0 ? params.family : null;
+
   const [ready, setReady] = useState(false);
   const [noSession, setNoSession] = useState(false);
   const [error, setError] = useState("");
@@ -48,20 +52,15 @@ export default function ValidateScreen() {
         return;
       }
 
-      const { data: me } = await supabase
-        .from("persons")
-        .select("id, family_id")
-        .eq("user_id", userId)
-        .eq("kind", "player")
-        .limit(1)
-        .maybeSingle();
+      const myFamilies = await listMyFamilies(userId);
+      const me = await resolveMyFamily(userId, myFamilies, paramFamily);
 
       if (!me || cancelled) return;
 
       const { data: session } = await supabase
         .from("quiz_sessions")
         .select("id")
-        .eq("family_id", me.family_id)
+        .eq("family_id", me.familyId)
         .eq("status", "open")
         .limit(1)
         .maybeSingle();
@@ -93,7 +92,7 @@ export default function ValidateScreen() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [paramFamily]);
 
   async function decide(group: AnswerGroup, accept: boolean) {
     if (!quizQuestionId || !group.recipientIds) return;

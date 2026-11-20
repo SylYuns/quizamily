@@ -11,6 +11,7 @@ Les points marqués **À décider** sont des questions ouvertes.
   - à côté, un **petit bouton « Inviter »** qui donne le lien à partager pour rejoindre la famille (copie ou partage) ;
   - dans un coin, un **menu burger** : déconnexion, « Créer une session maintenant » (outil de test), et plus tard profil et réglages des notifications.
 - Un joueur peut appartenir à plusieurs familles (famille recomposée, belle-famille…). Il a une fiche par famille, avec un lien de parenté propre à chacune.
+- **« Famille active » : bug critique corrigé le 2026-11-20.** Chaque écran liée à une famille devait deviner la sienne (`persons.user_id` n'est pas unique : une ligne par famille) via une requête `.limit(1).maybeSingle()` sans tri — l'ordre renvoyé par Postgres sans `ORDER BY` n'est pas garanti, et rien ne reliait ce choix à la famille affichée ailleurs. Un joueur avec 2 familles pouvait cliquer depuis l'accueil de la famille A et atterrir sur les données de la famille B. Résolu par `src/lib/my-family.ts` : la famille active est explicite dans chaque lien de navigation (paramètre `?family=`) et mémorisée sur l'appareil (clé par compte) dès qu'elle est choisie ou déduite, pour que tous les écrans restent cohérents entre eux.
 - Les emails indiquent toujours la famille concernée dans l'objet (ex : « [Famille Chardaire] Nouvelle question »).
 
 ## Parcours

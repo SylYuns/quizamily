@@ -16,13 +16,12 @@ import { FamilyHeaderBar } from "@/components/family-header";
 import { PersonAvatar } from "@/components/soleil";
 import { FONTS, RADIUS, S, solidShadow, sunsetBackground } from "@/constants/soleil";
 import { pickHomeProfiles, type ProfileCandidate } from "@/lib/home-profiles";
+import { listMyFamilies, resolveMyFamily, setPersistedFamilyId, type MyFamilyMembership } from "@/lib/my-family";
 import { supabase } from "@/lib/supabase";
 import { useInviteLink } from "@/lib/use-invite-link";
 
 const PLAYERS_NEEDED_FOR_FIRST_QUIZ = 3;
 const LOW_RESERVE_THRESHOLD = 5;
-
-type MyFamily = { familyId: string; familyName: string; firstName: string };
 
 type QuizState =
   | { kind: "demarrage"; playersCount: number; factsCount: number }
@@ -38,11 +37,13 @@ type QuizState =
 export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [noSession, setNoSession] = useState(false);
-  const [families, setFamilies] = useState<MyFamily[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [families, setFamilies] = useState<MyFamilyMembership[]>([]);
   const [familyIndex, setFamilyIndex] = useState(0);
-  const [myPersonId, setMyPersonId] = useState<string | null>(null);
 
-  const { copied, copy: copyInviteLink } = useInviteLink(families[familyIndex]?.familyId ?? null);
+  const family = families[familyIndex] as MyFamilyMembership | undefined;
+
+  const { copied, copy: copyInviteLink } = useInviteLink(family?.familyId ?? null);
 
   const [quizState, setQuizState] = useState<QuizState | null>(null);
   const [knowledgeSub, setKnowledgeSub] = useState("");
@@ -152,7 +153,7 @@ export default function HomeScreen() {
               `${pendingCount} réponse${pendingCount === 1 ? "" : "s"} à valider`,
               `Ta question · ${participantRows.length} joueur${participantRows.length === 1 ? "" : "s"} ont répondu`,
               pendingCount,
-              () => router.push("/validate"),
+              () => router.push({ pathname: "/validate", params: { family: familyId } }),
             ),
           );
         } else {
@@ -162,7 +163,7 @@ export default function HomeScreen() {
               "Ta question est en jeu",
               `${answeredCount} joueur${answeredCount === 1 ? "" : "s"} sur ${participantRows.length} ont répondu · révélation le ${dateLabel}`,
               "Voir ma question",
-              () => router.push("/respond"),
+              () => router.push({ pathname: "/respond", params: { family: familyId } }),
             ),
           );
         }
@@ -185,12 +186,14 @@ export default function HomeScreen() {
 
       if (myRow.result === "unanswered") {
         setQuizState(
-          strongState("Une question t'attend", `À répondre avant le ${dateLabel}`, 1, () => router.push("/respond")),
+          strongState("Une question t'attend", `À répondre avant le ${dateLabel}`, 1, () =>
+            router.push({ pathname: "/respond", params: { family: familyId } }),
+          ),
         );
       } else {
         setQuizState(
           mutedState("Réponse envoyée", `Révélation le ${dateLabel}`, "Voir ou modifier ma réponse", () =>
-            router.push("/respond"),
+            router.push({ pathname: "/respond", params: { family: familyId } }),
           ),
         );
       }
@@ -202,7 +205,9 @@ export default function HomeScreen() {
     const lastSeen = await AsyncStorage.getItem(`quizamily:lastSeenReveal:${familyId}`).catch(() => null);
     if (lastSeen !== mostRecent.id) {
       setQuizState(
-        strongState("La révélation est là !", "Découvre qui avait trouvé", 1, () => router.push("/reveal")),
+        strongState("La révélation est là !", "Découvre qui avait trouvé", 1, () =>
+          router.push({ pathname: "/reveal", params: { family: familyId } }),
+        ),
       );
       return;
     }
@@ -213,13 +218,13 @@ export default function HomeScreen() {
           "Pas de prochain quiz",
           "Il n'y a plus de souvenirs à piocher.",
           "Ajouter des souvenirs",
-          () => router.push("/add-fact"),
+          () => router.push({ pathname: "/add-fact", params: { family: familyId } }),
         ),
       );
     } else {
       setQuizState(
         mutedState("Quiz terminé", "En attente du prochain quiz", "Revoir la dernière révélation", () =>
-          router.push("/reveal"),
+          router.push({ pathname: "/reveal", params: { family: familyId } }),
         ),
       );
     }
@@ -239,28 +244,23 @@ export default function HomeScreen() {
         return;
       }
 
-      const { data, error } = await supabase
-        .from("persons")
-        .select("id, family_id, first_name, families(name)")
-        .eq("user_id", userId)
-        .eq("kind", "player");
-
+      setUserId(userId);
+      const myFamilies = await listMyFamilies(userId);
       if (cancelled) return;
-      if (error || !data || data.length === 0) {
+      if (myFamilies.length === 0) {
         setLoading(false);
         return;
       }
+      setFamilies(myFamilies);
 
-      setFamilies(
-        data.map((row) => ({
-          familyId: row.family_id,
-          familyName: (row.families as unknown as { name: string } | null)?.name ?? "Famille",
-          firstName: row.first_name,
-        })),
-      );
-      setMyPersonId(data[0].id);
+      const current = await resolveMyFamily(userId, myFamilies);
+      if (cancelled || !current) {
+        setLoading(false);
+        return;
+      }
+      setFamilyIndex(myFamilies.findIndex((f) => f.familyId === current.familyId));
 
-      await loadFamilyDashboard(data[0].family_id, data[0].id);
+      await loadFamilyDashboard(current.familyId, current.personId);
       if (!cancelled) setLoading(false);
     }
 
@@ -271,9 +271,12 @@ export default function HomeScreen() {
   }, []);
 
   function switchFamily(familyId: string) {
+    const next = families.find((f) => f.familyId === familyId);
+    if (!next) return;
+    if (userId) setPersistedFamilyId(userId, familyId);
     setFamilyIndex(families.findIndex((f) => f.familyId === familyId));
     setLoading(true);
-    loadFamilyDashboard(familyId, myPersonId!).then(() => setLoading(false));
+    loadFamilyDashboard(next.familyId, next.personId).then(() => setLoading(false));
   }
 
   if (loading) {
@@ -292,26 +295,34 @@ export default function HomeScreen() {
     return <Redirect href="/family-setup" />;
   }
 
-  const family = families[familyIndex];
+  // Garanti non-nul après les gardes ci-dessus (families.length > 0 et familyIndex à jour).
+  const currentFamily = family!;
 
   function openTree(personId?: string) {
-    if (personId) router.push({ pathname: "/family-tree", params: { person: personId, recap: "1" } });
-    else router.push("/family-tree");
+    // La famille est explicite dans le lien (voir src/lib/my-family.ts) : sans ça, l'écran
+    // suivant devine sa propre famille et peut tomber sur une autre que celle affichée ici.
+    const familyParam = families[familyIndex]?.familyId;
+    if (personId) router.push({ pathname: "/family-tree", params: { person: personId, recap: "1", family: familyParam } });
+    else router.push({ pathname: "/family-tree", params: { family: familyParam } });
+  }
+
+  function goAddFact() {
+    router.push({ pathname: "/add-fact", params: { family: families[familyIndex]?.familyId } });
   }
 
   return (
     <View style={[styles.screen, sunsetBackground]}>
       <FamilyHeaderBar
         families={families}
-        currentFamilyId={family.familyId}
+        currentFamilyId={currentFamily.familyId}
         onSwitchFamily={switchFamily}
         copied={copied}
         onCopyInvite={copyInviteLink}
-        onSessionCreated={() => loadFamilyDashboard(family.familyId, myPersonId!)}
+        onSessionCreated={() => loadFamilyDashboard(currentFamily.familyId, currentFamily.personId)}
       />
 
       <ScrollView contentContainerStyle={styles.main}>
-        <Text style={styles.greeting}>Bonjour {family.firstName}</Text>
+        <Text style={styles.greeting}>Bonjour {currentFamily.firstName}</Text>
 
         {quizState?.kind === "demarrage" ? (
           <View style={styles.startCard}>
@@ -339,7 +350,7 @@ export default function HomeScreen() {
               <Pressable onPress={copyInviteLink} style={styles.startButtonPrimary}>
                 <Text style={styles.startButtonPrimaryText}>{copied ? "Lien copié !" : "Inviter des membres"}</Text>
               </Pressable>
-              <Pressable onPress={() => router.push("/add-fact")} style={styles.startButtonSecondary}>
+              <Pressable onPress={goAddFact} style={styles.startButtonSecondary}>
                 <Text style={styles.startButtonSecondaryText}>Ajouter un souvenir</Text>
               </Pressable>
             </View>
@@ -400,7 +411,7 @@ export default function HomeScreen() {
         </Pressable>
 
         <View style={styles.addCard}>
-          <Pressable onPress={() => router.push("/add-fact")} style={styles.addButton}>
+          <Pressable onPress={goAddFact} style={styles.addButton}>
             <View style={styles.addIcon}>
               <Text style={styles.addIconText}>+</Text>
             </View>
@@ -418,7 +429,10 @@ export default function HomeScreen() {
           <View style={styles.tile}>
             <Text style={styles.tileText}>Historique</Text>
           </View>
-          <Pressable onPress={() => router.push("/my-facts")} style={styles.tile}>
+          <Pressable
+            onPress={() => router.push({ pathname: "/my-facts", params: { family: families[familyIndex]?.familyId } })}
+            style={styles.tile}
+          >
             <Text style={styles.tileText}>Mes faits</Text>
             {correctionsBadge > 0 && (
               <View style={styles.tileBadge}>

@@ -1,4 +1,4 @@
-import { Redirect, router } from "expo-router";
+import { Redirect, router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 
@@ -9,6 +9,7 @@ import { Spacing } from "@/constants/theme";
 import { parseAnswerValue } from "@/lib/answer-value";
 import { formatAnswerDisplay } from "@/lib/format-answer";
 import { ensureListItemExists } from "@/lib/list-items";
+import { listMyFamilies, resolveMyFamily } from "@/lib/my-family";
 import { substituteQuestionText } from "@/lib/question-text";
 import { supabase } from "@/lib/supabase";
 import { Template } from "@/types/question-template";
@@ -39,6 +40,9 @@ function formatCreatedAt(iso: string): string {
 }
 
 export default function MyFactsScreen() {
+  const params = useLocalSearchParams<{ family?: string }>();
+  const paramFamily = typeof params.family === "string" && params.family.length > 0 ? params.family : null;
+
   const [ready, setReady] = useState(false);
   const [noSession, setNoSession] = useState(false);
   const [error, setError] = useState("");
@@ -66,24 +70,18 @@ export default function MyFactsScreen() {
         return;
       }
 
-      const { data: me } = await supabase
-        .from("persons")
-        .select("id, family_id")
-        .eq("user_id", userId)
-        .eq("kind", "player")
-        .limit(1)
-        .maybeSingle();
-
-      if (!me || cancelled) return;
-      setMyPersonId(me.id);
-      setFamilyId(me.family_id);
+      const myFamilies = await listMyFamilies(userId);
+      const current = await resolveMyFamily(userId, myFamilies, paramFamily);
+      if (!current || cancelled) return;
+      setMyPersonId(current.personId);
+      setFamilyId(current.familyId);
 
       const { data, error: factsError } = await supabase
         .from("facts")
         .select(
           "id, context_text, created_at, slot_values, question_templates (*), subject:persons!subject_person_id (display_name, gender), related:persons!related_person_id (display_name)",
         )
-        .eq("author_person_id", me.id)
+        .eq("author_person_id", current.personId)
         .eq("status", "active")
         .order("created_at", { ascending: false });
 
@@ -100,7 +98,7 @@ export default function MyFactsScreen() {
 
       // La bonne réponse n'est plus lisible directement sur facts (migration
       // 20261110140000) : l'auteur relit les siennes par get_my_fact_answers.
-      const { data: answerRows } = await supabase.rpc("get_my_fact_answers", { p_family_id: me.family_id });
+      const { data: answerRows } = await supabase.rpc("get_my_fact_answers", { p_family_id: current.familyId });
       const answerByFactId = new Map(
         ((answerRows ?? []) as { fact_id: string; answer_value: string | number }[]).map((r) => [r.fact_id, r.answer_value]),
       );
@@ -145,7 +143,7 @@ export default function MyFactsScreen() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [paramFamily]);
 
   function startEdit(fact: Fact) {
     setEditingFactId(fact.id);

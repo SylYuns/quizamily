@@ -8,6 +8,8 @@ Le MVP fonctionne de bout en bout en version simple, testé avec des comptes jet
 
 **Depuis le 2026-11-20** : nouvelle charte « Coucher de soleil » pour l'accueil et l'arbre (4 profils cliquables, récapitulatif en panneau du bas), vérifiée à l'écran le 2026-11-20 (voir juste en dessous pour ce qui reste à vérifier).
 
+**Corrigé le 2026-11-20 — bug critique signalé par Sylvain** : avec plusieurs familles, naviguer depuis l'accueil d'une famille (ex. « Carter ») pouvait ouvrir l'arbre ou l'ajout d'un souvenir d'une **autre** famille du compte (ex. « Delatour »). Cause : chaque écran devinait sa propre famille par une requête sans tri garanti (voir « Règles communes » dans `ecrans.md`), sans lien avec la famille affichée ailleurs. Corrigé via `src/lib/my-family.ts` (famille explicite dans les liens + mémorisée sur l'appareil) dans les 9 écrans concernés. Vérifié à l'écran avec 2 familles jetables (« Carter »/« Delatour », mêmes noms que le signalement) : accueil ↔ arbre ↔ ajout d'un souvenir restent cohérents dans les deux sens. **Pas vérifié** : les liens depuis « Répondre »/« Valider »/« Révélation »/« Mes faits » (corrigés mais pas testés à l'écran, faute d'avoir une session de quiz active en cours de vérification).
+
 **Pour reprendre le travail (ex. depuis un autre ordinateur)** : voir « À faire sur l'ordinateur avec Supabase » juste en dessous, puis « Points à décider » et « Feuille de route » plus bas sur cette page.
 
 ## À faire sur l'ordinateur avec Supabase

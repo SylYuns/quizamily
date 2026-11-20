@@ -9,6 +9,7 @@ import { ThemedView } from "@/components/themed-view";
 import { Spacing } from "@/constants/theme";
 import { parseAnswerValue } from "@/lib/answer-value";
 import { formatAnswerDisplay } from "@/lib/format-answer";
+import { listMyFamilies, resolveMyFamily } from "@/lib/my-family";
 import { supabase } from "@/lib/supabase";
 import { Template } from "@/types/question-template";
 
@@ -52,8 +53,9 @@ function resultLabel(result: RevealParticipant["result"]): string {
 }
 
 export default function RevealScreen() {
-  const params = useLocalSearchParams<{ questionId?: string }>();
+  const params = useLocalSearchParams<{ questionId?: string; family?: string }>();
   const fromArchive = typeof params.questionId === "string" && params.questionId.length > 0;
+  const paramFamily = typeof params.family === "string" && params.family.length > 0 ? params.family : null;
 
   const [ready, setReady] = useState(false);
   const [noSession, setNoSession] = useState(false);
@@ -108,17 +110,12 @@ export default function RevealScreen() {
         return;
       }
 
-      const { data: me } = await supabase
-        .from("persons")
-        .select("id, family_id")
-        .eq("user_id", userId)
-        .eq("kind", "player")
-        .limit(1)
-        .maybeSingle();
+      const myFamilies = await listMyFamilies(userId);
+      const me = await resolveMyFamily(userId, myFamilies, paramFamily);
 
       if (!me || cancelled) return;
-      setMyPersonId(me.id);
-      setFamilyId(me.family_id);
+      setMyPersonId(me.personId);
+      setFamilyId(me.familyId);
 
       let resolvedQuizQuestionId: string | null = null;
       let resolvedFactId: string | null = null;
@@ -139,7 +136,7 @@ export default function RevealScreen() {
         const { data: session } = await supabase
           .from("quiz_sessions")
           .select("id")
-          .eq("family_id", me.family_id)
+          .eq("family_id", me.familyId)
           .eq("status", "closed")
           .order("created_at", { ascending: false })
           .limit(1)
@@ -153,7 +150,7 @@ export default function RevealScreen() {
 
         // L'accueil (écran 4) affiche "La révélation est là !" tant que la dernière session
         // close n'a pas été consultée ici : on marque celle-ci comme vue.
-        AsyncStorage.setItem(`quizamily:lastSeenReveal:${me.family_id}`, session.id).catch(() => {});
+        AsyncStorage.setItem(`quizamily:lastSeenReveal:${me.familyId}`, session.id).catch(() => {});
 
         const { data: quizQuestion } = await supabase
           .from("quiz_questions")
@@ -184,7 +181,7 @@ export default function RevealScreen() {
           .from("question_recipients")
           .select("answer_given")
           .eq("quiz_question_id", resolvedQuizQuestionId)
-          .eq("person_id", me.id)
+          .eq("person_id", me.personId)
           .maybeSingle(),
         loadFactExtras(resolvedFactId),
       ]);

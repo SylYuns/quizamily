@@ -5,7 +5,7 @@
 // modifiables / déjà renseignées) est calculée par src/lib/add-fact-catalog.ts, module pur testé
 // séparément.
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Redirect, router } from "expo-router";
+import { Redirect, router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -32,6 +32,7 @@ import { parseAnswerValue } from "@/lib/answer-value";
 import { formatAnswerDisplay } from "@/lib/format-answer";
 import { resolveGenderedTokens, type Gender } from "@/lib/gender";
 import { ensureListItemExists } from "@/lib/list-items";
+import { listMyFamilies, resolveMyFamily, setPersistedFamilyId, type MyFamilyMembership } from "@/lib/my-family";
 import { substituteQuestionText } from "@/lib/question-text";
 import { supabase } from "@/lib/supabase";
 import { useInviteLink } from "@/lib/use-invite-link";
@@ -47,8 +48,6 @@ type Person = {
 };
 
 type Relationship = { person_a_id: string; person_b_id: string; relation_type: string };
-
-type MyFamily = { familyId: string; familyName: string; personId: string };
 
 type FactStatus = "not_posed" | "open" | "revealed";
 
@@ -142,12 +141,16 @@ type OpenTile = {
 };
 
 export default function AddFactScreen() {
+  const params = useLocalSearchParams<{ family?: string }>();
+  const paramFamily = typeof params.family === "string" && params.family.length > 0 ? params.family : null;
+
   const { width } = useWindowDimensions();
   const CARD_WIDTH = Math.min(380, width - 56);
 
   const [noSession, setNoSession] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const [familiesLoaded, setFamiliesLoaded] = useState(false);
-  const [families, setFamilies] = useState<MyFamily[]>([]);
+  const [families, setFamilies] = useState<MyFamilyMembership[]>([]);
   const [familyIndex, setFamilyIndex] = useState(0);
 
   const [ready, setReady] = useState(false);
@@ -183,7 +186,7 @@ export default function AddFactScreen() {
   const cardsScrollRef = useRef<ScrollViewInstance>(null);
   const didInitialScroll = useRef(false);
 
-  const family = families[familyIndex] as MyFamily | undefined;
+  const family = families[familyIndex] as MyFamilyMembership | undefined;
   const familyId = family?.familyId ?? null;
   const myPersonId = family?.personId ?? null;
 
@@ -195,29 +198,24 @@ export default function AddFactScreen() {
 
     async function load() {
       const { data: userData } = await supabase.auth.getUser();
-      const userId = userData.user?.id;
-      if (!userId) {
+      const uid = userData.user?.id;
+      if (!uid) {
         if (!cancelled) {
           setNoSession(true);
           setFamiliesLoaded(true);
         }
         return;
       }
+      setUserId(uid);
 
-      const { data } = await supabase
-        .from("persons")
-        .select("id, family_id, families(name)")
-        .eq("user_id", userId)
-        .eq("kind", "player");
-
+      const myFamilies = await listMyFamilies(uid);
       if (cancelled) return;
-      setFamilies(
-        (data ?? []).map((row) => ({
-          familyId: row.family_id,
-          familyName: (row.families as unknown as { name: string } | null)?.name ?? "Famille",
-          personId: row.id,
-        })),
-      );
+      setFamilies(myFamilies);
+
+      const current = await resolveMyFamily(uid, myFamilies, paramFamily);
+      if (!cancelled && current) {
+        setFamilyIndex(myFamilies.findIndex((f) => f.familyId === current.familyId));
+      }
       setFamiliesLoaded(true);
     }
 
@@ -225,7 +223,7 @@ export default function AddFactScreen() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [paramFamily]);
 
   // Personnes, relations, catalogue et mes réponses : pour toute la famille, indépendants du sujet.
   useEffect(() => {
@@ -664,6 +662,7 @@ export default function AddFactScreen() {
   }
 
   function switchFamily(newFamilyId: string) {
+    if (userId) setPersistedFamilyId(userId, newFamilyId);
     setFamilyIndex(families.findIndex((f) => f.familyId === newFamilyId));
     setSubjectId(null);
     setActiveCategory(null);
