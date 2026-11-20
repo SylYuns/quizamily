@@ -1,36 +1,76 @@
+// Nouveau fait (écran 5, voir docs/ecrans.md et docs/design.md). Refonte « Coucher de soleil »
+// décidée et maquettée le 2026-11-20 (docs/maquettes/soleil/Fait.dc.html) : personnes en rangée
+// qui défile, repère des thèmes, carte par thème glissée horizontalement, question qui s'agrandit
+// sur place, recherche fixe en bas. La répartition des questions (à renseigner / mes questions
+// modifiables / déjà renseignées) est calculée par src/lib/add-fact-catalog.ts, module pur testé
+// séparément.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Redirect, router } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  useWindowDimensions,
+  type NativeSyntheticEvent,
+  type NativeScrollEvent,
+  type ScrollViewInstance,
+} from "react-native";
 
 import { AnswerInput } from "@/components/answer-input";
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
+import { FamilyHeaderBar } from "@/components/family-header";
+import { PersonAvatar } from "@/components/soleil";
 import { CATEGORY_LABELS, CATEGORY_ORDER } from "@/constants/categories";
 import { COUNTRIES } from "@/constants/countries";
-import { Spacing } from "@/constants/theme";
+import { FONTS, RADIUS, S, solidShadow, sunsetBackground } from "@/constants/soleil";
+import { buildAddFactCatalog, type CategoryBucket } from "@/lib/add-fact-catalog";
 import { parseAnswerValue } from "@/lib/answer-value";
+import { formatAnswerDisplay } from "@/lib/format-answer";
 import { resolveGenderedTokens, type Gender } from "@/lib/gender";
 import { ensureListItemExists } from "@/lib/list-items";
+import { substituteQuestionText } from "@/lib/question-text";
 import { supabase } from "@/lib/supabase";
+import { useInviteLink } from "@/lib/use-invite-link";
 import { Template } from "@/types/question-template";
 
 type Person = {
   id: string;
+  first_name: string;
   display_name: string;
   gender: "homme" | "femme" | null;
   is_deceased: boolean;
   is_central: boolean;
 };
 
-type Relationship = {
-  person_a_id: string;
-  person_b_id: string;
-  relation_type: string;
+type Relationship = { person_a_id: string; person_b_id: string; relation_type: string };
+
+type MyFamily = { familyId: string; familyName: string; personId: string };
+
+type FactStatus = "not_posed" | "open" | "revealed";
+
+type Fact = {
+  id: string;
+  template_id: string;
+  author_person_id: string;
+  related_person_id: string | null;
+  slot_values: Record<string, string> | null;
+  context_text: string | null;
+  status: FactStatus;
 };
 
-const MAX_VISIBLE_CATEGORIES = 3;
-const MAX_VISIBLE_PERSONS = 3;
+const CARD_BG: Record<string, string> = {
+  "naissance-enfance": "#FFE9A8",
+  jeunesse: "#CDEDE5",
+  "couple-installation": "#FFD9DC",
+  "retraite-voyages-loisirs": "#FFD0B0",
+  "culture-premieres-fois": "#DCD0F2",
+};
+
+const CARD_GAP = 10;
 
 function findRelatedPersonId(relationships: Relationship[], subjectId: string): string | null {
   const rel = relationships.find(
@@ -38,26 +78,6 @@ function findRelatedPersonId(relationships: Relationship[], subjectId: string): 
   );
   if (!rel) return null;
   return rel.person_a_id === subjectId ? rel.person_b_id : rel.person_a_id;
-}
-
-// Remplace <sujet>/<conjoint>/<pays> par leur valeur connue. <conjoint>/<pays> peuvent être
-// inconnus tant que l'auteur n'a pas résolu la personne liée ou l'élément choisi : on affiche
-// alors une tournure générique plutôt que le nom littéral du template.
-function substituteTemplateText(
-  t: Template,
-  subjectName: string,
-  relatedName: string | null,
-  slotValues: Record<string, string>,
-  subjectGender: Gender = null,
-): string {
-  let text = resolveGenderedTokens(t.template_text, subjectGender).replace("<sujet>", subjectName);
-  if (t.related_role) {
-    text = text.replace(`<${t.related_role}>`, relatedName ?? "son/sa conjoint·e");
-  }
-  for (const slot of t.slots ?? []) {
-    text = text.replace(`<${slot}>`, slotValues[slot] ?? `(${slot} à préciser)`);
-  }
-  return text;
 }
 
 // Adelphes : liés directement (sibling_of, dans un sens ou l'autre), ou partageant un parent.
@@ -92,36 +112,59 @@ async function hasPotentialSibling(personId: string, famId: string): Promise<boo
   return (siblingLinks ?? []).length > 0;
 }
 
-function matchesCondition(condition: string | null, subject: Person, hasSibling: boolean): boolean {
-  if (!condition) return true;
-  if (condition === "femme") return subject.gender === "femme";
-  if (condition === "homme") return subject.gender === "homme";
-  if (condition === "vivant") return !subject.is_deceased;
-  if (condition === "a des frères ou sœurs") return hasSibling;
-  return true;
+// Pour une question pas encore créée : <conjoint>/<pays> peuvent être inconnus tant que l'auteur
+// ne les a pas choisis, contrairement à substituteQuestionText (src/lib/question-text.ts) qui
+// suppose un fait déjà résolu.
+// Random en paramètre par défaut (comme pickHomeProfiles) : un appel direct à Math.random() dans
+// le corps d'un composant est refusé par la règle react-hooks/purity.
+function pickRandomTemplate(pool: Template[], random: () => number = Math.random): Template {
+  return pool[Math.floor(random() * pool.length)];
 }
 
-function initials(name: string): string {
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? "")
-    .join("");
+function previewQuestionText(
+  t: Template,
+  subjectName: string,
+  relatedName: string | null,
+  slotValues: Record<string, string>,
+  subjectGender: Gender,
+): string {
+  let text = resolveGenderedTokens(t.template_text, subjectGender).replace("<sujet>", subjectName);
+  if (t.related_role) text = text.replace(`<${t.related_role}>`, relatedName ?? "son/sa conjoint·e");
+  for (const slot of t.slots ?? []) text = text.replace(`<${slot}>`, slotValues[slot] ?? `(${slot} à préciser)`);
+  return text;
 }
+
+type OpenTile = {
+  kind: "new" | "edit";
+  template: Template;
+  fact?: Fact;
+  initial: { answerValue: string; contextText: string; relatedPersonId: string | null; slotValues: Record<string, string> };
+};
 
 export default function AddFactScreen() {
-  const [ready, setReady] = useState(false);
-  const [noSession, setNoSession] = useState(false);
-  const [error, setError] = useState("");
+  const { width } = useWindowDimensions();
+  const CARD_WIDTH = Math.min(380, width - 56);
 
-  const [familyId, setFamilyId] = useState<string | null>(null);
-  const [myPersonId, setMyPersonId] = useState<string | null>(null);
+  const [noSession, setNoSession] = useState(false);
+  const [familiesLoaded, setFamiliesLoaded] = useState(false);
+  const [families, setFamilies] = useState<MyFamily[]>([]);
+  const [familyIndex, setFamilyIndex] = useState(0);
+
+  const [ready, setReady] = useState(false);
   const [allPersons, setAllPersons] = useState<Person[]>([]);
   const [relationships, setRelationships] = useState<Relationship[]>([]);
-  const [subjectId, setSubjectId] = useState<string | null>(null);
-  const [showAllPersons, setShowAllPersons] = useState(false);
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [myAnswers, setMyAnswers] = useState<Map<string, string | number>>(new Map());
 
+  const [subjectId, setSubjectId] = useState<string | null>(null);
+  const [facts, setFacts] = useState<Fact[]>([]);
+  const [hasSibling, setHasSibling] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [searchText, setSearchText] = useState("");
+
+  const [openTile, setOpenTile] = useState<OpenTile | null>(null);
   const [relatedPersonId, setRelatedPersonId] = useState<string | null>(null);
   const [showSpouseCreator, setShowSpouseCreator] = useState(false);
   const [newSpouseFirstName, setNewSpouseFirstName] = useState("");
@@ -129,23 +172,24 @@ export default function AddFactScreen() {
   const [newSpouseGender, setNewSpouseGender] = useState<"homme" | "femme" | null>(null);
   const [creatingSpouse, setCreatingSpouse] = useState(false);
   const [slotValues, setSlotValues] = useState<Record<string, string>>({});
-
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [answeredCount, setAnsweredCount] = useState(0);
-  const [loadingTemplates, setLoadingTemplates] = useState(true);
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [showAllCategories, setShowAllCategories] = useState(false);
-  const [searchText, setSearchText] = useState("");
-  const [filtersCollapsed, setFiltersCollapsed] = useState(false);
-
-  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
-  const [answerValue, setAnswerValue] = useState<string>("");
+  const [answerValue, setAnswerValue] = useState("");
   const [contextText, setContextText] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [justSaved, setJustSaved] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState("");
+  const [justAddedId, setJustAddedId] = useState<string | null>(null);
 
+  const cardsScrollRef = useRef<ScrollViewInstance>(null);
+  const didInitialScroll = useRef(false);
+
+  const family = families[familyIndex] as MyFamily | undefined;
+  const familyId = family?.familyId ?? null;
+  const myPersonId = family?.personId ?? null;
+
+  const { copied, copy: copyInviteLink } = useInviteLink(familyId);
+
+  // Familles du joueur (bandeau), une fois à la connexion.
   useEffect(() => {
     let cancelled = false;
 
@@ -153,55 +197,28 @@ export default function AddFactScreen() {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData.user?.id;
       if (!userId) {
-        if (!cancelled) setNoSession(true);
+        if (!cancelled) {
+          setNoSession(true);
+          setFamiliesLoaded(true);
+        }
         return;
       }
 
-      const { data: me } = await supabase
+      const { data } = await supabase
         .from("persons")
-        .select("id, family_id")
+        .select("id, family_id, families(name)")
         .eq("user_id", userId)
-        .eq("kind", "player")
-        .limit(1)
-        .maybeSingle();
-
-      if (!me || cancelled) return;
-      setMyPersonId(me.id);
-      setFamilyId(me.family_id);
-
-      const [{ data: persons }, { data: rels }] = await Promise.all([
-        supabase
-          .from("persons")
-          .select("id, display_name, gender, is_deceased, is_central")
-          .eq("family_id", me.family_id)
-          .order("is_central", { ascending: false })
-          .order("display_name", { ascending: true }),
-        supabase.from("relationships").select("person_a_id, person_b_id, relation_type").eq("family_id", me.family_id),
-      ]);
+        .eq("kind", "player");
 
       if (cancelled) return;
-      const list = persons ?? [];
-      setAllPersons(list);
-      setRelationships(rels ?? []);
-
-      let initialSubjectId = list.length > 0 ? list[0].id : null;
-      let initialCategory: string | null = null;
-      try {
-        const stored = await AsyncStorage.getItem(`quizamily:addFact:${me.id}`);
-        if (stored) {
-          const parsed = JSON.parse(stored) as { subjectId?: string; selectedCategory?: string | null };
-          if (parsed.subjectId && list.some((p) => p.id === parsed.subjectId)) {
-            initialSubjectId = parsed.subjectId;
-          }
-          if (typeof parsed.selectedCategory === "string") initialCategory = parsed.selectedCategory;
-        }
-      } catch {
-        // préférences locales corrompues ou indisponibles : on repart des valeurs par défaut
-      }
-
-      setSubjectId(initialSubjectId);
-      setSelectedCategory(initialCategory);
-      setReady(true);
+      setFamilies(
+        (data ?? []).map((row) => ({
+          familyId: row.family_id,
+          familyName: (row.families as unknown as { name: string } | null)?.name ?? "Famille",
+          personId: row.id,
+        })),
+      );
+      setFamiliesLoaded(true);
     }
 
     load();
@@ -210,106 +227,267 @@ export default function AddFactScreen() {
     };
   }, []);
 
-  // Mémorise le dernier sujet et thème choisis, en local sur l'appareil pour ce joueur
-  // (pas partagé avec le reste de la famille), pour retrouver le même contexte la prochaine fois.
+  // Personnes, relations, catalogue et mes réponses : pour toute la famille, indépendants du sujet.
   useEffect(() => {
-    if (!myPersonId || !ready) return;
-    AsyncStorage.setItem(
-      `quizamily:addFact:${myPersonId}`,
-      JSON.stringify({ subjectId, selectedCategory })
-    ).catch(() => {});
-  }, [myPersonId, ready, subjectId, selectedCategory]);
-
-
-  useEffect(() => {
-    if (!subjectId || !familyId) return;
-    const currentSubjectId = subjectId;
-    const currentFamilyId = familyId;
+    if (!familyId || !myPersonId) return;
     let cancelled = false;
 
-    async function loadTemplates() {
-      setLoadingTemplates(true);
-      const subject = allPersons.find((p) => p.id === currentSubjectId);
-      if (!subject) return;
-
-      const [templatesRes, factsRes, siblingRes] = await Promise.all([
+    async function load() {
+      setReady(false);
+      const [{ data: personsData }, { data: relsData }, { data: templatesData }, { data: answersData }] = await Promise.all([
+        supabase
+          .from("persons")
+          .select("id, first_name, display_name, gender, is_deceased, is_central")
+          .eq("family_id", familyId)
+          .order("is_central", { ascending: false })
+          .order("display_name", { ascending: true }),
+        supabase.from("relationships").select("person_a_id, person_b_id, relation_type").eq("family_id", familyId),
         supabase.from("question_templates").select("*").eq("status", "mvp"),
-        supabase.from("facts").select("template_id").eq("subject_person_id", currentSubjectId),
-        hasPotentialSibling(currentSubjectId, currentFamilyId),
+        supabase.rpc("get_my_fact_answers", { p_family_id: familyId }),
       ]);
 
       if (cancelled) return;
-
-      const existingTemplateIds = new Set((factsRes.data ?? []).map((f) => f.template_id));
-      const supportedForSubject = (templatesRes.data ?? []).filter((t: Template) =>
-        matchesCondition(t.condition, subject, siblingRes),
+      const persons = (personsData ?? []) as Person[];
+      setAllPersons(persons);
+      setRelationships((relsData ?? []) as Relationship[]);
+      setTemplates((templatesData ?? []) as Template[]);
+      setMyAnswers(
+        new Map(
+          ((answersData ?? []) as { fact_id: string; answer_value: string | number }[]).map((r) => [r.fact_id, r.answer_value]),
+        ),
       );
-      const eligible = supportedForSubject.filter((t) => !existingTemplateIds.has(t.id));
 
-      setTemplates(eligible);
-      setAnsweredCount(supportedForSubject.length - eligible.length);
-      setLoadingTemplates(false);
-      // Un thème restauré (préférence locale) peut ne plus correspondre au sujet courant :
-      // on l'efface plutôt que de filtrer silencieusement toutes les questions.
-      setSelectedCategory((c) => (c && !eligible.some((t) => t.category === c) ? null : c));
+      let initialSubjectId = persons.length > 0 ? persons[0].id : null;
+      let initialCategory: string | null = null;
+      try {
+        const stored = await AsyncStorage.getItem(`quizamily:addFact:${myPersonId}`);
+        if (stored) {
+          const parsed = JSON.parse(stored) as { subjectId?: string; category?: string | null };
+          if (parsed.subjectId && persons.some((p) => p.id === parsed.subjectId)) {
+            initialSubjectId = parsed.subjectId;
+          }
+          if (typeof parsed.category === "string") initialCategory = parsed.category;
+        }
+      } catch {
+        // préférences locales corrompues ou indisponibles : on repart des valeurs par défaut
+      }
+
+      setSubjectId(initialSubjectId);
+      setActiveCategory(initialCategory);
+      didInitialScroll.current = false;
+      setReady(true);
     }
 
-    loadTemplates();
+    load();
     return () => {
       cancelled = true;
     };
-  }, [subjectId, familyId, allPersons, refreshKey]);
+  }, [familyId, myPersonId]);
 
-  const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const t of templates) counts[t.category] = (counts[t.category] ?? 0) + 1;
-    return counts;
-  }, [templates]);
+  // Faits du sujet choisi (tous auteurs), pour la répartition par thème et le récapitulatif rapide.
+  useEffect(() => {
+    if (!subjectId || !familyId) return;
+    let cancelled = false;
 
-  const availableCategories = CATEGORY_ORDER.filter((c) => (categoryCounts[c] ?? 0) > 0);
-  const visibleCategories = showAllCategories
-    ? availableCategories
-    : availableCategories.slice(0, MAX_VISIBLE_CATEGORIES);
-  const hasMoreCategories = availableCategories.length > MAX_VISIBLE_CATEGORIES;
+    async function load() {
+      const [{ data: factsData }, siblingResult] = await Promise.all([
+        supabase
+          .from("facts")
+          .select("id, template_id, author_person_id, related_person_id, slot_values, context_text")
+          .eq("family_id", familyId)
+          .eq("subject_person_id", subjectId)
+          .eq("status", "active"),
+        hasPotentialSibling(subjectId!, familyId!),
+      ]);
 
-  const searchResults = useMemo(() => {
-    const query = searchText.trim().toLowerCase();
-    return templates.filter((t) => {
-      if (selectedCategory && t.category !== selectedCategory) return false;
-      // Recherche dans le texte accordé (masculin par défaut), pas dans la notation {il|elle}.
-      if (query.length > 0 && !resolveGenderedTokens(t.template_text, null).toLowerCase().includes(query)) return false;
-      return true;
+      if (cancelled) return;
+      const rows = factsData ?? [];
+      const factIds = rows.map((f) => f.id);
+      const statusByFact = new Map<string, "open" | "revealed">();
+      if (factIds.length > 0) {
+        const { data: posed } = await supabase
+          .from("quiz_questions")
+          .select("fact_id, quiz_sessions (status)")
+          .in("fact_id", factIds);
+        for (const row of posed ?? []) {
+          const status = (row.quiz_sessions as unknown as { status: string } | null)?.status;
+          if (status === "closed") statusByFact.set(row.fact_id, "revealed");
+          else if (!statusByFact.has(row.fact_id)) statusByFact.set(row.fact_id, "open");
+        }
+      }
+
+      if (cancelled) return;
+      setFacts(
+        rows.map((f) => ({
+          id: f.id,
+          template_id: f.template_id,
+          author_person_id: f.author_person_id,
+          related_person_id: f.related_person_id,
+          slot_values: f.slot_values as Record<string, string> | null,
+          context_text: f.context_text,
+          status: statusByFact.get(f.id) === "revealed" ? "revealed" : statusByFact.has(f.id) ? "open" : "not_posed",
+        })),
+      );
+      setHasSibling(siblingResult);
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [subjectId, familyId, refreshKey]);
+
+  const subject = allPersons.find((p) => p.id === subjectId) ?? null;
+
+  const catalog = useMemo(() => {
+    if (!subject || !myPersonId) return null;
+    return buildAddFactCatalog({
+      templates,
+      facts,
+      subject: { gender: subject.gender, is_deceased: subject.is_deceased },
+      hasSibling,
+      myPersonId,
+      categoryOrder: CATEGORY_ORDER,
     });
-  }, [templates, selectedCategory, searchText]);
+  }, [templates, facts, subject, hasSibling, myPersonId]);
 
-  function selectSubject(id: string) {
-    setSubjectId(id);
-    setShowAllPersons(false);
-    setSelectedCategory(null);
-    setShowAllCategories(false);
-    setSearchText("");
-    setSelectedTemplate(null);
+  const templatesById = useMemo(() => new Map(templates.map((t) => [t.id, t])), [templates]);
+
+  // Mémorise le dernier sujet et thème choisis, en local sur l'appareil pour ce joueur.
+  useEffect(() => {
+    if (!myPersonId || !ready) return;
+    AsyncStorage.setItem(`quizamily:addFact:${myPersonId}`, JSON.stringify({ subjectId, category: activeCategory })).catch(
+      () => {},
+    );
+  }, [myPersonId, ready, subjectId, activeCategory]);
+
+  // Recentre le défilement des cartes sur le thème actif (nouveau sujet, ou thème restauré).
+  useEffect(() => {
+    function syncActiveCategory() {
+      if (!catalog || catalog.categories.length === 0) return;
+      const idx = catalog.categories.findIndex((c) => c.category === activeCategory);
+      const targetIndex = idx >= 0 ? idx : 0;
+      const resolved = catalog.categories[targetIndex];
+      if (resolved.category !== activeCategory) setActiveCategory(resolved.category);
+      cardsScrollRef.current?.scrollTo({ x: targetIndex * (CARD_WIDTH + CARD_GAP), animated: didInitialScroll.current });
+      didInitialScroll.current = true;
+    }
+    syncActiveCategory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- ne doit réagir qu'au changement de catalogue/sujet, pas à chaque frappe
+  }, [catalog, subjectId]);
+
+  function relatedNameFor(id: string | null): string | null {
+    if (!id) return null;
+    return allPersons.find((p) => p.id === id)?.display_name ?? null;
   }
 
-  function selectTemplate(t: Template) {
-    setSelectedTemplate(t);
-    setAnswerValue("");
-    setContextText("");
-    setError("");
-    setFiltersCollapsed(true);
-    setSlotValues({});
+  function relatedPersonNameForTemplate(t: Template): string | null {
+    if (!t.related_role || !subjectId) return null;
+    return relatedNameFor(findRelatedPersonId(relationships, subjectId));
+  }
+
+  function matchesSearch(t: Template, query: string): boolean {
+    if (!subject) return false;
+    const text = previewQuestionText(t, subject.display_name, relatedPersonNameForTemplate(t), {}, subject.gender);
+    return text.toLowerCase().includes(query.trim().toLowerCase());
+  }
+
+  function visibleAvailable(cat: CategoryBucket<Fact>): Template[] {
+    const query = searchText.trim();
+    const base = query.length > 0 ? cat.available.filter((t) => matchesSearch(t, query)) : cat.available;
+    if (openTile?.kind === "new") return base.filter((t) => t.id !== openTile.template.id);
+    return base;
+  }
+
+  const isDirty =
+    !!openTile &&
+    (answerValue !== openTile.initial.answerValue ||
+      contextText !== openTile.initial.contextText ||
+      relatedPersonId !== openTile.initial.relatedPersonId ||
+      JSON.stringify(slotValues) !== JSON.stringify(openTile.initial.slotValues) ||
+      newSpouseFirstName.trim().length > 0 ||
+      newSpouseLastName.trim().length > 0);
+
+  const locked = !!openTile && isDirty;
+
+  function resetOpenTileFields() {
     setShowSpouseCreator(false);
     setNewSpouseFirstName("");
     setNewSpouseLastName("");
     setNewSpouseGender(null);
-    setRelatedPersonId(t.related_role && subjectId ? findRelatedPersonId(relationships, subjectId) : null);
+    setConfirmDelete(false);
+    setError("");
+  }
+
+  function openNewTile(template: Template) {
+    if (locked || !subjectId) return;
+    const related = template.related_role ? findRelatedPersonId(relationships, subjectId) : null;
+    resetOpenTileFields();
+    setAnswerValue("");
+    setContextText("");
+    setSlotValues({});
+    setRelatedPersonId(related);
+    setOpenTile({ kind: "new", template, initial: { answerValue: "", contextText: "", relatedPersonId: related, slotValues: {} } });
+  }
+
+  function openEditTile(fact: Fact) {
+    if (locked) return;
+    const template = templatesById.get(fact.template_id);
+    if (!template) return;
+    const existingAnswer = myAnswers.get(fact.id);
+    const answerStr = existingAnswer != null ? String(existingAnswer) : "";
+    const slots = fact.slot_values ?? {};
+    resetOpenTileFields();
+    setAnswerValue(answerStr);
+    setContextText(fact.context_text ?? "");
+    setSlotValues(slots);
+    setRelatedPersonId(fact.related_person_id);
+    setOpenTile({
+      kind: "edit",
+      template,
+      fact,
+      initial: { answerValue: answerStr, contextText: fact.context_text ?? "", relatedPersonId: fact.related_person_id, slotValues: slots },
+    });
+  }
+
+  function closeTile() {
+    setOpenTile(null);
+    setConfirmDelete(false);
+  }
+
+  function selectSubject(id: string) {
+    if (locked || id === subjectId) return;
+    setOpenTile(null);
+    setSubjectId(id);
+    setSearchText("");
+  }
+
+  function jumpToCategory(category: string) {
+    if (locked) return;
+    setOpenTile(null);
+    setActiveCategory(category);
+    const idx = catalog?.categories.findIndex((c) => c.category === category) ?? -1;
+    if (idx >= 0) cardsScrollRef.current?.scrollTo({ x: idx * (CARD_WIDTH + CARD_GAP), animated: true });
+  }
+
+  function handleCardsScrollEnd(e: NativeSyntheticEvent<NativeScrollEvent>) {
+    if (!catalog || catalog.categories.length === 0) return;
+    const idx = Math.round(e.nativeEvent.contentOffset.x / (CARD_WIDTH + CARD_GAP));
+    const cat = catalog.categories[Math.max(0, Math.min(idx, catalog.categories.length - 1))];
+    if (cat) setActiveCategory(cat.category);
+  }
+
+  function pickRandomFrom(cat: CategoryBucket<Fact>) {
+    if (locked) return;
+    const pool = visibleAvailable(cat);
+    if (pool.length === 0) return;
+    openNewTile(pickRandomTemplate(pool));
   }
 
   async function createSpouse() {
     if (!subjectId || !familyId || newSpouseFirstName.trim().length === 0 || newSpouseLastName.trim().length === 0) return;
     setCreatingSpouse(true);
     setError("");
-
     try {
       const { data: spouse, error: spouseError } = await supabase
         .from("persons")
@@ -326,12 +504,16 @@ export default function AddFactScreen() {
         .single();
       if (spouseError) throw spouseError;
 
-      // Le lien spouse_of n'est enregistré qu'à la validation du fait (submitFact), pour ne
-      // pas laisser une relation orpheline si l'auteur abandonne en cours de route - la
-      // personne elle-même doit en revanche déjà exister pour que le fait puisse la référencer.
       setAllPersons((prev) => [
         ...prev,
-        { id: spouse.id, display_name: spouse.display_name, gender: spouse.gender, is_deceased: false, is_central: false },
+        {
+          id: spouse.id,
+          first_name: spouse.first_name,
+          display_name: spouse.display_name,
+          gender: spouse.gender,
+          is_deceased: false,
+          is_central: false,
+        },
       ]);
       setRelatedPersonId(spouse.id);
       setShowSpouseCreator(false);
@@ -346,43 +528,28 @@ export default function AddFactScreen() {
     }
   }
 
-  function pickExistingSpouse(personId: string) {
-    setRelatedPersonId(personId);
-  }
-
-  function resetFilters() {
-    setSelectedCategory(null);
-    setSearchText("");
-    setShowAllCategories(false);
-  }
-
-  function pickRandom() {
-    if (searchResults.length === 0) return;
-    const t = searchResults[Math.floor(Math.random() * searchResults.length)];
-    selectTemplate(t);
-  }
-
-  async function submitFact() {
-    if (!selectedTemplate || !subjectId || !myPersonId || !familyId) return;
+  async function submitNew() {
+    if (openTile?.kind !== "new" || !subjectId || !myPersonId || !familyId) return;
+    const template = openTile.template;
     setSubmitting(true);
     setError("");
 
     try {
-      const parsed = parseAnswerValue(selectedTemplate.answer_input_kind, answerValue);
+      const parsed = parseAnswerValue(template.answer_input_kind, answerValue);
       if (!parsed.ok) throw new Error(parsed.error);
       const finalAnswer = parsed.value;
 
-      if (selectedTemplate.answer_input_kind === "list" && selectedTemplate.list_name) {
+      if (template.answer_input_kind === "list" && template.list_name) {
         await ensureListItemExists({
-          listName: selectedTemplate.list_name,
-          category: selectedTemplate.list_category ?? null,
+          listName: template.list_name,
+          category: template.list_category ?? null,
           value: finalAnswer as string,
           familyId,
           personId: myPersonId,
         });
       }
 
-      if (selectedTemplate.related_role && relatedPersonId && findRelatedPersonId(relationships, subjectId) === null) {
+      if (template.related_role && relatedPersonId && findRelatedPersonId(relationships, subjectId) === null) {
         const { error: relError } = await supabase.from("relationships").insert({
           family_id: familyId,
           person_a_id: subjectId,
@@ -393,19 +560,29 @@ export default function AddFactScreen() {
         setRelationships((prev) => [...prev, { person_a_id: subjectId, person_b_id: relatedPersonId, relation_type: "spouse_of" }]);
       }
 
-      const { error: factError } = await supabase.from("facts").insert({
-        family_id: familyId,
-        template_id: selectedTemplate.id,
-        subject_person_id: subjectId,
-        related_person_id: selectedTemplate.related_role ? relatedPersonId : null,
-        slot_values: Object.keys(slotValues).length > 0 ? slotValues : null,
-        author_person_id: myPersonId,
-        answer_value: finalAnswer,
-        context_text: contextText.trim().length > 0 ? contextText.trim() : null,
-      });
+      const { data: inserted, error: factError } = await supabase
+        .from("facts")
+        .insert({
+          family_id: familyId,
+          template_id: template.id,
+          subject_person_id: subjectId,
+          related_person_id: template.related_role ? relatedPersonId : null,
+          slot_values: Object.keys(slotValues).length > 0 ? slotValues : null,
+          author_person_id: myPersonId,
+          answer_value: finalAnswer,
+          context_text: contextText.trim().length > 0 ? contextText.trim() : null,
+        })
+        .select("id")
+        .single();
       if (factError) throw factError;
 
-      setJustSaved(true);
+      // La réponse n'est pas relisible via un simple select sur facts (voir get_my_fact_answers) :
+      // on la connaît déjà puisqu'on vient de l'enregistrer, pas besoin d'un aller-retour de plus.
+      setMyAnswers((prev) => new Map(prev).set(inserted.id, finalAnswer));
+      setOpenTile(null);
+      setJustAddedId(inserted.id);
+      setTimeout(() => setJustAddedId((id) => (id === inserted.id ? null : id)), 2500);
+      setRefreshKey((k) => k + 1);
     } catch (e) {
       const message = typeof e === "object" && e !== null && "message" in e ? String(e.message) : null;
       setError(message || "Une erreur est survenue.");
@@ -414,480 +591,708 @@ export default function AddFactScreen() {
     }
   }
 
-  function addAnother() {
-    setSelectedTemplate(null);
-    setAnswerValue("");
-    setContextText("");
+  async function submitEdit() {
+    if (openTile?.kind !== "edit" || !myPersonId || !familyId) return;
+    const { template, fact } = openTile;
+    if (!fact) return;
+    setSubmitting(true);
     setError("");
-    setSearchText("");
-    setJustSaved(false);
-    setRelatedPersonId(null);
-    setSlotValues({});
-    setShowSpouseCreator(false);
-    setNewSpouseFirstName("");
-    setNewSpouseLastName("");
-    setNewSpouseGender(null);
-    setRefreshKey((k) => k + 1); // force a refetch so the just-created fact's template disappears
+
+    try {
+      const parsed = parseAnswerValue(template.answer_input_kind, answerValue);
+      if (!parsed.ok) throw new Error(parsed.error);
+      const finalAnswer = parsed.value;
+
+      if (template.answer_input_kind === "list" && template.list_name) {
+        await ensureListItemExists({
+          listName: template.list_name,
+          category: template.list_category ?? null,
+          value: finalAnswer as string,
+          familyId,
+          personId: myPersonId,
+        });
+      }
+
+      const { error: updateError } = await supabase
+        .from("facts")
+        .update({
+          answer_value: finalAnswer,
+          context_text: contextText.trim().length > 0 ? contextText.trim() : null,
+        })
+        .eq("id", fact.id);
+      if (updateError) throw updateError;
+
+      setMyAnswers((prev) => new Map(prev).set(fact.id, finalAnswer));
+      setOpenTile(null);
+      setRefreshKey((k) => k + 1);
+    } catch (e) {
+      const message = typeof e === "object" && e !== null && "message" in e ? String(e.message) : null;
+      setError(message || "Une erreur est survenue.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function deleteCurrentFact() {
+    if (openTile?.kind !== "edit" || !openTile.fact) return;
+    setDeleting(true);
+    const { error: deleteError } = await supabase.from("facts").delete().eq("id", openTile.fact.id);
+    if (!deleteError) {
+      setOpenTile(null);
+      setConfirmDelete(false);
+      setRefreshKey((k) => k + 1);
+    } else {
+      setError(deleteError.message);
+    }
+    setDeleting(false);
   }
 
   if (noSession) {
     return <Redirect href="/" />;
   }
 
-  if (!ready) {
+  if (!familiesLoaded) {
     return (
-      <ThemedView style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <ActivityIndicator />
-      </ThemedView>
+      <View style={[styles.screen, sunsetBackground, styles.centered]}>
+        <ActivityIndicator color={S.action} />
+      </View>
     );
   }
 
-  if (justSaved) {
-    return (
-      <ThemedView style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: Spacing.three, padding: Spacing.four }}>
-        <ThemedText type="title">Fait ajouté 🎉</ThemedText>
-        <Pressable onPress={addAnother} style={styles.primaryButton}>
-          <ThemedText style={{ color: "#ffffff" }}>Ajouter un autre fait</ThemedText>
-        </Pressable>
-        <Pressable onPress={() => router.replace("/home")}>
-          <ThemedText type="linkPrimary">Retour à l&apos;accueil</ThemedText>
-        </Pressable>
-      </ThemedView>
-    );
+  if (families.length === 0) {
+    return <Redirect href="/family-setup" />;
   }
 
-  const subject = allPersons.find((p) => p.id === subjectId);
-  const visiblePersons = allPersons.slice(0, MAX_VISIBLE_PERSONS);
-  const otherPersons = allPersons.slice(MAX_VISIBLE_PERSONS);
-  const filtersAreCollapsed = filtersCollapsed && !!selectedTemplate;
-  const answeredLabel = `${answeredCount} fait${answeredCount === 1 ? "" : "s"} ajouté${answeredCount === 1 ? "" : "s"}`;
+  function switchFamily(newFamilyId: string) {
+    setFamilyIndex(families.findIndex((f) => f.familyId === newFamilyId));
+    setSubjectId(null);
+    setActiveCategory(null);
+    setOpenTile(null);
+  }
 
   return (
-    <ThemedView style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <ThemedText type="title">Ajouter un fait</ThemedText>
+    <View style={[styles.screen, sunsetBackground]}>
+      <FamilyHeaderBar
+        families={families}
+        currentFamilyId={family!.familyId}
+        onSwitchFamily={switchFamily}
+        copied={copied}
+        onCopyInvite={copyInviteLink}
+      />
 
-        {filtersAreCollapsed ? (
-          <Pressable onPress={() => setFiltersCollapsed(false)} style={styles.filtersSummary}>
-            <ThemedText type="linkPrimary">
-              {subject?.display_name}
-              {selectedCategory ? ` · ${CATEGORY_LABELS[selectedCategory]}` : ""} — Modifier les filtres
-            </ThemedText>
-          </Pressable>
-        ) : (
-          <>
-            {/* 1-4 : sujet */}
-            <ThemedText type="smallBold">Sur qui ?</ThemedText>
-            <View style={styles.personsRow}>
-              {visiblePersons.map((p) => (
+      <View style={styles.titleRow}>
+        <Pressable accessibilityLabel="Retour à l'accueil" onPress={() => router.replace("/home")} style={styles.backButton}>
+          <Text style={styles.backArrow}>‹</Text>
+        </Pressable>
+        <Text style={styles.title}>Ajouter un souvenir</Text>
+      </View>
+
+      {!ready || !catalog || !subject ? (
+        <View style={styles.centered}>
+          <ActivityIndicator color={S.action} />
+        </View>
+      ) : (
+        <>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            scrollEnabled={!locked}
+            style={styles.personsScroll}
+            contentContainerStyle={styles.personsRow}
+          >
+            {allPersons.map((p) => (
+              <Pressable
+                key={p.id}
+                accessibilityLabel={`Ajouter un souvenir sur ${p.first_name}`}
+                onPress={() => selectSubject(p.id)}
+                style={[styles.personItem, subjectId === p.id && styles.personItemSelected]}
+              >
+                <PersonAvatar personId={p.id} firstName={p.first_name} size={48} isCentral={p.is_central} focused={subjectId === p.id} />
+                <Text style={styles.personName}>{p.first_name}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+
+          <View style={styles.recapRow}>
+            <Text style={styles.recapText}>
+              <Text style={styles.recapName}>{subject.first_name}</Text> · {catalog.counts.revealed} souvenir
+              {catalog.counts.revealed === 1 ? "" : "s"} connu{catalog.counts.revealed === 1 ? "" : "s"} · {catalog.counts.reserve} en
+              réserve
+            </Text>
+          </View>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            scrollEnabled={!locked}
+            style={styles.themeScroll}
+            contentContainerStyle={styles.themeRow}
+          >
+            {catalog.categories.map((cat) => {
+              const isActive = cat.category === activeCategory;
+              const query = searchText.trim();
+              const resultCount = query.length > 0 ? visibleAvailable(cat).length : 0;
+              const dimmed = query.length > 0 && !isActive && resultCount === 0;
+              return (
                 <Pressable
-                  key={p.id}
-                  onPress={() => selectSubject(p.id)}
-                  style={[styles.personCard, subjectId === p.id && styles.personCardSelected]}
+                  key={cat.category}
+                  onPress={() => jumpToCategory(cat.category)}
+                  style={[styles.themePill, isActive && styles.themePillActive, dimmed && styles.themePillDimmed]}
                 >
-                  <View style={styles.avatarPlaceholder}>
-                    <ThemedText style={{ color: "#ffffff" }} type="smallBold">
-                      {initials(p.display_name)}
-                    </ThemedText>
-                  </View>
-                  <ThemedText style={{ textAlign: "center" }}>{p.display_name}</ThemedText>
+                  <Text style={[styles.themePillText, isActive && styles.themePillTextActive]}>{CATEGORY_LABELS[cat.category]}</Text>
+                  {cat.isComplete && <Text style={[styles.themeCheck, isActive && styles.themePillTextActive]}>✓</Text>}
+                  {query.length > 0 && resultCount > 0 && (
+                    <View style={styles.themeBadge}>
+                      <Text style={styles.themeBadgeText}>{resultCount}</Text>
+                    </View>
+                  )}
                 </Pressable>
-              ))}
-              {otherPersons.length > 0 && (
-                <Pressable
-                  onPress={() => setShowAllPersons((v) => !v)}
-                  style={[styles.personCard, styles.otherPersonCard]}
-                >
-                  <View style={[styles.avatarPlaceholder, { backgroundColor: "#999999" }]}>
-                    <ThemedText style={{ color: "#ffffff" }} type="smallBold">
-                      …
-                    </ThemedText>
-                  </View>
-                  <ThemedText style={{ textAlign: "center" }}>Autre</ThemedText>
-                </Pressable>
-              )}
+              );
+            })}
+          </ScrollView>
+
+          {locked && (
+            <View style={styles.lockBanner}>
+              <Text style={styles.lockBannerText}>Enregistre ou annule pour changer de thème ou de personne</Text>
             </View>
+          )}
 
-            {showAllPersons && (
-              <View style={styles.chipsRow}>
-                {otherPersons.map((p) => (
-                  <Pressable
-                    key={p.id}
-                    onPress={() => selectSubject(p.id)}
-                    style={[styles.chip, subjectId === p.id && styles.chipSelected]}
-                  >
-                    <ThemedText style={subjectId === p.id ? { color: "#ffffff" } : undefined}>
-                      {p.display_name}
-                    </ThemedText>
-                  </Pressable>
-                ))}
-              </View>
-            )}
+          <ScrollView
+            ref={cardsScrollRef}
+            horizontal
+            snapToInterval={CARD_WIDTH + CARD_GAP}
+            decelerationRate="fast"
+            showsHorizontalScrollIndicator={false}
+            scrollEnabled={!locked}
+            onMomentumScrollEnd={handleCardsScrollEnd}
+            contentContainerStyle={styles.cardsRow}
+            style={styles.cardsScroll}
+          >
+            {catalog.categories.map((cat) => {
+              const avail = visibleAvailable(cat);
+              const query = searchText.trim();
+              const showEmptySearch = query.length > 0 && avail.length === 0 && openTile?.template.category !== cat.category;
+              const elsewhere = showEmptySearch
+                ? catalog.categories
+                    .filter((c) => c.category !== cat.category)
+                    .map((c) => ({ cat: c, n: visibleAvailable(c).length }))
+                    .filter((x) => x.n > 0)
+                : [];
+              const mineVisible = cat.mine.filter((f) => !(openTile?.kind === "edit" && openTile.fact?.id === f.id));
+              const othersVisible = cat.others.filter((f) => !(openTile?.kind === "edit" && openTile.fact?.id === f.id));
 
-            {!loadingTemplates && (
-              <ThemedText themeColor="textSecondary" style={styles.counterText}>
-                {subject?.display_name} : {answeredLabel}, {templates.length} question
-                {templates.length === 1 ? "" : "s"} restante{templates.length === 1 ? "" : "s"}.
-              </ThemedText>
-            )}
-
-            {/* 5-9 : thèmes */}
-            {templates.length > 0 && (
-              <>
-                <ThemedText type="smallBold">Thème</ThemedText>
-                {showAllCategories ? (
-                  <View style={styles.chipsRow}>
-                    {availableCategories.map((cat) => (
-                      <Pressable
-                        key={cat}
-                        onPress={() => setSelectedCategory((c) => (c === cat ? null : cat))}
-                        style={[styles.chip, selectedCategory === cat && styles.chipSelected]}
-                      >
-                        <ThemedText style={selectedCategory === cat ? { color: "#ffffff" } : undefined}>
-                          {CATEGORY_LABELS[cat]}
-                        </ThemedText>
-                      </Pressable>
-                    ))}
-                    <Pressable onPress={() => setShowAllCategories(false)} style={styles.chip}>
-                      <ThemedText>−</ThemedText>
-                    </Pressable>
-                  </View>
-                ) : (
-                  <View style={styles.themeRow}>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.themeScroll}>
-                      <View style={styles.chipsRowNoWrap}>
-                        {visibleCategories.map((cat) => (
-                          <Pressable
-                            key={cat}
-                            onPress={() => setSelectedCategory((c) => (c === cat ? null : cat))}
-                            style={[styles.chip, selectedCategory === cat && styles.chipSelected]}
-                          >
-                            <ThemedText style={selectedCategory === cat ? { color: "#ffffff" } : undefined}>
-                              {CATEGORY_LABELS[cat]}
-                            </ThemedText>
-                          </Pressable>
-                        ))}
-                      </View>
-                    </ScrollView>
-                    {hasMoreCategories && (
-                      <Pressable onPress={() => setShowAllCategories(true)} style={styles.chip}>
-                        <ThemedText>+</ThemedText>
+              return (
+                <View key={cat.category} style={[styles.card, { width: CARD_WIDTH, backgroundColor: CARD_BG[cat.category] ?? S.cream }]}>
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.cardTitle}>{CATEGORY_LABELS[cat.category]}</Text>
+                    {!cat.isComplete && (
+                      <Pressable onPress={() => pickRandomFrom(cat)} style={styles.surpriseButton}>
+                        <Text style={styles.surpriseButtonText}>🎲 Surprends-moi</Text>
                       </Pressable>
                     )}
                   </View>
-                )}
-              </>
-            )}
 
-            {/* 10 : recherche */}
-            {loadingTemplates ? (
-              <ActivityIndicator />
-            ) : templates.length === 0 ? (
-              <ThemedText themeColor="textSecondary">
-                Plus de questions disponibles pour {subject?.display_name} dans cette première version.
-              </ThemedText>
-            ) : (
-              <>
-                <TextInput
-                  value={searchText}
-                  onChangeText={setSearchText}
-                  placeholder="🔍 Rechercher une question (ex: école, voyage...)"
-                  style={styles.searchInput}
-                />
-
-                <View style={styles.chipsRow}>
-                  {(selectedCategory || searchText.length > 0) && (
-                    <Pressable onPress={resetFilters}>
-                      <ThemedText type="linkPrimary">Réinitialiser les filtres</ThemedText>
-                    </Pressable>
-                  )}
-                  {searchResults.length > 0 && (
-                    <Pressable onPress={pickRandom}>
-                      <ThemedText type="linkPrimary">🎲 Surprends-moi</ThemedText>
-                    </Pressable>
-                  )}
-                </View>
-
-                {/* 11 : résultats */}
-                {searchResults.map((t) => {
-                  const knownRelated = subjectId ? allPersons.find((p) => p.id === findRelatedPersonId(relationships, subjectId)) : null;
-                  return (
-                    <Pressable key={t.id} onPress={() => selectTemplate(t)} style={styles.questionOption}>
-                      <ThemedText>
-                        {substituteTemplateText(t, subject?.display_name ?? "", knownRelated?.display_name ?? null, {}, subject?.gender)}
-                      </ThemedText>
-                    </Pressable>
-                  );
-                })}
-                {searchResults.length === 0 && (
-                  <ThemedText themeColor="textSecondary">Aucune question ne correspond.</ThemedText>
-                )}
-              </>
-            )}
-          </>
-        )}
-
-        {selectedTemplate && (() => {
-          const relatedPerson = allPersons.find((p) => p.id === relatedPersonId) ?? null;
-          const needsRelated = !!selectedTemplate.related_role && !relatedPersonId;
-          const missingSlots = (selectedTemplate.slots ?? []).filter((s) => !slotValues[s]);
-          const readyForAnswer = !needsRelated && missingSlots.length === 0;
-
-          return (
-            <View style={{ gap: Spacing.three }}>
-              <View style={[styles.card, styles.chipSelected]}>
-                <ThemedText style={{ color: "#ffffff" }}>
-                  {substituteTemplateText(selectedTemplate, subject?.display_name ?? "", relatedPerson?.display_name ?? null, slotValues, subject?.gender)}
-                </ThemedText>
-              </View>
-
-              {needsRelated && (
-                <View style={{ gap: Spacing.two }}>
-                  <ThemedText type="smallBold">
-                    Qui est le conjoint ou la conjointe de {subject?.display_name} ?
-                  </ThemedText>
-                  <View style={styles.chipsRow}>
-                    {allPersons
-                      .filter((p) => p.id !== subjectId)
-                      .map((p) => (
-                        <Pressable key={p.id} onPress={() => pickExistingSpouse(p.id)} style={styles.chip}>
-                          <ThemedText>{p.display_name}</ThemedText>
-                        </Pressable>
-                      ))}
-                    <Pressable onPress={() => setShowSpouseCreator(true)} style={styles.chip}>
-                      <ThemedText>+ Nouvelle personne</ThemedText>
-                    </Pressable>
-                  </View>
-                  {showSpouseCreator && (
-                    <View style={{ gap: Spacing.two }}>
-                      <TextInput
-                        value={newSpouseFirstName}
-                        onChangeText={setNewSpouseFirstName}
-                        placeholder="Prénom"
-                        style={styles.input}
+                  <ScrollView style={styles.cardScroll} contentContainerStyle={styles.cardBody}>
+                    {openTile && openTile.template.category === cat.category && (
+                      <OpenTileEditor
+                        openTile={openTile}
+                        subject={subject}
+                        relatedPersonId={relatedPersonId}
+                        relatedName={relatedNameFor(relatedPersonId)}
+                        slotValues={slotValues}
+                        answerValue={answerValue}
+                        contextText={contextText}
+                        error={error}
+                        submitting={submitting}
+                        isDirty={isDirty}
+                        confirmDelete={confirmDelete}
+                        deleting={deleting}
+                        familyId={familyId!}
+                        allPersons={allPersons}
+                        showSpouseCreator={showSpouseCreator}
+                        newSpouseFirstName={newSpouseFirstName}
+                        newSpouseLastName={newSpouseLastName}
+                        newSpouseGender={newSpouseGender}
+                        creatingSpouse={creatingSpouse}
+                        onAnswerChange={setAnswerValue}
+                        onContextChange={setContextText}
+                        onSlotChange={(slot, value) => setSlotValues((v) => ({ ...v, [slot]: value }))}
+                        onPickExistingSpouse={setRelatedPersonId}
+                        onShowSpouseCreator={() => setShowSpouseCreator(true)}
+                        onNewSpouseFirstName={setNewSpouseFirstName}
+                        onNewSpouseLastName={setNewSpouseLastName}
+                        onNewSpouseGender={setNewSpouseGender}
+                        onCreateSpouse={createSpouse}
+                        onCancel={closeTile}
+                        onSubmit={openTile.kind === "new" ? submitNew : submitEdit}
+                        onConfirmDelete={() => setConfirmDelete(true)}
+                        onCancelDelete={() => setConfirmDelete(false)}
+                        onDelete={deleteCurrentFact}
                       />
-                      <TextInput
-                        value={newSpouseLastName}
-                        onChangeText={setNewSpouseLastName}
-                        placeholder="Nom"
-                        style={styles.input}
-                      />
-                      <View style={styles.chipsRow}>
-                        {(["homme", "femme"] as const).map((g) => (
-                          <Pressable
-                            key={g}
-                            onPress={() => setNewSpouseGender(g)}
-                            style={[styles.chip, newSpouseGender === g && styles.chipSelected]}
-                          >
-                            <ThemedText style={newSpouseGender === g ? { color: "#ffffff" } : undefined}>
-                              {g === "homme" ? "Homme" : "Femme"}
-                            </ThemedText>
+                    )}
+
+                    {cat.isComplete && !(openTile && openTile.template.category === cat.category && openTile.kind === "new") && (
+                      <View style={styles.completeBanner}>
+                        <Text style={styles.completeBannerIcon}>✓</Text>
+                        <Text style={styles.completeBannerText}>Tout est renseigné pour {subject.first_name} dans ce thème</Text>
+                      </View>
+                    )}
+
+                    {showEmptySearch && (
+                      <View style={styles.searchEmptyCard}>
+                        <Text style={styles.searchEmptyTitle}>Aucune question « {query} » dans ce thème</Text>
+                        {elsewhere.length > 0 && <Text style={styles.searchEmptySub}>Mais il y en a ailleurs :</Text>}
+                        {elsewhere.map(({ cat: c, n }) => (
+                          <Pressable key={c.category} onPress={() => jumpToCategory(c.category)} style={styles.searchEmptyLink}>
+                            <Text style={styles.searchEmptyLinkText}>
+                              {n} question{n === 1 ? "" : "s"} dans {CATEGORY_LABELS[c.category]}
+                            </Text>
                           </Pressable>
                         ))}
                       </View>
-                      <Pressable
-                        onPress={createSpouse}
-                        disabled={creatingSpouse || newSpouseFirstName.trim().length === 0 || newSpouseLastName.trim().length === 0}
-                        style={[
-                          styles.secondaryButton,
-                          (creatingSpouse || newSpouseFirstName.trim().length === 0 || newSpouseLastName.trim().length === 0) && {
-                            opacity: 0.6,
-                          },
-                        ]}
-                      >
-                        <ThemedText>{creatingSpouse ? "Création…" : "Ajouter cette personne"}</ThemedText>
+                    )}
+
+                    {avail.map((t) => (
+                      <Pressable key={`t-${t.id}`} onPress={() => openNewTile(t)} style={styles.availableTile}>
+                        <Text style={styles.availableTileText}>
+                          {previewQuestionText(t, subject.display_name, relatedPersonNameForTemplate(t), {}, subject.gender)}
+                        </Text>
+                        <Text style={styles.plusIcon}>+</Text>
                       </Pressable>
-                    </View>
-                  )}
-                </View>
-              )}
+                    ))}
 
-              {missingSlots.map((slot) =>
-                slot === "pays" ? (
-                  <View key={slot} style={{ gap: Spacing.two }}>
-                    <ThemedText type="smallBold">Quel pays ?</ThemedText>
-                    <View style={styles.chipsRow}>
-                      {COUNTRIES.map((c) => (
-                        <Pressable
-                          key={c}
-                          onPress={() => setSlotValues((v) => ({ ...v, [slot]: c }))}
-                          style={styles.chip}
-                        >
-                          <ThemedText>{c}</ThemedText>
+                    {mineVisible.length > 0 && <Text style={styles.groupLabel}>Mes questions (modifiables)</Text>}
+                    {mineVisible.map((f) => {
+                      const t = templatesById.get(f.template_id);
+                      if (!t) return null;
+                      const answer = myAnswers.get(f.id);
+                      return (
+                        <Pressable key={`m-${f.id}`} onPress={() => openEditTile(f)} style={styles.mineTile}>
+                          <Text style={styles.mineTileText}>
+                            {substituteQuestionText(t.template_text, t.related_role, subject.display_name, relatedNameFor(f.related_person_id), f.slot_values, subject.gender)}
+                          </Text>
+                          <View style={styles.mineTileFooter}>
+                            <Text style={styles.mineAnswerPill} numberOfLines={1}>
+                              Ta réponse : {answer != null ? formatAnswerDisplay(t.answer_input_kind, answer) : "…"}
+                            </Text>
+                            <Text style={styles.modifyLink}>✎ Modifier</Text>
+                          </View>
+                          {justAddedId === f.id && <Text style={styles.addedTag}>Ajouté !</Text>}
                         </Pressable>
-                      ))}
-                    </View>
-                  </View>
-                ) : null,
-              )}
+                      );
+                    })}
 
-              {!readyForAnswer && error.length > 0 && <ThemedText themeColor="text">{error}</ThemedText>}
+                    {othersVisible.length > 0 && <Text style={styles.groupLabel}>Déjà renseignées</Text>}
+                    {othersVisible.map((f) => {
+                      const t = templatesById.get(f.template_id);
+                      if (!t) return null;
+                      return (
+                        <View key={`o-${f.id}`} style={styles.otherTile}>
+                          <Text style={styles.otherTileText}>
+                            {substituteQuestionText(t.template_text, t.related_role, subject.display_name, relatedNameFor(f.related_person_id), f.slot_values, subject.gender)}
+                          </Text>
+                        </View>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              );
+            })}
+          </ScrollView>
 
-              {readyForAnswer && (
-                <>
-                  {/* 12 : réponse */}
-                  <AnswerInput
-                    template={selectedTemplate}
-                    familyId={familyId!}
-                    value={answerValue}
-                    onChange={setAnswerValue}
-                  />
-
-                  <ThemedText type="smallBold">Anecdote ou contexte (facultatif)</ThemedText>
-                  <TextInput
-                    value={contextText}
-                    onChangeText={setContextText}
-                    placeholder="Une histoire à raconter autour de cette réponse..."
-                    multiline
-                    style={[styles.input, { minHeight: 80 }]}
-                  />
-
-                  {error.length > 0 && <ThemedText themeColor="text">{error}</ThemedText>}
-
-                  <Pressable
-                    onPress={submitFact}
-                    disabled={submitting || answerValue.trim().length === 0}
-                    style={[styles.primaryButton, (submitting || answerValue.trim().length === 0) && { opacity: 0.6 }]}
-                  >
-                    <ThemedText style={{ color: "#ffffff" }}>
-                      {submitting ? "Enregistrement…" : "Enregistrer"}
-                    </ThemedText>
-                  </Pressable>
-                </>
-              )}
+          {!locked && (
+            <View style={styles.searchBar}>
+              <TextInput
+                value={searchText}
+                onChangeText={setSearchText}
+                placeholder="🔍 Rechercher une question (école, voyage…)"
+                style={styles.searchInput}
+              />
             </View>
-          );
-        })()}
+          )}
+        </>
+      )}
+    </View>
+  );
+}
 
-        <Pressable onPress={() => router.replace("/home")}>
-          <ThemedText type="linkPrimary">Retour à l&apos;accueil</ThemedText>
-        </Pressable>
-      </ScrollView>
-    </ThemedView>
+function OpenTileEditor(props: {
+  openTile: OpenTile;
+  subject: Person;
+  relatedPersonId: string | null;
+  relatedName: string | null;
+  slotValues: Record<string, string>;
+  answerValue: string;
+  contextText: string;
+  error: string;
+  submitting: boolean;
+  isDirty: boolean;
+  confirmDelete: boolean;
+  deleting: boolean;
+  familyId: string;
+  allPersons: Person[];
+  showSpouseCreator: boolean;
+  newSpouseFirstName: string;
+  newSpouseLastName: string;
+  newSpouseGender: "homme" | "femme" | null;
+  creatingSpouse: boolean;
+  onAnswerChange: (v: string) => void;
+  onContextChange: (v: string) => void;
+  onSlotChange: (slot: string, value: string) => void;
+  onPickExistingSpouse: (id: string) => void;
+  onShowSpouseCreator: () => void;
+  onNewSpouseFirstName: (v: string) => void;
+  onNewSpouseLastName: (v: string) => void;
+  onNewSpouseGender: (g: "homme" | "femme") => void;
+  onCreateSpouse: () => void;
+  onCancel: () => void;
+  onSubmit: () => void;
+  onConfirmDelete: () => void;
+  onCancelDelete: () => void;
+  onDelete: () => void;
+}) {
+  const { openTile, subject } = props;
+  const { template } = openTile;
+  const needsRelated = !!template.related_role && !props.relatedPersonId;
+  const missingSlots = (template.slots ?? []).filter((s) => !props.slotValues[s]);
+  const readyForAnswer = !needsRelated && missingSlots.length === 0;
+
+  const previewText =
+    openTile.kind === "edit"
+      ? substituteQuestionText(template.template_text, template.related_role, subject.display_name, props.relatedName, props.slotValues, subject.gender)
+      : previewQuestionText(template, subject.display_name, props.relatedName, props.slotValues, subject.gender);
+
+  return (
+    <View style={styles.openTile}>
+      <Text style={styles.openTileQuestion}>{previewText}</Text>
+
+      {needsRelated && (
+        <View style={styles.spouseBlock}>
+          <Text style={styles.fieldLabel}>Qui est le conjoint ou la conjointe de {subject.first_name} ?</Text>
+          <View style={styles.chipsRow}>
+            {props.allPersons
+              .filter((p) => p.id !== subject.id)
+              .map((p) => (
+                <Pressable key={p.id} onPress={() => props.onPickExistingSpouse(p.id)} style={styles.chip}>
+                  <Text style={styles.chipText}>{p.display_name}</Text>
+                </Pressable>
+              ))}
+            <Pressable onPress={props.onShowSpouseCreator} style={styles.chip}>
+              <Text style={styles.chipText}>+ Nouvelle personne</Text>
+            </Pressable>
+          </View>
+          {props.showSpouseCreator && (
+            <View style={{ gap: 8 }}>
+              <TextInput value={props.newSpouseFirstName} onChangeText={props.onNewSpouseFirstName} placeholder="Prénom" style={styles.input} />
+              <TextInput value={props.newSpouseLastName} onChangeText={props.onNewSpouseLastName} placeholder="Nom" style={styles.input} />
+              <View style={styles.chipsRow}>
+                {(["homme", "femme"] as const).map((g) => (
+                  <Pressable
+                    key={g}
+                    onPress={() => props.onNewSpouseGender(g)}
+                    style={[styles.chip, props.newSpouseGender === g && styles.chipSelected]}
+                  >
+                    <Text style={[styles.chipText, props.newSpouseGender === g && styles.chipTextSelected]}>
+                      {g === "homme" ? "Homme" : "Femme"}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+              <Pressable
+                onPress={props.onCreateSpouse}
+                disabled={props.creatingSpouse || props.newSpouseFirstName.trim().length === 0 || props.newSpouseLastName.trim().length === 0}
+                style={[
+                  styles.secondaryButton,
+                  (props.creatingSpouse || props.newSpouseFirstName.trim().length === 0 || props.newSpouseLastName.trim().length === 0) && {
+                    opacity: 0.6,
+                  },
+                ]}
+              >
+                <Text style={styles.secondaryButtonText}>{props.creatingSpouse ? "Création…" : "Ajouter cette personne"}</Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
+      )}
+
+      {missingSlots.map((slot) =>
+        slot === "pays" ? (
+          <View key={slot} style={{ gap: 8 }}>
+            <Text style={styles.fieldLabel}>Quel pays ?</Text>
+            <View style={styles.chipsRow}>
+              {COUNTRIES.map((c) => (
+                <Pressable key={c} onPress={() => props.onSlotChange(slot, c)} style={styles.chip}>
+                  <Text style={styles.chipText}>{c}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        ) : null,
+      )}
+
+      {!readyForAnswer && props.error.length > 0 && <Text style={styles.errorText}>{props.error}</Text>}
+
+      {readyForAnswer && (
+        <>
+          <AnswerInput template={template} familyId={props.familyId} value={props.answerValue} onChange={props.onAnswerChange} />
+
+          <Text style={styles.fieldLabel}>Anecdote (facultatif)</Text>
+          <TextInput
+            value={props.contextText}
+            onChangeText={props.onContextChange}
+            placeholder="Un détail, un souvenir qui va avec…"
+            multiline
+            style={[styles.textarea]}
+          />
+
+          {props.error.length > 0 && <Text style={styles.errorText}>{props.error}</Text>}
+
+          {openTile.kind === "edit" &&
+            (props.confirmDelete ? (
+              <View style={styles.confirmRow}>
+                <Text style={styles.confirmText}>Supprimer ce fait ?</Text>
+                <Pressable onPress={props.onDelete} disabled={props.deleting}>
+                  <Text style={styles.deleteConfirmLink}>{props.deleting ? "Suppression…" : "Oui, supprimer"}</Text>
+                </Pressable>
+                <Pressable onPress={props.onCancelDelete}>
+                  <Text style={styles.cancelLink}>Annuler</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <Pressable onPress={props.onConfirmDelete}>
+                <Text style={styles.deleteLink}>Supprimer ce fait</Text>
+              </Pressable>
+            ))}
+
+          <View style={styles.openTileActions}>
+            {!props.isDirty && <Text style={styles.closeHint}>Touche ailleurs pour refermer</Text>}
+            <View style={{ flex: 1 }} />
+            <Pressable onPress={props.onCancel} style={styles.cancelButton}>
+              <Text style={styles.cancelButtonText}>Annuler</Text>
+            </Pressable>
+            <Pressable
+              onPress={props.onSubmit}
+              disabled={props.submitting || props.answerValue.trim().length === 0}
+              style={[styles.saveButton, (props.submitting || props.answerValue.trim().length === 0) && { opacity: 0.6 }]}
+            >
+              <Text style={styles.saveButtonText}>{props.submitting ? "Enregistrement…" : "Enregistrer"}</Text>
+            </Pressable>
+          </View>
+        </>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: Spacing.four,
-    gap: Spacing.three,
-    maxWidth: 480,
-    width: "100%",
-    alignSelf: "center",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#999999",
-    borderRadius: 8,
-    padding: Spacing.three,
-    width: "100%",
-  },
-  searchInput: {
-    borderWidth: 1,
-    borderColor: "#d9dbe0",
-    borderRadius: 24,
-    backgroundColor: "#f0f0f3",
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.four,
-    width: "100%",
-  },
-  counterText: {
-    fontSize: 13,
-  },
-  card: {
-    borderWidth: 1,
-    borderColor: "#999999",
-    borderRadius: 8,
-    padding: Spacing.three,
-  },
-  questionOption: {
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    padding: Spacing.three,
-    borderLeftWidth: 4,
-    borderLeftColor: "#3c87f7",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 1,
-  },
-  filtersSummary: {
-    borderWidth: 1,
-    borderColor: "#999999",
-    borderRadius: 8,
-    padding: Spacing.three,
-    borderStyle: "dashed",
-  },
-  personsRow: {
+  screen: { flex: 1 },
+  centered: { flex: 1, alignItems: "center", justifyContent: "center" },
+
+  titleRow: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingTop: 2 },
+  backButton: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
+  backArrow: { fontSize: 24, color: S.ink, fontFamily: FONTS.bodyHeavy },
+  title: { fontFamily: FONTS.title, fontSize: 24, color: S.ink },
+
+  // flexGrow/flexShrink à 0 : un ScrollView horizontal sans style explicite peut sinon s'étirer
+  // pour occuper l'espace vertical disponible (constaté à l'écran), au lieu de ne prendre que la
+  // hauteur de son contenu.
+  personsScroll: { flexGrow: 0, flexShrink: 0 },
+  personsRow: { flexDirection: "row", gap: 6, paddingHorizontal: 16, paddingTop: 6 },
+  personItem: { alignItems: "center", gap: 3, width: 64, paddingVertical: 5, paddingHorizontal: 4, borderRadius: 18 },
+  personItemSelected: { backgroundColor: "rgba(255,248,238,0.55)" },
+  personName: { fontFamily: FONTS.titleMedium, fontSize: 13, color: S.ink },
+
+  recapRow: { paddingHorizontal: 16, paddingTop: 8 },
+  recapText: { fontSize: 14, fontFamily: FONTS.bodyBold, color: S.ink },
+  recapName: { fontFamily: FONTS.title, fontSize: 15 },
+
+  themeScroll: { flexGrow: 0, flexShrink: 0 },
+  themeRow: { flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingTop: 10 },
+  themePill: {
     flexDirection: "row",
-    gap: Spacing.two,
-  },
-  personCard: {
     alignItems: "center",
-    gap: Spacing.one,
+    gap: 6,
+    minHeight: 36,
+    paddingHorizontal: 14,
+    borderRadius: 18,
     borderWidth: 2,
-    borderColor: "transparent",
-    borderRadius: 12,
-    padding: Spacing.two,
-    width: 84,
+    borderColor: "rgba(255,255,255,0.75)",
+    backgroundColor: "rgba(255,248,238,0.55)",
   },
-  personCardSelected: {
-    borderColor: "#3c87f7",
-  },
-  otherPersonCard: {
-    opacity: 0.8,
-  },
-  avatarPlaceholder: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#3c87f7",
+  themePillActive: { borderColor: S.action, backgroundColor: S.action },
+  themePillDimmed: { opacity: 0.5 },
+  themePillText: { fontFamily: FONTS.bodyHeavy, fontSize: 14, color: S.ink },
+  themePillTextActive: { color: S.white },
+  themeCheck: { fontSize: 12, color: S.ink },
+  themeBadge: {
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    paddingHorizontal: 5,
+    backgroundColor: S.sun,
     alignItems: "center",
     justifyContent: "center",
   },
-  chipsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.two,
-  },
-  chipsRowNoWrap: {
-    flexDirection: "row",
-    flexWrap: "nowrap",
-    gap: Spacing.two,
-  },
-  themeRow: {
+  themeBadgeText: { fontSize: 12, fontFamily: FONTS.bodyHeavy, color: S.ink },
+
+  lockBanner: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.two,
+    marginHorizontal: 16,
+    marginTop: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 14,
+    backgroundColor: S.waiting,
   },
-  themeScroll: {
-    flex: 1,
+  lockBannerText: { fontSize: 13, fontFamily: FONTS.bodyHeavy, color: S.waitingSoft },
+
+  cardsScroll: { flex: 1, marginTop: 10 },
+  cardsRow: { paddingLeft: 16, paddingRight: 16, gap: CARD_GAP },
+  card: {
+    borderRadius: 30,
+    overflow: "hidden",
+    ...solidShadow("rgba(138,58,18,0.22)", 7),
   },
-  chip: {
-    borderWidth: 1,
-    borderColor: "#999999",
+  cardHeader: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 14, paddingTop: 14, paddingBottom: 10 },
+  cardTitle: { flex: 1, fontFamily: FONTS.title, fontSize: 21, color: S.ink },
+  surpriseButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    minHeight: 36,
+    paddingHorizontal: 12,
+    borderRadius: 18,
+    backgroundColor: S.action,
+    ...solidShadow(S.actionShadow, 3),
+  },
+  surpriseButtonText: { color: S.white, fontFamily: FONTS.bodyHeavy, fontSize: 13 },
+
+  cardScroll: { flex: 1 },
+  cardBody: { gap: 8, paddingHorizontal: 12, paddingBottom: 16 },
+
+  completeBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    padding: 14,
+    borderRadius: 18,
+    backgroundColor: S.action,
+  },
+  completeBannerIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: S.sun,
+    color: S.ink,
+    textAlign: "center",
+    textAlignVertical: "center",
+    fontFamily: FONTS.bodyHeavy,
+    fontSize: 16,
+  },
+  completeBannerText: { flex: 1, color: S.white, fontFamily: FONTS.bodyHeavy, fontSize: 15, lineHeight: 20 },
+
+  searchEmptyCard: { gap: 8, padding: 16, borderRadius: 20, backgroundColor: "rgba(255,251,244,0.7)" },
+  searchEmptyTitle: { fontSize: 15, fontFamily: FONTS.bodyHeavy, color: S.ink, textAlign: "center" },
+  searchEmptySub: { fontSize: 14, fontFamily: FONTS.bodySemi, color: S.inkSoft, textAlign: "center" },
+  searchEmptyLink: {
+    minHeight: 48,
+    paddingHorizontal: 16,
     borderRadius: 16,
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.three,
-  },
-  chipSelected: {
-    backgroundColor: "#3c87f7",
-    borderColor: "#3c87f7",
-  },
-  primaryButton: {
-    backgroundColor: "#3c87f7",
-    borderRadius: 8,
-    paddingVertical: Spacing.three,
-    paddingHorizontal: Spacing.four,
+    backgroundColor: S.white,
     alignItems: "center",
+    justifyContent: "center",
   },
-  secondaryButton: {
-    borderWidth: 1,
-    borderColor: "#999999",
-    borderRadius: 8,
-    paddingVertical: Spacing.three,
-    paddingHorizontal: Spacing.four,
+  searchEmptyLinkText: { fontFamily: FONTS.bodyHeavy, fontSize: 14, color: S.ink },
+
+  availableTile: {
+    flexDirection: "row",
     alignItems: "center",
+    gap: 10,
+    minHeight: 52,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 18,
+    backgroundColor: S.cream,
+    ...solidShadow("rgba(138,58,18,0.15)", 3),
+  },
+  availableTileText: { flex: 1, fontFamily: FONTS.bodySemi, fontSize: 15, color: S.ink, lineHeight: 19 },
+  plusIcon: { fontSize: 18, color: S.action, fontFamily: FONTS.bodyHeavy },
+
+  groupLabel: { marginTop: 6, fontSize: 12, fontFamily: FONTS.bodyHeavy, letterSpacing: 0.6, textTransform: "uppercase", color: S.inkSoft },
+
+  mineTile: {
+    gap: 8,
+    padding: 12,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: "rgba(138,58,18,0.35)",
+    backgroundColor: S.cream,
+    ...solidShadow("rgba(138,58,18,0.15)", 3),
+  },
+  mineTileText: { fontFamily: FONTS.bodySemi, fontSize: 15, color: S.ink, lineHeight: 19 },
+  mineTileFooter: { flexDirection: "row", alignItems: "center", gap: 8 },
+  mineAnswerPill: {
+    flex: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+    backgroundColor: S.creamStrong,
+    fontSize: 13,
+    fontFamily: FONTS.bodyBold,
+    color: S.inkOnGround,
+  },
+  modifyLink: { fontSize: 13, fontFamily: FONTS.bodyHeavy, color: S.action },
+  addedTag: { fontSize: 12, fontFamily: FONTS.bodyHeavy, color: S.action },
+
+  otherTile: { minHeight: 48, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 18, backgroundColor: "rgba(255,255,255,0.35)" },
+  otherTileText: { fontSize: 14, fontFamily: FONTS.bodySemi, color: S.inkSoft, lineHeight: 18 },
+
+  openTile: {
+    gap: 10,
+    padding: 14,
+    borderRadius: 20,
+    borderWidth: 3,
+    borderColor: S.action,
+    backgroundColor: "#FFFBF4",
+    ...solidShadow("rgba(138,58,18,0.25)", 5),
+  },
+  openTileQuestion: { fontFamily: FONTS.title, fontSize: 18, color: S.ink, lineHeight: 23 },
+  fieldLabel: { fontSize: 13, fontFamily: FONTS.bodyHeavy, color: S.inkSoft },
+  spouseBlock: { gap: 8 },
+  chipsRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  chip: { borderWidth: 1, borderColor: "#EAD9BD", borderRadius: 16, paddingVertical: 8, paddingHorizontal: 12, backgroundColor: S.white },
+  chipSelected: { backgroundColor: S.action, borderColor: S.action },
+  chipText: { fontFamily: FONTS.bodyBold, fontSize: 14, color: S.ink },
+  chipTextSelected: { color: S.white },
+  input: { height: 46, paddingHorizontal: 14, borderWidth: 2, borderColor: "#EAD9BD", borderRadius: 14, backgroundColor: S.white, fontFamily: FONTS.body, fontSize: 16, color: S.ink },
+  textarea: { minHeight: 56, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 2, borderColor: "#EAD9BD", borderRadius: 14, backgroundColor: S.white, fontFamily: FONTS.body, fontSize: 15, color: S.ink },
+  errorText: { fontSize: 14, fontFamily: FONTS.bodyBold, color: S.alertInk },
+  confirmRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  confirmText: { fontSize: 14, fontFamily: FONTS.bodySemi, color: S.ink },
+  deleteLink: { fontSize: 14, fontFamily: FONTS.bodyHeavy, color: S.alertInk },
+  deleteConfirmLink: { fontSize: 14, fontFamily: FONTS.bodyHeavy, color: S.alertInk },
+  cancelLink: { fontSize: 14, fontFamily: FONTS.bodyHeavy, color: S.inkSoft },
+  openTileActions: { flexDirection: "row", alignItems: "center", gap: 10 },
+  closeHint: { flex: 1, fontSize: 12, fontFamily: FONTS.bodyBold, color: S.inkSoft },
+  cancelButton: { minHeight: 44, paddingHorizontal: 16, borderRadius: RADIUS.pill, borderWidth: 2, borderColor: S.action, alignItems: "center", justifyContent: "center" },
+  cancelButtonText: { color: S.action, fontFamily: FONTS.bodyHeavy, fontSize: 15 },
+  saveButton: { minHeight: 44, paddingHorizontal: 18, borderRadius: RADIUS.pill, backgroundColor: S.action, alignItems: "center", justifyContent: "center", ...solidShadow(S.actionShadow, 4) },
+  saveButtonText: { color: S.white, fontFamily: FONTS.bodyHeavy, fontSize: 15 },
+  secondaryButton: { minHeight: 44, borderRadius: 14, borderWidth: 2, borderColor: S.action, alignItems: "center", justifyContent: "center" },
+  secondaryButtonText: { color: S.action, fontFamily: FONTS.bodyHeavy, fontSize: 14 },
+
+  searchBar: { paddingHorizontal: 16, paddingVertical: 10 },
+  searchInput: {
+    height: 50,
+    paddingHorizontal: 16,
+    borderWidth: 2,
+    borderColor: S.white,
+    borderRadius: 25,
+    backgroundColor: "rgba(255,248,238,0.92)",
+    fontFamily: FONTS.bodyBold,
+    fontSize: 15,
+    color: S.ink,
+    ...solidShadow("rgba(138,58,18,0.2)", 4),
   },
 });

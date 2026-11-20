@@ -8,16 +8,16 @@
 // Charte « Coucher de soleil » (src/constants/soleil.ts) : fond en dégradé, cartes colorées ;
 // bouton du quiz brun-orangé quand une action est attendue, prune quand on attend.
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { FunctionsHttpError } from "@supabase/supabase-js";
-import * as Clipboard from "expo-clipboard";
 import { Redirect, router } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { FlagMenuIcon, PersonAvatar } from "@/components/soleil";
+import { FamilyHeaderBar } from "@/components/family-header";
+import { PersonAvatar } from "@/components/soleil";
 import { FONTS, RADIUS, S, solidShadow, sunsetBackground } from "@/constants/soleil";
 import { pickHomeProfiles, type ProfileCandidate } from "@/lib/home-profiles";
 import { supabase } from "@/lib/supabase";
+import { useInviteLink } from "@/lib/use-invite-link";
 
 const PLAYERS_NEEDED_FOR_FIRST_QUIZ = 3;
 const LOW_RESERVE_THRESHOLD = 5;
@@ -42,12 +42,7 @@ export default function HomeScreen() {
   const [familyIndex, setFamilyIndex] = useState(0);
   const [myPersonId, setMyPersonId] = useState<string | null>(null);
 
-  const [inviteLink, setInviteLink] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [showFamilyMenu, setShowFamilyMenu] = useState(false);
-  const [showBurger, setShowBurger] = useState(false);
-  const [burgerMessage, setBurgerMessage] = useState<string | null>(null);
-  const [creatingSession, setCreatingSession] = useState(false);
+  const { copied, copy: copyInviteLink } = useInviteLink(families[familyIndex]?.familyId ?? null);
 
   const [quizState, setQuizState] = useState<QuizState | null>(null);
   const [knowledgeSub, setKnowledgeSub] = useState("");
@@ -265,8 +260,6 @@ export default function HomeScreen() {
       );
       setMyPersonId(data[0].id);
 
-      if (!cancelled) await loadInviteLink(data[0].family_id);
-
       await loadFamilyDashboard(data[0].family_id, data[0].id);
       if (!cancelled) setLoading(false);
     }
@@ -277,54 +270,11 @@ export default function HomeScreen() {
     };
   }, []);
 
-  async function loadInviteLink(familyId: string) {
-    const { data: inviteRow } = await supabase.from("invites").select("token").eq("family_id", familyId).limit(1).maybeSingle();
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    setInviteLink(inviteRow ? `${origin}/join/${inviteRow.token}` : null);
-  }
-
-  async function copyInviteLink() {
-    if (!inviteLink) return;
-    await Clipboard.setStringAsync(inviteLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
   function switchFamily(familyId: string) {
-    setShowFamilyMenu(false);
     setFamilyIndex(families.findIndex((f) => f.familyId === familyId));
     setLoading(true);
-    loadInviteLink(familyId);
     loadFamilyDashboard(familyId, myPersonId!).then(() => setLoading(false));
   }
-
-  async function createSessionNow() {
-    const familyId = families[familyIndex]?.familyId;
-    if (!familyId || !myPersonId) return;
-    setCreatingSession(true);
-    setBurgerMessage(null);
-
-    const { data, error } = await supabase.functions.invoke("create-quiz-session", { body: { family_id: familyId } });
-
-    if (error) {
-      let message = error.message;
-      if (error instanceof FunctionsHttpError) {
-        try {
-          const body = await error.context.json();
-          if (body?.error) message = body.error;
-        } catch {
-          // corps non-JSON : on garde le message générique
-        }
-      }
-      setBurgerMessage(`Erreur : ${message}`);
-    } else {
-      setBurgerMessage(`Session créée : ${data.recipientsCreated} réponse(s) attendue(s).`);
-      await loadFamilyDashboard(familyId, myPersonId);
-    }
-    setCreatingSession(false);
-    setShowBurger(false);
-  }
-
 
   if (loading) {
     return (
@@ -343,8 +293,6 @@ export default function HomeScreen() {
   }
 
   const family = families[familyIndex];
-  // La famille courante est toujours en tête du menu, bouton d'invitation à côté d'elle.
-  const orderedFamilies = [family, ...families.filter((f) => f.familyId !== family.familyId)];
 
   function openTree(personId?: string) {
     if (personId) router.push({ pathname: "/family-tree", params: { person: personId, recap: "1" } });
@@ -353,62 +301,17 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.screen, sunsetBackground]}>
-      <View style={styles.header}>
-        <Pressable onPress={() => setShowFamilyMenu((v) => !v)} style={styles.familyButton}>
-          <Text style={styles.familyButtonText}>{family.familyName}</Text>
-          <Text style={styles.chevron}>⌄</Text>
-        </Pressable>
-        <View style={{ flex: 1 }} />
-        <Pressable accessibilityLabel="Menu" onPress={() => setShowBurger((v) => !v)} style={styles.burgerButton}>
-          <FlagMenuIcon />
-        </Pressable>
-      </View>
-
-      {showFamilyMenu && (
-        <View style={styles.dropdown}>
-          {orderedFamilies.map((f) => (
-            <View key={f.familyId} style={styles.dropdownRow}>
-              <Pressable onPress={() => switchFamily(f.familyId)} style={styles.dropdownItem}>
-                <Text style={f.familyId === family.familyId ? styles.dropdownItemTextActive : styles.dropdownItemText}>
-                  {f.familyName}
-                </Text>
-              </Pressable>
-              {f.familyId === family.familyId && (
-                <Pressable accessibilityLabel="Inviter dans la famille" onPress={copyInviteLink} style={styles.inviteButtonSmall}>
-                  <Text style={styles.inviteIconSmall}>{copied ? "✓" : "+"}</Text>
-                </Pressable>
-              )}
-            </View>
-          ))}
-          <Pressable onPress={() => router.push("/family-setup")} style={styles.dropdownItem}>
-            <Text style={styles.dropdownItemText}>+ Créer une autre famille</Text>
-          </Pressable>
-        </View>
-      )}
-
-      {showBurger && (
-        <View style={[styles.dropdown, { right: 16, left: undefined, alignSelf: "flex-end" }]}>
-          <Pressable onPress={createSessionNow} disabled={creatingSession} style={styles.dropdownItem}>
-            <Text style={styles.dropdownItemText}>
-              {creatingSession ? "Création…" : "Créer une session maintenant (test)"}
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => {
-              setShowBurger(false);
-              supabase.auth.signOut();
-            }}
-            style={styles.dropdownItem}
-          >
-            <Text style={styles.dropdownItemText}>Se déconnecter</Text>
-          </Pressable>
-        </View>
-      )}
+      <FamilyHeaderBar
+        families={families}
+        currentFamilyId={family.familyId}
+        onSwitchFamily={switchFamily}
+        copied={copied}
+        onCopyInvite={copyInviteLink}
+        onSessionCreated={() => loadFamilyDashboard(family.familyId, myPersonId!)}
+      />
 
       <ScrollView contentContainerStyle={styles.main}>
         <Text style={styles.greeting}>Bonjour {family.firstName}</Text>
-
-        {burgerMessage && <Text style={styles.burgerMessage}>{burgerMessage}</Text>}
 
         {quizState?.kind === "demarrage" ? (
           <View style={styles.startCard}>
@@ -560,67 +463,8 @@ function StartStep({ done, label }: { done: boolean; label: string }) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 6,
-    width: "100%",
-    maxWidth: 480,
-    alignSelf: "center",
-  },
-  familyButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    minHeight: 44,
-    paddingHorizontal: 16,
-    borderWidth: 2,
-    borderColor: S.glassBorder,
-    borderRadius: RADIUS.pill,
-    backgroundColor: "rgba(255,248,238,0.55)",
-  },
-  familyButtonText: { fontFamily: FONTS.title, fontSize: 18, color: S.ink },
-  chevron: { fontSize: 14, color: S.ink },
-  burgerButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: S.white,
-    alignItems: "center",
-    justifyContent: "center",
-    ...solidShadow("rgba(138,58,18,0.2)", 3),
-  },
-  dropdown: {
-    position: "absolute",
-    top: 66,
-    left: 16,
-    zIndex: 10,
-    backgroundColor: S.cream,
-    borderRadius: 20,
-    paddingVertical: 6,
-    minWidth: 220,
-    ...solidShadow("rgba(138,58,18,0.25)", 5),
-  },
-  dropdownRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  dropdownItem: { flex: 1, paddingHorizontal: 16, paddingVertical: 12 },
-  dropdownItemText: { fontFamily: FONTS.bodyBold, fontSize: 15, color: S.ink },
-  dropdownItemTextActive: { fontFamily: FONTS.bodyHeavy, fontSize: 15, color: S.action },
-  inviteButtonSmall: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: S.actionSoft,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 14,
-  },
-  inviteIconSmall: { fontSize: 15, color: S.action, fontFamily: FONTS.bodyHeavy },
   main: { padding: 16, paddingTop: 8, gap: 14, maxWidth: 480, width: "100%", alignSelf: "center" },
   greeting: { fontFamily: FONTS.title, fontSize: 26, color: S.ink },
-  burgerMessage: { fontSize: 14, fontFamily: FONTS.bodyBold, color: S.inkOnGround },
 
   // ---------- Bouton du quiz ----------
   quizLabel: { fontSize: 14, fontFamily: FONTS.bodyHeavy, letterSpacing: 0.84, textTransform: "uppercase" },

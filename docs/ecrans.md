@@ -128,7 +128,7 @@ Dès le premier quiz, la carte laisse sa place au bouton « Participer au quiz �
 ### Existant (`src/app/home.tsx`)
 
 **Fait le 2026-11-11**, d'après la maquette validée (charte dans `docs/design.md`, polices Fredoka/Nunito ajoutées au projet) :
-- bandeau : nom de famille (menu déroulant pour changer de famille ou en créer une autre), bouton « Inviter » (copie le lien), menu burger (« Créer une session maintenant » pour les tests, déconnexion) ;
+- bandeau : nom de famille (menu déroulant pour changer de famille ou en créer une autre, bouton « Inviter » à côté de la famille courante), menu burger (« Créer une session maintenant » pour les tests, déconnexion) — **extrait le 2026-11-20 en composant partagé** `src/components/family-header.tsx` (lien d'invitation : `src/lib/use-invite-link.ts`), repris par l'écran « Ajouter un souvenir » ;
 - bouton « Participer au quiz » avec ses 8 états (7 de la maquette + le cas rare « tu as rejoint après la pioche », en style atténué) ; distingue « La révélation est là ! » de « Quiz terminé » via un repère mémorisé sur l'appareil (`AsyncStorage`, posé par `reveal.tsx` à la consultation) — pas de notion de "vu" côté serveur ;
 - carte « Lancer votre premier quiz » tant qu'aucune session n'a jamais eu lieu pour la famille ;
 - « Consulter les connaissances » (ouvre l'arbre) avec le sous-titre « N souvenirs sur M personnes » ;
@@ -179,7 +179,13 @@ Actions :
 
 ### Nouveau fait
 
-**Refonte décidée le 2026-11-20, maquette validée, prête pour le développement (pas encore codée)** — remplace la description « 4 zones » ci-dessous. Maquette : rangée « B · Créer un fait » du canvas « Quizamily – Pistes chaleureuses » (lien dans `design.md`), source dans `docs/maquettes/soleil/` (`Fait.dc.html`, paramètres `etat` et `repere`).
+**Refonte décidée le 2026-11-20, codée le 2026-11-20** (`src/app/add-fact.tsx`, charte Soleil) — remplace la description « 4 zones » ci-dessous. Maquette : rangée « B · Créer un fait » du canvas « Quizamily – Pistes chaleureuses » (lien dans `design.md`), source dans `docs/maquettes/soleil/` (`Fait.dc.html`, paramètres `etat` et `repere`). Répartition des questions par thème calculée par `src/lib/add-fact-catalog.ts` (module pur, testé par `add-fact-catalog.test.ts`, `npm run test:add-fact-catalog`).
+
+**Écarts avec la description ci-dessous, et simplifications** :
+- la tuile s'agrandit sur place **sans animation de hauteur** (affichage conditionnel), dans l'esprit des autres écrans MVP (comme `respond.tsx`/`validate.tsx`) ;
+- « toucher ailleurs referme la tuile » n'est implémenté que pour les actions qui changent explicitement de contexte (toucher une autre tuile, une autre personne, un autre thème) : il n'y a pas de zone de fond cliquable dédiée pour fermer une tuile « ouverte pour voir » en touchant un espace vide de la carte ;
+- le bandeau famille (barre du haut) est le composant partagé `src/components/family-header.tsx`, extrait de l'accueil à cette occasion (voir aussi `src/lib/use-invite-link.ts`) ;
+- **pas encore vérifié à l'écran** : le geste de glissement réel entre deux cartes de thème (l'automatisation ne sait pas simuler un vrai glissement, limitation déjà connue pour l'arbre) — vérifié en revanche par le repère des thèmes (saut direct) et par défilement à la souris/clic, qui empruntent le même code de positionnement.
 
 - **Haut de page** : barre de la famille (comme l'accueil), puis flèche retour + titre « Ajouter un souvenir ».
 - **Personnes** : rangée de ronds qui défile horizontalement ; la personne choisie est encadrée. Ordre de tri : à décider plus tard.
