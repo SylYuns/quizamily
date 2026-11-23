@@ -231,7 +231,12 @@ Photos des personnes : placeholder pour l'instant, le vrai upload est un chantie
 
 But : répondre à une question de la session en cours.
 
-**Refonte décidée le 2026-11-23, maquette validée, prête pour le développement (pas encore codée)** — charte « Coucher de soleil ». Maquette : rangée « B · Répondre et révélation » du canvas (lien dans `design.md`), source `docs/maquettes/soleil/Repondre.dc.html` (paramètre `etat` : `question`, `envoyee`, `auteur` ; écrans `RepondreEnvoyee` et `MaQuestion` = mêmes avec un autre `etat`).
+**Refonte décidée le 2026-11-23, codée le 2026-11-23** (`src/app/respond.tsx`) — charte « Coucher de soleil ». Maquette : rangée « B · Répondre et révélation » du canvas (lien dans `design.md`), source `docs/maquettes/soleil/Repondre.dc.html` (paramètre `etat` : `question`, `envoyee`, `auteur` ; écrans `RepondreEnvoyee` et `MaQuestion` = mêmes avec un autre `etat`).
+
+**Écarts avec la description ci-dessous, et implémentation** :
+- bandeau famille partagé (`src/components/family-header.tsx`), comme les autres écrans repris dans cette charte ;
+- l'avancement et l'anecdote modifiable demandent deux nouvelles fonctions `security definer` : `get_question_progress` (compteur + noms des retardataires seulement à partir de 65 % de réponses — `null` avant ce seuil, tableau vide une fois tout le monde répondu) et `update_fact_context` (l'auteur modifie son anecdote tant que la question est en jeu, sans toucher à sa réponse) — voir `supabase/migrations/20261123120000_respond_and_reveal_rpcs.sql` et le correctif `20261123130000_question_progress_everyone_answered.sql` (le premier jet renvoyait `null` au lieu d'un tableau vide une fois tout le monde répondu, trompeur à l'écran : repéré en testant avec un compte jetable) ;
+- **vérifié à l'écran** (famille jetable à 1 auteur + 3 destinataires) : carte brune → prune après réponse, modification de sa réponse, compteur et seuil des 65 % (bascule de « les noms s'afficheront… » à la liste des retardataires avec « toi », puis à « Tout le monde a répondu ! »), vue de l'auteur (bonne réponse, anecdote modifiable via `update_fact_context`, grille « Qui a répondu ? », déclenchement de la révélation).
 
 *Vue du joueur*
 - **Haut de page** : bandeau famille partagé (`src/components/family-header.tsx`), puis flèche retour + titre « Question de la semaine ».
@@ -307,7 +312,12 @@ Implémenté (`src/app/validate.tsx`) via `get_pending_validations`/`validate_pe
 
 But : découvrir la bonne réponse et les résultats d'une question.
 
-**Refonte décidée le 2026-11-23, maquette validée, prête pour le développement (pas encore codée)** — charte « Coucher de soleil ». Maquette : `docs/maquettes/soleil/Revelation.dc.html` (paramètres `etat` : `suspense`, `trouve`, `rate` ; `exemple` : `annee` ou `artiste` pour une réponse longue) ; écrans `RevelationTrouve`, `RevelationRate`, `RevelationTexte`.
+**Refonte décidée le 2026-11-23, codée le 2026-11-23** (`src/app/reveal.tsx`) — charte « Coucher de soleil ». Maquette : `docs/maquettes/soleil/Revelation.dc.html` (paramètres `etat` : `suspense`, `trouve`, `rate` ; `exemple` : `annee` ou `artiste` pour une réponse longue) ; écrans `RevelationTrouve`, `RevelationRate`, `RevelationTexte`.
+
+**Écarts avec la description ci-dessous, et implémentation** :
+- `get_revealed_question` renvoie maintenant `personId` par participant (même migration que ci-dessus, `20261123120000_respond_and_reveal_rpcs.sql`) : sert à isoler « ma réponse » dans sa propre carte et à colorer chaque rond comme ailleurs dans l'app (`avatarColorFor`) ;
+- les animations de la maquette (suspense qui scintille, bonne réponse qui surgit, confettis, tremblement) tournent en boucle sur le canvas pour qu'on les voie (voir `docs/maquettes/LISEZMOI.md`) ; dans l'app, pas encore d'animation jouée : la carte passe directement de l'état suspense à l'état révélé au toucher de « Découvrir la réponse », sans transition. **À faire plus tard si besoin** (confettis, rebond, tremblement) ;
+- **vérifié à l'écran** (famille jetable, 1 auteur + 3 destinataires dont 1 juste et 1 faux) : suspense à la première consultation (sur l'appareil, pas par compte — comme documenté dans « Règles communes »), bonne réponse, carte « Bravo, tu as trouvé ! » et carte « Raté, de peu ! » (avec l'écart « à N ans près »), anecdote de l'auteur affichée en citation, résultats des autres groupés par résultat (sans répéter ma propre réponse), lien de correction (non-auteur) et absence de ce lien pour l'auteur.
 
 - **Haut de page** : bandeau famille, flèche retour + titre « Révélation ».
 - **Suspense** (seulement pour la **révélation de la semaine**, la première fois que le joueur l'ouvre) : carte prune « Révélation de la semaine » avec le rond de la personne et la question, un cadre en pointillés « ? ? ? ? » qui scintille, et un gros bouton jaune **« Découvrir la réponse »** qui pulse doucement ; dessous : « N joueurs ont tenté leur chance… et qui a posé la question ? ». Rouverte plus tard (accueil, archives, déjà vue sur cet appareil) : tout s'affiche directement, sans suspense ni animation. Le repère « déjà vue » peut réutiliser celui que l'accueil pose déjà (`AsyncStorage`, posé par `reveal.tsx`).
