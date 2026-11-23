@@ -23,6 +23,7 @@ import {
 
 import { AnswerInput } from "@/components/answer-input";
 import { FamilyHeaderBar } from "@/components/family-header";
+import { SearchableDropdown } from "@/components/searchable-dropdown";
 import { PersonAvatar } from "@/components/soleil";
 import { CATEGORY_LABELS, CATEGORY_ORDER } from "@/constants/categories";
 import { COUNTRIES } from "@/constants/countries";
@@ -1035,13 +1036,12 @@ function OpenTileEditor(props: {
         slot === "pays" ? (
           <View key={slot} style={{ gap: 8 }}>
             <Text style={styles.fieldLabel}>Quel pays ?</Text>
-            <View style={styles.chipsRow}>
-              {COUNTRIES.map((c) => (
-                <Pressable key={c} onPress={() => props.onSlotChange(slot, c)} style={styles.chip}>
-                  <Text style={styles.chipText}>{c}</Text>
-                </Pressable>
-              ))}
-            </View>
+            <SearchableDropdown
+              value={props.slotValues[slot] ?? ""}
+              onChange={(v) => props.onSlotChange(slot, v)}
+              options={COUNTRIES}
+              placeholder="Tape pour chercher un pays"
+            />
           </View>
         ) : null,
       )}

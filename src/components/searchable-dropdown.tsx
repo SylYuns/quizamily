@@ -11,7 +11,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View, type KeyboardTypeOptions } from "react-native";
 
 const ITEM_HEIGHT = 44;
-const MAX_LIST_HEIGHT = 220;
+// 8 lignes visibles avant de devoir faire défiler : 5 (220px) était trop peu pour bien voir où
+// on en est dans une liste longue (décidé le 2026-11-23, signalé par l'utilisateur à l'écran).
+const VISIBLE_ITEMS = 8;
+const MAX_LIST_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
 
 function normalize(s: string): string {
   return s
