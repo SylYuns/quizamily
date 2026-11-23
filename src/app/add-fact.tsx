@@ -134,6 +134,55 @@ function previewQuestionText(
   return text;
 }
 
+type QuestionSegment = { text: string; editableKey?: string };
+
+// Comme previewQuestionText, mais en segments : l'élément déjà choisi (conjoint, pays…) devient
+// un segment à part (`editableKey`), affiché souligné en pointillés et cliquable dans
+// OpenTileEditor pour le reprendre sans perdre le reste de la saisie en cours (demandé le
+// 2026-11-23 — jusque-là, il fallait "Annuler" toute la question en cas de mauvais clic).
+// Uniquement pour une question en cours de création ("new") : un fait déjà créé ("edit") garde
+// son conjoint/pays fixes, pas encore modifiables depuis cet écran.
+function buildQuestionSegments(
+  t: Template,
+  subjectName: string,
+  relatedName: string | null,
+  slotValues: Record<string, string>,
+  subjectGender: Gender,
+): QuestionSegment[] {
+  const base = resolveGenderedTokens(t.template_text, subjectGender).replace("<sujet>", subjectName);
+
+  const markers: { token: string; editableKey: string; value: string | null }[] = [];
+  if (t.related_role) markers.push({ token: `<${t.related_role}>`, editableKey: "related", value: relatedName });
+  for (const slot of t.slots ?? []) markers.push({ token: `<${slot}>`, editableKey: slot, value: slotValues[slot] ?? null });
+
+  let segments: QuestionSegment[] = [{ text: base }];
+  for (const marker of markers) {
+    const next: QuestionSegment[] = [];
+    for (const seg of segments) {
+      if (seg.editableKey) {
+        next.push(seg);
+        continue;
+      }
+      const idx = seg.text.indexOf(marker.token);
+      if (idx === -1) {
+        next.push(seg);
+        continue;
+      }
+      const before = seg.text.slice(0, idx);
+      const after = seg.text.slice(idx + marker.token.length);
+      if (before) next.push({ text: before });
+      if (marker.value !== null) {
+        next.push({ text: marker.value, editableKey: marker.editableKey });
+      } else {
+        next.push({ text: marker.editableKey === "related" ? "son/sa conjoint·e" : `(${marker.editableKey} à préciser)` });
+      }
+      if (after) next.push({ text: after });
+    }
+    segments = next;
+  }
+  return segments;
+}
+
 type OpenTile = {
   kind: "new" | "edit";
   template: Template;
@@ -700,6 +749,18 @@ export default function AddFactScreen() {
         onAnswerChange={setAnswerValue}
         onContextChange={setContextText}
         onSlotChange={(slot, value) => setSlotValues((v) => ({ ...v, [slot]: value }))}
+        onEditSlot={(key) => {
+          if (key === "related") {
+            setRelatedPersonId(null);
+            setShowSpouseCreator(false);
+          } else {
+            setSlotValues((v) => {
+              const next = { ...v };
+              delete next[key];
+              return next;
+            });
+          }
+        }}
         onPickExistingSpouse={setRelatedPersonId}
         onShowSpouseCreator={() => setShowSpouseCreator(true)}
         onNewSpouseFirstName={setNewSpouseFirstName}
@@ -956,6 +1017,9 @@ function OpenTileEditor(props: {
   onAnswerChange: (v: string) => void;
   onContextChange: (v: string) => void;
   onSlotChange: (slot: string, value: string) => void;
+  /** L'utilisateur a touché un élément déjà choisi (conjoint ou pays) dans le texte de la
+   * question : reprend juste ce choix-là, sans toucher au reste de la saisie en cours. */
+  onEditSlot: (key: string) => void;
   onPickExistingSpouse: (id: string) => void;
   onShowSpouseCreator: () => void;
   onNewSpouseFirstName: (v: string) => void;
@@ -970,18 +1034,38 @@ function OpenTileEditor(props: {
 }) {
   const { openTile, subject } = props;
   const { template } = openTile;
-  const needsRelated = !!template.related_role && !props.relatedPersonId;
-  const missingSlots = (template.slots ?? []).filter((s) => !props.slotValues[s]);
+  // Garde un sélecteur affiché tant qu'on y tape, même si la valeur tapée ressemble déjà à un
+  // choix complet (ex. un seul caractère dans le pays) : sans ça, le champ se refermait dès la
+  // première lettre puisque la valeur devenait "non vide" (repéré en testant à l'écran).
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const needsRelated = !!template.related_role && (!props.relatedPersonId || editingKey === "related");
+  const missingSlots = (template.slots ?? []).filter((s) => !props.slotValues[s] || editingKey === s);
   const readyForAnswer = !needsRelated && missingSlots.length === 0;
-
-  const previewText =
-    openTile.kind === "edit"
-      ? substituteQuestionText(template.template_text, template.related_role, subject.display_name, props.relatedName, props.slotValues, subject.gender)
-      : previewQuestionText(template, subject.display_name, props.relatedName, props.slotValues, subject.gender);
 
   return (
     <View style={styles.openTile}>
-      <Text style={styles.openTileQuestion}>{previewText}</Text>
+      {openTile.kind === "edit" ? (
+        <Text style={styles.openTileQuestion}>
+          {substituteQuestionText(template.template_text, template.related_role, subject.display_name, props.relatedName, props.slotValues, subject.gender)}
+        </Text>
+      ) : (
+        <Text style={styles.openTileQuestion}>
+          {buildQuestionSegments(template, subject.display_name, props.relatedName, props.slotValues, subject.gender).map((seg, i) =>
+            seg.editableKey ? (
+              <Text
+                key={i}
+                onPress={() => props.onEditSlot(seg.editableKey!)}
+                suppressHighlighting
+                style={styles.editableSegment}
+              >
+                {seg.text}
+              </Text>
+            ) : (
+              <Text key={i}>{seg.text}</Text>
+            ),
+          )}
+        </Text>
+      )}
 
       {needsRelated && (
         <View style={styles.spouseBlock}>
@@ -1039,6 +1123,7 @@ function OpenTileEditor(props: {
             <SearchableDropdown
               value={props.slotValues[slot] ?? ""}
               onChange={(v) => props.onSlotChange(slot, v)}
+              onFocusChange={(focused) => setEditingKey(focused ? slot : null)}
               options={COUNTRIES}
               placeholder="Tape pour chercher un pays"
             />
@@ -1274,6 +1359,12 @@ const styles = StyleSheet.create({
     ...solidShadow("rgba(138,58,18,0.25)", 5),
   },
   openTileQuestion: { fontFamily: FONTS.title, fontSize: 18, color: S.ink, lineHeight: 23 },
+  editableSegment: {
+    color: S.action,
+    textDecorationLine: "underline",
+    textDecorationStyle: "dotted",
+    textDecorationColor: S.action,
+  },
   fieldLabel: { fontSize: 13, fontFamily: FONTS.bodyHeavy, color: S.inkSoft },
   spouseBlock: { gap: 8 },
   chipsRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },

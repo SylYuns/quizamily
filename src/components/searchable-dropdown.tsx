@@ -37,8 +37,13 @@ export function SearchableDropdown(props: {
   keyboardType?: KeyboardTypeOptions;
   /** Reçoit la liste affichée à chaque mise à jour (ex. pour afficher "pas dans la liste"). */
   onOptionsChange?: (options: string[]) => void;
+  /** Prévient l'appelant quand le champ prend ou perd le focus (sélection comprise, qui retire
+   * le focus comme un blur) : sert par exemple à garder affiché un sélecteur le temps de la
+   * frappe, même si la valeur tapée ressemble déjà à un choix complet (voir add-fact.tsx,
+   * sélecteur de pays des questions à élément choisi). */
+  onFocusChange?: (focused: boolean) => void;
 }) {
-  const { value, onChange, options, fetchOptions, initialScrollValue, placeholder, keyboardType, onOptionsChange } = props;
+  const { value, onChange, options, fetchOptions, initialScrollValue, placeholder, keyboardType, onOptionsChange, onFocusChange } = props;
 
   const [focused, setFocused] = useState(false);
   // Vrai juste après avoir touché le champ (ou choisi une valeur) : affiche la liste entière,
@@ -82,6 +87,11 @@ export function SearchableDropdown(props: {
     onOptionsChange?.(filtered);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- ne notifier le parent que lorsque la liste affichée change, pas à chaque re-rendu de sa fonction de rappel
   }, [filtered]);
+
+  useEffect(() => {
+    onFocusChange?.(focused);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- ne notifier le parent que lorsque le focus change réellement, pas à chaque re-rendu de sa fonction de rappel
+  }, [focused]);
 
   const scrollTargetValue = browsing ? (isStatic && options!.includes(value) ? value : initialScrollValue) : undefined;
   const scrollTargetIndex = scrollTargetValue ? filtered.indexOf(scrollTargetValue) : -1;
