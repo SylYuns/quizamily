@@ -106,6 +106,55 @@
       "x": 3450,
       "y": 2600,
       "title": "Créer · Variante du repère : points"
+    },
+    "Repondre.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 1100,
+      "y": 3900,
+      "title": "Répondre · Une question t'attend"
+    },
+    "RepondreEnvoyee.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 1570,
+      "y": 3900,
+      "title": "Répondre · Réponse envoyée"
+    },
+    "MaQuestion.dc.html": {
+      "h": 1000,
+      "w": 390,
+      "x": 2040,
+      "y": 3900,
+      "title": "Répondre · Vue de l'auteur (Ma question)"
+    },
+    "Revelation.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 2510,
+      "y": 3900,
+      "title": "Révélation · Suspense (avant de découvrir)"
+    },
+    "RevelationTrouve.dc.html": {
+      "h": 1560,
+      "w": 390,
+      "x": 2980,
+      "y": 3900,
+      "title": "Révélation · J'ai trouvé (page entière)"
+    },
+    "RevelationRate.dc.html": {
+      "h": 1560,
+      "w": 390,
+      "x": 3450,
+      "y": 3900,
+      "title": "Révélation · J'ai raté (page entière)"
+    },
+    "RevelationTexte.dc.html": {
+      "h": 1640,
+      "w": 390,
+      "x": 3920,
+      "y": 3900,
+      "title": "Révélation · Réponse longue (question à liste)"
     }
   },
   "createdOnFiles": {
@@ -154,6 +203,13 @@
       "text": "B · Créer un fait",
       "x": 1100,
       "y": 2300
+    },
+    "titreRevelation": {
+      "kind": "title1",
+      "maxW": 3210,
+      "text": "B · Répondre et révélation",
+      "x": 1100,
+      "y": 3600
     }
   },
   "order": [
@@ -171,7 +227,14 @@
     "FaitSaisie.dc.html",
     "FaitRecherche.dc.html",
     "FaitComplet.dc.html",
-    "FaitPoints.dc.html"
+    "FaitPoints.dc.html",
+    "Repondre.dc.html",
+    "RepondreEnvoyee.dc.html",
+    "MaQuestion.dc.html",
+    "Revelation.dc.html",
+    "RevelationTrouve.dc.html",
+    "RevelationRate.dc.html",
+    "RevelationTexte.dc.html"
   ],
   "pages": [],
   "title": "Quizamily – Pistes chaleureuses"

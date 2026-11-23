@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Révélation – réponse longue</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+body{margin:0}
+@keyframes qz-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes qz-pop{0%{transform:scale(.2) rotate(-10deg);opacity:0}12%{transform:scale(1.15) rotate(3deg);opacity:1}20%{transform:scale(1) rotate(0)}100%{transform:scale(1) rotate(0);opacity:1}}
+@keyframes qz-fall{0%{transform:translateY(-40px) rotate(0);opacity:0}8%{opacity:1}100%{transform:translateY(620px) rotate(560deg);opacity:0}}
+@keyframes qz-shake{0%,30%,100%{transform:translateX(0)}5%{transform:translateX(-7px)}10%{transform:translateX(7px)}15%{transform:translateX(-5px)}20%{transform:translateX(4px)}25%{transform:translateX(-2px)}}
+@keyframes qz-shimmer{0%,100%{opacity:.55}50%{opacity:1}}
+</style>
+</helmet>
+<dc-import name="Revelation" etat="trouve" exemple="artiste" hint-size="390px,1640px"></dc-import>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1640}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

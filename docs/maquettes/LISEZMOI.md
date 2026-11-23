@@ -7,7 +7,7 @@ référence pour le développement. Chaque dossier est la copie d'un canvas :
 |---|---|---|
 | `accueil/` | accueil, première charte (2026-11-10) | remplacé par `soleil/` |
 | `arbre/` | arbre familial, première charte (2026-11-11) | remplacé par `soleil/` |
-| `soleil/` | charte « Coucher de soleil » (2026-11-19/20) : pistes A/B/C de l'accueil, accueil retenu (`Soleil*`), arbre (`Arbre*`), écran « Ajouter un souvenir » (`Fait*`) | **référence actuelle** |
+| `soleil/` | charte « Coucher de soleil » (2026-11-19/20) : pistes A/B/C de l'accueil, accueil retenu (`Soleil*`), arbre (`Arbre*`), écran « Ajouter un souvenir » (`Fait*`), répondre et vue de l'auteur (`Repondre*`, `MaQuestion`), révélation (`Revelation*`) | **référence actuelle** |
 
 Le canvas en ligne (pour les voir rendues) : lien dans `docs/design.md`.
 
@@ -24,4 +24,5 @@ Le canvas en ligne (pour les voir rendues) : lien dans `docs/design.md`.
   même écran que le fichier importé avec d'autres paramètres : `Fait.dc.html` avec
   `etat="saisie"`. Les paramètres possibles sont déclarés dans `data-props` en bas du fichier
   importé.
+- Animations : les maquettes de révélation utilisent des `@keyframes` CSS (dans `<helmet><style>`) qui tournent en boucle pour être visibles sur le canvas ; dans l'app, elles ne jouent qu'une fois (voir `ecrans.md`, écran 8).
 - `canvas.json` : position et titre de chaque écran sur le canvas.

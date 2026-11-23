@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Révélation – Coucher de soleil</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+body{margin:0}
+a{color:#8A3A12}a:hover{color:#5E260B}
+/* Animations de la maquette : elles tournent en boucle pour qu'on les voie sur le canvas ;
+   dans l'app, elles ne jouent qu'une fois, au moment de « Découvrir la réponse ». */
+@keyframes qz-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes qz-pop{0%{transform:scale(.2) rotate(-10deg);opacity:0}12%{transform:scale(1.15) rotate(3deg);opacity:1}20%{transform:scale(1) rotate(0)}100%{transform:scale(1) rotate(0);opacity:1}}
+@keyframes qz-fall{0%{transform:translateY(-40px) rotate(0);opacity:0}8%{opacity:1}100%{transform:translateY(620px) rotate(560deg);opacity:0}}
+@keyframes qz-shake{0%,30%,100%{transform:translateX(0)}5%{transform:translateX(-7px)}10%{transform:translateX(7px)}15%{transform:translateX(-5px)}20%{transform:translateX(4px)}25%{transform:translateX(-2px)}}
+@keyframes qz-shimmer{0%,100%{opacity:.55}50%{opacity:1}}
+</style>
+</helmet>
+<div style="{{rootStyle}}">
+
+  <sc-if value="{{isWin}}" hint-placeholder-val="{{ false }}">
+    <div aria-hidden="true" style="position: absolute; left: 0; top: 0; width: 390px; height: 640px; overflow: hidden; pointer-events: none; z-index: 5">
+      <sc-for list="{{confetti}}" as="c" hint-placeholder-count="18">
+        <span style="{{c.style}}"></span>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <header style="display: flex; align-items: center; gap: 8px; padding: 14px 16px 2px">
+    <button type="button" style="display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px; border: 2px solid rgba(255,255,255,0.75); border-radius: 24px; background: rgba(255,248,238,0.55); font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 18px; color: #3B1F14; cursor: pointer">
+      Famille Chardaire
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+    </button>
+    <div style="flex-grow: 1"></div>
+    <button type="button" aria-label="Menu" style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border: none; border-radius: 24px; background: #FFFFFF; cursor: pointer; box-shadow: 0 3px 0 rgba(138,58,18,0.2)">
+      <svg width="24" height="22" viewBox="0 0 24 22" aria-hidden="true"><rect x="2" y="2" width="20" height="4" rx="2" fill="#2F5AA8"></rect><rect x="2.75" y="9.75" width="18.5" height="2.5" rx="1.25" fill="#FFFFFF" stroke="#C9B9A8" stroke-width="1.5"></rect><rect x="2" y="16" width="20" height="4" rx="2" fill="#C8423A"></rect></svg>
+    </button>
+  </header>
+
+  <div style="display: flex; align-items: center; gap: 4px; padding: 2px 16px 0 8px">
+    <button type="button" aria-label="Retour à l’accueil" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: none; border-radius: 22px; background: transparent; color: #3B1F14; cursor: pointer">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+    </button>
+    <h1 style="margin: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 25px">Révélation</h1>
+  </div>
+
+  <main style="display: flex; flex-direction: column; gap: 16px; padding: 10px 16px 24px">
+
+    <section style="position: relative; display: flex; flex-direction: column; gap: 14px; padding: 20px; border-radius: 32px; overflow: hidden; background: #5B2333; box-shadow: 0 7px 0 #3D1622">
+      <span aria-hidden="true" style="position: absolute; top: 18px; right: 30px; width: 5px; height: 5px; border-radius: 3px; background: #FFE3CF"></span>
+      <span aria-hidden="true" style="position: absolute; top: 46px; right: 60px; width: 4px; height: 4px; border-radius: 2px; background: #FFE3CF"></span>
+      <span aria-hidden="true" style="position: absolute; top: 30px; right: 96px; width: 3px; height: 3px; border-radius: 2px; background: #FFE3CF"></span>
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="position: relative; display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 44px; height: 44px; box-sizing: border-box; border-radius: 22px; border: 3px solid #FFFFFF; background: #FFD66B; color: #5A3A00; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 19px">M
+          <span style="position: absolute; right: -5px; bottom: -5px; display: flex; align-items: center; justify-content: center; width: 19px; height: 19px; border-radius: 10px; border: 2px solid #FFFFFF; background: #8A3A12; color: #FFD66B; box-sizing: border-box"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.2 1.3-6.6L2.5 9.3l6.6-.8z"></path></svg></span>
+        </span>
+        <span style="font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #FFD9C2">Révélation de la semaine</span>
+      </div>
+      <p style="margin: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 25px; line-height: 1.15; color: #FFFFFF">{{questionText}}</p>
+
+      <sc-if value="{{isSuspense}}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; align-items: center; justify-content: center; height: 96px; border-radius: 22px; border: 3px dashed rgba(255,217,194,0.6)">
+          <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 54px; color: #FFD9C2; animation: qz-shimmer 1.8s ease-in-out infinite">? ? ? ?</span>
+        </div>
+        <button type="button" style="min-height: 58px; border: none; border-radius: 29px; background: #FFD66B; color: #3B1F14; font-family: Fredoka, Nunito, sans-serif; font-size: 21px; font-weight: 600; cursor: pointer; box-shadow: 0 5px 0 #C99A2E; animation: qz-pulse 1.6s ease-in-out infinite">Découvrir la réponse</button>
+      </sc-if>
+
+      <sc-if value="{{isRevealed}}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 14px 10px 16px; border-radius: 22px; background: #FFF4E8; animation: qz-pop 4s cubic-bezier(.2,1.2,.4,1) infinite">
+          <span style="font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #8A3A12">Bonne réponse</span>
+          <span style="{{answerStyle}}">{{answerText}}</span>
+        </div>
+      </sc-if>
+    </section>
+
+    <sc-if value="{{isSuspense}}" hint-placeholder-val="{{ true }}">
+      <p style="margin: 0 4px; text-align: center; font-size: 15px; font-weight: 700; color: #5E2A12">7 joueurs ont tenté leur chance… et qui a posé la question ?</p>
+    </sc-if>
+
+    <sc-if value="{{isWin}}" hint-placeholder-val="{{ false }}">
+      <section style="display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 28px; background: #FFD66B; box-shadow: 0 6px 0 #C99A2E">
+        <span style="display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 52px; height: 52px; border-radius: 26px; background: #8A3A12; color: #FFFFFF">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>
+        </span>
+        <span style="display: flex; flex-direction: column; gap: 2px">
+          <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 24px; line-height: 1.1">Bravo, tu as trouvé !</span>
+          <span style="font-size: 15px; font-weight: 700; color: #5E2A12">Ta réponse : {{answerText}}</span>
+        </span>
+      </section>
+    </sc-if>
+    <sc-if value="{{isLoss}}" hint-placeholder-val="{{ false }}">
+      <section style="display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 28px; background: #FFF4E8; border: 3px solid #C8423A; box-shadow: 0 6px 0 rgba(138,58,18,0.22); animation: qz-shake 4s ease-in-out infinite">
+        <span style="display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 52px; height: 52px; border-radius: 26px; background: #FDE3D3; color: #A33A2A">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+        </span>
+        <span style="display: flex; flex-direction: column; gap: 2px">
+          <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 24px; line-height: 1.1">Raté, de peu !</span>
+          <span style="font-size: 15px; font-weight: 700; color: #6E4A3A">{{lossText}}</span>
+        </span>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{isRevealed}}" hint-placeholder-val="{{ false }}">
+      <section style="display: flex; flex-direction: column; gap: 10px; padding: 18px; border-radius: 28px; background: #FFF4E8; box-shadow: 0 6px 0 rgba(138,58,18,0.22)">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span style="display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 44px; height: 44px; box-sizing: border-box; border-radius: 22px; border: 3px solid #FFFFFF; background: #F7A06A; color: #4A1E06; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 19px; box-shadow: 0 3px 0 rgba(138,58,18,0.2)">O</span>
+          <span style="display: flex; flex-direction: column">
+            <span style="font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #8A3A12">Question posée par</span>
+            <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 21px">Odette</span>
+          </span>
+        </div>
+        <blockquote style="position: relative; margin: 0; padding: 6px 4px 0 30px; font-size: 16px; line-height: 1.45; font-style: italic; color: #3B1F14">
+          <span aria-hidden="true" style="position: absolute; left: 0; top: -8px; font-family: Fredoka, sans-serif; font-size: 46px; line-height: 1; color: #F7A06A">“</span>
+          C’était pour aller voir son frère à Marseille, elle avait mis son plus beau chapeau.
+        </blockquote>
+      </section>
+
+      <section style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 28px; border: 2px solid rgba(255,255,255,0.7); background: rgba(255,244,232,0.55)">
+        <h2 style="margin: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 21px">{{summary}}</h2>
+
+        <span style="font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #6E4A3A">Ont trouvé</span>
+        <sc-for list="{{rightRows}}" as="r" hint-placeholder-count="2">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <span style="{{r.avatarStyle}}">{{r.initial}}</span>
+            <span style="flex: 1; font-size: 16px; font-weight: 800">{{r.name}}</span>
+            <span style="display: inline-flex; align-items: center; gap: 5px; max-width: 200px; padding: 5px 12px; border-radius: 14px; background: #FFD66B; color: #3B1F14; font-size: 15px; font-weight: 800; line-height: 1.25; text-align: right">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>
+              {{r.answer}}
+            </span>
+          </div>
+        </sc-for>
+
+        <span style="margin-top: 4px; font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #6E4A3A">Se sont trompés</span>
+        <sc-for list="{{wrongRows}}" as="r" hint-placeholder-count="3">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <span style="{{r.avatarStyle}}">{{r.initial}}</span>
+            <span style="flex: 1; display: flex; flex-direction: column">
+              <span style="font-size: 16px; font-weight: 800">{{r.name}}</span>
+              <sc-if value="{{r.gap}}" hint-placeholder-val="{{ true }}">
+                <span style="font-size: 12px; font-weight: 700; color: #6E4A3A">{{r.gap}}</span>
+              </sc-if>
+            </span>
+            <span style="max-width: 200px; padding: 5px 12px; border-radius: 14px; background: #FDE3D3; color: #A33A2A; font-size: 15px; font-weight: 800; line-height: 1.25; text-align: right">{{r.answer}}</span>
+          </div>
+        </sc-for>
+
+        <span style="margin-top: 4px; font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #6E4A3A">N’ont pas répondu</span>
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span style="display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 38px; height: 38px; box-sizing: border-box; border-radius: 19px; border: 3px solid #FFFFFF; background: #B9A3E3; color: #2E1A5C; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 16px; opacity: 0.5">C</span>
+          <span style="flex: 1; font-size: 16px; font-weight: 700; color: #6E4A3A">Camille</span>
+          <span style="font-size: 13px; font-weight: 700; color: #6E4A3A">compté faux</span>
+        </div>
+      </section>
+
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 16px; border-radius: 24px; background: #FFD9DC; color: #3B1F14; text-decoration: none; box-shadow: 0 6px 0 rgba(138,58,18,0.22)">
+        <span style="display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 44px; height: 44px; box-sizing: border-box; border-radius: 22px; border: 3px solid #FFFFFF; background: #FFD66B; color: #5A3A00; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 19px">M</span>
+        <span style="flex: 1; display: flex; flex-direction: column">
+          <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 18px">Tous les souvenirs de Marie</span>
+          <span style="font-size: 13px; font-weight: 700; color: #6E3A3A">Celui-ci vient de s’y ajouter</span>
+        </span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8A3A12" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </a>
+
+      <button type="button" style="min-height: 52px; border: none; border-radius: 26px; background: #8A3A12; color: #FFFFFF; font-family: Nunito, sans-serif; font-size: 16px; font-weight: 800; cursor: pointer; box-shadow: 0 5px 0 #5E260B">Retour à l’accueil</button>
+      <a href="#" style="align-self: center; padding: 8px; font-size: 14px; font-weight: 700; color: #5E260B">Une erreur dans la réponse ? Proposer une correction</a>
+    </sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"etat":{"editor":"enum","default":"suspense","options":["suspense","trouve","rate"]},"exemple":{"editor":"enum","default":"annee","options":["annee","artiste"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const etat = this.props.etat ?? 'suspense';
+    const isSuspense = etat === 'suspense';
+    const isWin = etat === 'trouve';
+    const isLoss = etat === 'rate';
+    const isRevealed = !isSuspense;
+    // Exemple : question d’année (réponse courte) ou question à liste (réponse longue).
+    const isArtist = (this.props.exemple ?? 'annee') === 'artiste';
+    const answerText = isArtist ? 'Les Compagnons de la chanson' : '1972';
+
+    const pal = { jaune: ['#FFD66B', '#5A3A00'], menthe: ['#9FD3C7', '#134A40'], orange: ['#F7A06A', '#4A1E06'], lavande: ['#B9A3E3', '#2E1A5C'] };
+    const avatar = (c) => 'display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 38px; height: 38px; box-sizing: border-box; border-radius: 19px; border: 3px solid #FFFFFF; background: ' + pal[c][0] + '; color: ' + pal[c][1] + '; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 16px; box-shadow: 0 2px 0 rgba(138,58,18,0.2)';
+
+    // Ma réponse est à part (carte au-dessus) ; ici, les autres joueurs, groupés par résultat.
+    const rightRows = [
+      { name: 'Jean', c: 'menthe', answer: answerText },
+      { name: 'Lucien', c: 'lavande', answer: answerText },
+    ].map((r) => ({ ...r, initial: r.name.charAt(0), avatarStyle: avatar(r.c) }));
+    // L’écart (« à 3 ans près ») n’existe que pour les années et les nombres.
+    const wrongRows = (isArtist
+      ? [
+          { name: 'Hélène', c: 'orange', answer: 'Gilbert Bécaud', gap: '' },
+          { name: 'Paul', c: 'menthe', answer: 'Georges Brassens', gap: '' },
+          { name: 'Luc', c: 'jaune', answer: 'Yves Montand', gap: '' },
+        ]
+      : [
+          { name: 'Hélène', c: 'orange', answer: '1975', gap: 'à 3 ans près' },
+          { name: 'Paul', c: 'menthe', answer: '1965', gap: 'à 7 ans près' },
+          { name: 'Luc', c: 'jaune', answer: '1980', gap: 'à 8 ans près' },
+        ]
+    ).map((r) => ({ ...r, initial: r.name.charAt(0), avatarStyle: avatar(r.c) }));
+
+    const colors = ['#FFD66B', '#8A3A12', '#9FD3C7', '#B9A3E3', '#F7A06A', '#2F5AA8', '#C8423A', '#FFFFFF', '#FFD9DC'];
+    const confetti = [];
+    for (let i = 0; i < 22; i++) {
+      const left = (i * 37 + 11) % 380;
+      const w = 7 + (i % 3) * 3;
+      const h = i % 2 ? w : w * 0.5;
+      const delay = ((i * 0.27) % 3).toFixed(2);
+      const dur = (3.2 + (i % 4) * 0.35).toFixed(2);
+      confetti.push({
+        style: 'position: absolute; top: 0; left: ' + left + 'px; width: ' + w + 'px; height: ' + h + 'px; border-radius: ' + (i % 3 === 0 ? '50%' : '2px') + '; background: ' + colors[i % colors.length] + '; animation: qz-fall ' + dur + 's linear ' + delay + 's infinite',
+      });
+    }
+
+    return {
+      isSuspense,
+      isRevealed,
+      isWin,
+      isLoss,
+      rootStyle: 'position: relative; width: 390px; height: ' + (isSuspense ? 844 : isArtist ? 1640 : 1560) + 'px; box-sizing: border-box; background: linear-gradient(180deg, #FFC98A 0%, #FFA36B 30%, #F48A86 100%); font-family: Nunito, system-ui, sans-serif; color: #3B1F14; display: flex; flex-direction: column; overflow: hidden',
+      summary: (isWin ? 3 : 2) + ' joueurs sur 7 ont trouvé',
+      questionText: isArtist
+        ? 'Quel artiste Marie est-elle allée voir lors de son premier concert ?'
+        : 'En quelle année Marie a-t-elle pris l’avion pour la première fois ?',
+      answerText,
+      answerStyle: 'font-family: Fredoka, Nunito, sans-serif; font-weight: 600; text-align: center; color: #3B1F14; ' + (isArtist ? 'font-size: 34px; line-height: 1.1' : 'font-size: 58px; line-height: 1.05'),
+      lossText: isArtist ? 'Tu avais dit Édith Piaf' : 'Tu avais dit 1968 · à 4 ans près',
+      rightRows,
+      wrongRows,
+      confetti,
+    };
+  }
+}
+</script>
+</body>
+</html>

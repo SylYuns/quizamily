@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Répondre – Coucher de soleil</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+body{margin:0}
+a{color:#8A3A12}a:hover{color:#5E260B}
+</style>
+</helmet>
+<div style="{{rootSize}} box-sizing: border-box; background: linear-gradient(180deg, #FFC98A 0%, #FFA36B 42%, #F48A86 100%); font-family: Nunito, system-ui, sans-serif; color: #3B1F14; display: flex; flex-direction: column; overflow: hidden">
+
+  <header style="display: flex; align-items: center; gap: 8px; padding: 14px 16px 2px">
+    <button type="button" style="display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px; border: 2px solid rgba(255,255,255,0.75); border-radius: 24px; background: rgba(255,248,238,0.55); font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 18px; color: #3B1F14; cursor: pointer">
+      Famille Chardaire
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+    </button>
+    <div style="flex-grow: 1"></div>
+    <button type="button" aria-label="Menu" style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border: none; border-radius: 24px; background: #FFFFFF; cursor: pointer; box-shadow: 0 3px 0 rgba(138,58,18,0.2)">
+      <svg width="24" height="22" viewBox="0 0 24 22" aria-hidden="true"><rect x="2" y="2" width="20" height="4" rx="2" fill="#2F5AA8"></rect><rect x="2.75" y="9.75" width="18.5" height="2.5" rx="1.25" fill="#FFFFFF" stroke="#C9B9A8" stroke-width="1.5"></rect><rect x="2" y="16" width="20" height="4" rx="2" fill="#C8423A"></rect></svg>
+    </button>
+  </header>
+
+  <div style="display: flex; align-items: center; gap: 4px; padding: 2px 16px 0 8px">
+    <button type="button" aria-label="Retour à l’accueil" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: none; border-radius: 22px; background: transparent; color: #3B1F14; cursor: pointer">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+    </button>
+    <h1 style="margin: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 25px">{{screenTitle}}</h1>
+  </div>
+
+  <main style="display: flex; flex-direction: column; gap: 14px; padding: 10px 16px 16px">
+
+    <section style="{{cardStyle}}">
+      <span aria-hidden="true" style="{{decorA}}"></span>
+      <span aria-hidden="true" style="{{decorB}}"></span>
+      <div style="position: relative; display: flex; align-items: center; gap: 10px">
+        <span style="position: relative; display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 44px; height: 44px; box-sizing: border-box; border-radius: 22px; border: 3px solid #FFFFFF; background: #FFD66B; color: #5A3A00; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 19px">M
+          <span style="position: absolute; right: -5px; bottom: -5px; display: flex; align-items: center; justify-content: center; width: 19px; height: 19px; border-radius: 10px; border: 2px solid #FFFFFF; background: #8A3A12; color: #FFD66B; box-sizing: border-box"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.2 1.3-6.6L2.5 9.3l6.6-.8z"></path></svg></span>
+        </span>
+        <span style="{{labelStyle}}">{{cardLabel}}</span>
+      </div>
+      <p style="position: relative; margin: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 26px; line-height: 1.15; color: #FFFFFF">En quelle année Marie a-t-elle pris l’avion pour la première fois ?</p>
+
+      <sc-if value="{{isQuestion}}" hint-placeholder-val="{{ true }}">
+        <span style="position: relative; align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 14px; background: rgba(255,255,255,0.16); color: #FFE3CF; font-size: 14px; font-weight: 800">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+          Il reste 6 jours · jusqu’au dimanche 29 novembre
+        </span>
+        <div style="position: relative; display: flex; flex-direction: column; gap: 10px; margin-top: 4px; padding: 14px; border-radius: 20px; background: #FFF4E8">
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 800; color: #6E4A3A">Ta réponse
+            <input type="text" inputmode="numeric" placeholder="Une année, par exemple 1965" style="box-sizing: border-box; height: 50px; padding: 0 14px; border: 2px solid #EAD9BD; border-radius: 14px; background: #FFFFFF; font-family: Nunito, sans-serif; font-size: 17px; color: #3B1F14">
+          </label>
+          <button type="button" style="min-height: 50px; border: none; border-radius: 25px; background: #8A3A12; color: #FFFFFF; font-family: Nunito, sans-serif; font-size: 16px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 #5E260B">Valider ma réponse</button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isSent}}" hint-placeholder-val="{{ false }}">
+        <div style="position: relative; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; border-radius: 18px; background: rgba(255,255,255,0.12)">
+          <span style="display: flex; flex-direction: column">
+            <span style="font-size: 13px; font-weight: 800; color: #FFD9C2">Ta réponse</span>
+            <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 34px; line-height: 1.1; color: #FFD66B">1972</span>
+          </span>
+          <button type="button" style="min-height: 44px; padding: 0 16px; border: 2px solid #FFD9C2; border-radius: 22px; background: transparent; color: #FFFFFF; font-family: Nunito, sans-serif; font-size: 14px; font-weight: 800; cursor: pointer">Modifier</button>
+        </div>
+        <span style="position: relative; font-size: 15px; font-weight: 700; color: #FFD9C2">Révélation dimanche 29 novembre · modifiable jusque-là</span>
+      </sc-if>
+
+      <sc-if value="{{isAuthor}}" hint-placeholder-val="{{ false }}">
+        <div style="position: relative; display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: 18px; background: #FFF4E8; color: #3B1F14">
+          <span style="font-size: 13px; font-weight: 800; color: #6E4A3A">Bonne réponse</span>
+          <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 30px; line-height: 1.1; color: #8A3A12">1972</span>
+          <span style="font-size: 13px; font-weight: 800; color: #6E4A3A; margin-top: 2px">Ton anecdote</span>
+          <span style="font-size: 15px; line-height: 1.4">C’était pour aller voir son frère à Marseille, elle avait mis son plus beau chapeau.</span>
+          <button type="button" style="align-self: flex-start; display: flex; align-items: center; gap: 6px; min-height: 40px; margin-top: 2px; padding: 0 14px; border: 2px solid #8A3A12; border-radius: 20px; background: transparent; color: #8A3A12; font-family: Nunito, sans-serif; font-size: 14px; font-weight: 800; cursor: pointer">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>
+            Modifier l’anecdote
+          </button>
+          <span style="font-size: 12px; font-weight: 700; color: #6E4A3A">Profite de la semaine pour enrichir ton souvenir : elle sera dévoilée à la révélation. (Photo et enregistrement : bientôt.)</span>
+        </div>
+        <span style="position: relative; font-size: 15px; font-weight: 700; color: #FFD9C2">Révélation dimanche 29 novembre</span>
+      </sc-if>
+    </section>
+
+    <sc-if value="{{showTeaser}}" hint-placeholder-val="{{ true }}">
+      <p style="display: flex; align-items: center; gap: 8px; margin: 0 4px; font-size: 14px; font-weight: 700; color: #5E2A12">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"></path><path d="M12 17h.01"></path></svg>
+        Qui a posé cette question ? Réponse à la révélation…
+      </p>
+    </sc-if>
+
+    <sc-if value="{{isPlayer}}" hint-placeholder-val="{{ true }}">
+      <section style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 28px; border: 2px solid rgba(255,255,255,0.7); background: rgba(255,244,232,0.55)">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+          <h2 style="margin: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 19px">{{counterText}}</h2>
+          <span style="font-size: 14px; font-weight: 800; color: #5E2A12">{{waitingCount}}</span>
+        </div>
+        <div style="display: flex; gap: 4px" aria-hidden="true">
+          <sc-for list="{{segments}}" as="s" hint-placeholder-count="7">
+            <span style="{{s.style}}"></span>
+          </sc-for>
+        </div>
+        <p style="margin: 0; font-size: 14px; font-weight: 700; color: #3B1F14">{{lateText}}</p>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{isAuthor}}" hint-placeholder-val="{{ false }}">
+    <section style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 28px; border: 2px solid rgba(255,255,255,0.7); background: rgba(255,244,232,0.55)">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+        <h2 style="margin: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 19px">Qui a répondu ?</h2>
+        <span style="font-size: 14px; font-weight: 800; color: #5E2A12">{{answeredText}}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 4px">
+        <sc-for list="{{players}}" as="p" hint-placeholder-count="7">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 4px">
+            <span style="{{p.avatarStyle}}">{{p.initial}}
+              <sc-if value="{{p.done}}" hint-placeholder-val="{{ true }}">
+                <span style="position: absolute; right: -5px; bottom: -5px; display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 10px; border: 2px solid #FFFFFF; background: #8A3A12; color: #FFFFFF; box-sizing: border-box"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg></span>
+              </sc-if>
+            </span>
+            <span style="{{p.nameStyle}}">{{p.name}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <p style="margin: 0; font-size: 13px; font-weight: 700; color: #6E4A3A">{{waitingText}}</p>
+      <p style="margin: 0; font-size: 12px; font-weight: 700; color: #6E4A3A">Ce détail n’est visible que par toi : les autres joueurs voient seulement le nombre de réponses (sinon, ils devineraient que l’auteur, c’est toi).</p>
+    </section>
+    </sc-if>
+
+    <sc-if value="{{isAuthor}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <button type="button" style="min-height: 48px; border: 2px solid #8A3A12; border-radius: 24px; background: rgba(255,248,238,0.55); color: #5E260B; font-family: Nunito, sans-serif; font-size: 15px; font-weight: 800; cursor: pointer">Révéler maintenant (test)</button>
+        <span style="text-align: center; font-size: 12px; font-weight: 700; color: #5E2A12">Ceux qui n’ont pas répondu compteront faux.</span>
+      </div>
+    </sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"etat":{"editor":"enum","default":"question","options":["question","envoyee","auteur"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const etat = this.props.etat ?? 'question';
+    const isQuestion = etat === 'question';
+    const isSent = etat === 'envoyee';
+    const isAuthor = etat === 'auteur';
+
+    const pal = { jaune: ['#FFD66B', '#5A3A00'], menthe: ['#9FD3C7', '#134A40'], orange: ['#F7A06A', '#4A1E06'], lavande: ['#B9A3E3', '#2E1A5C'] };
+    // Destinataires de la question (l'auteur, Odette, n'en fait pas partie).
+    const roster = [
+      { name: 'Toi', c: 'menthe', me: true },
+      { name: 'Jean', c: 'menthe' },
+      { name: 'Lucien', c: 'lavande' },
+      { name: 'Hélène', c: 'orange' },
+      { name: 'Paul', c: 'menthe' },
+      { name: 'Luc', c: 'jaune' },
+      { name: 'Camille', c: 'lavande' },
+    ];
+    const answered = new Set(['Jean', 'Lucien', 'Hélène', 'Paul']);
+    if (isSent) answered.add('Toi');
+    // Vue de l'auteur : il ne répond pas, la liste ne le contient pas.
+    const list = isAuthor ? roster.filter((p) => !p.me).concat([{ name: 'Sophie', c: 'orange' }]) : roster;
+    if (isAuthor) answered.add('Sophie');
+    const players = list.map((p) => {
+      const done = answered.has(p.name);
+      const col = pal[p.c];
+      return {
+        name: p.name,
+        initial: p.me ? 'S' : p.name.charAt(0),
+        done,
+        avatarStyle: 'position: relative; display: flex; align-items: center; justify-content: center; width: 50px; height: 50px; box-sizing: border-box; border-radius: 25px; border: ' + (p.me ? '3px solid #8A3A12' : '3px solid #FFFFFF') + '; background: ' + col[0] + '; color: ' + col[1] + '; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 21px; ' + (done ? 'box-shadow: 0 3px 0 rgba(138,58,18,0.2)' : 'opacity: 0.4'),
+        nameStyle: 'font-size: 13px; font-weight: ' + (p.me ? '800' : '700') + '; color: #3B1F14' + (done ? '' : '; opacity: 0.7'),
+      };
+    });
+    const total = players.length;
+    const nb = players.filter((p) => p.done).length;
+    const missing = players.filter((p) => !p.done).map((p) => p.name === 'Toi' ? 'toi' : p.name);
+    // Joueurs : seulement un compteur ; les noms des retardataires (jamais ceux qui ont
+    // répondu) apparaissent une fois que 65 % des destinataires ont répondu.
+    const showLate = nb / total >= 0.65;
+    const segments = players.map((p, i) => ({
+      style: 'flex: 1; height: 10px; border-radius: 5px; background: ' + (i < nb ? '#8A3A12' : 'rgba(255,255,255,0.75)'),
+    }));
+
+    return {
+      isQuestion,
+      isSent,
+      isAuthor,
+      showTeaser: !isAuthor,
+      rootSize: 'width: 390px; height: ' + (isAuthor ? 1000 : 844) + 'px;',
+      isPlayer: !isAuthor,
+      segments,
+      counterText: nb + ' ont répondu',
+      waitingCount: (total - nb) + ' attendu' + (total - nb > 1 ? 's' : ''),
+      lateText: showLate
+        ? 'On attend encore : ' + missing.join(', ') + '. N’hésite pas à les relancer !'
+        : 'Les noms des retardataires s’afficheront quand la plupart auront répondu.',
+      screenTitle: isAuthor ? 'Ma question' : 'Question de la semaine',
+      cardLabel: isQuestion ? 'Une question sur Marie' : isSent ? 'Réponse envoyée' : 'Ta question est en jeu',
+      labelStyle: 'font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: ' + (isQuestion ? '#FFE3CF' : '#FFD9C2'),
+      cardStyle: 'position: relative; display: flex; flex-direction: column; gap: 12px; padding: 20px; border-radius: 32px; overflow: hidden; background: ' + (isQuestion ? '#8A3A12; box-shadow: 0 7px 0 #5E260B' : '#5B2333; box-shadow: 0 7px 0 #3D1622'),
+      decorA: isQuestion
+        ? 'position: absolute; top: -46px; right: -40px; width: 150px; height: 150px; border-radius: 75px; background: #FFD66B; opacity: 0.22'
+        : 'position: absolute; top: 16px; right: 28px; width: 40px; height: 40px; border-radius: 20px; background: #FFD66B; opacity: 0.9',
+      decorB: isQuestion
+        ? 'position: absolute; top: -12px; right: -6px; width: 82px; height: 82px; border-radius: 41px; background: #FFD66B; opacity: 0.35'
+        : 'position: absolute; top: 10px; right: 17px; width: 40px; height: 40px; border-radius: 20px; background: #5B2333',
+      players,
+      answeredText: nb + ' sur ' + total,
+      waitingText: missing.length ? 'On attend encore : ' + missing.join(', ') + '. N’hésite pas à les relancer !' : 'Tout le monde a répondu.',
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -231,6 +231,26 @@ Photos des personnes : placeholder pour l'instant, le vrai upload est un chantie
 
 But : répondre à une question de la session en cours.
 
+**Refonte décidée le 2026-11-23, maquette validée, prête pour le développement (pas encore codée)** — charte « Coucher de soleil ». Maquette : rangée « B · Répondre et révélation » du canvas (lien dans `design.md`), source `docs/maquettes/soleil/Repondre.dc.html` (paramètre `etat` : `question`, `envoyee`, `auteur` ; écrans `RepondreEnvoyee` et `MaQuestion` = mêmes avec un autre `etat`).
+
+*Vue du joueur*
+- **Haut de page** : bandeau famille partagé (`src/components/family-header.tsx`), puis flèche retour + titre « Question de la semaine ».
+- **Carte de la question** (brun-orangé, décor de soleil, comme le bouton « action » de l'accueil) : rond de la personne concernée + « Une question sur <prénom> », la question en grand, pastille « Il reste N jours · jusqu'au <jour date> », puis sur fond crème le champ de réponse (même champ guidé qu'aujourd'hui, `AnswerInput`) et le bouton « Valider ma réponse ».
+- **Réponse envoyée** : la carte passe en **prune** (décor de lune, comme l'état « attente » de l'accueil) : « Réponse envoyée », la question, « Ta réponse » en grand + bouton « Modifier », puis « Révélation <jour date> · modifiable jusque-là ». Règles de modification et de verrouillage inchangées (voir plus bas).
+- **Teaser** sous la carte : « Qui a posé cette question ? Réponse à la révélation… ».
+- **Avancement — compteur seulement** (décision du 2026-11-23) : « X ont répondu · Y attendus » + une barre d'autant de cases que de destinataires. **Jamais la liste de ceux qui ont répondu** : l'auteur ne reçoit pas sa propre question, il serait la seule personne absente de la liste, donc immédiatement identifié.
+  - **Retardataires** : quand **au moins 65 % des destinataires** ont répondu (destinataires = joueurs qui ont reçu la question, donc sans l'auteur ; le joueur qui regarde compte), on affiche aussi **les noms des retardataires seulement** (« On attend encore : toi, Luc, Camille. N'hésite pas à les relancer ! » — « toi » si le joueur lui-même n'a pas répondu). Avant ce seuil : « Les noms des retardataires s'afficheront quand la plupart auront répondu. » Ça ne révèle pas l'auteur : il n'est ni parmi les répondants (jamais affichés) ni parmi les retardataires.
+  - **Côté serveur, obligatoire** : ces informations doivent venir d'une nouvelle fonction `security definer` (ex. `get_question_progress(p_quiz_question_id)` → nombre de destinataires, nombre de réponses, et les noms des retardataires **seulement si** le seuil de 65 % est atteint, `null` sinon). Ne pas envoyer la liste complète au client pour filtrer côté app : elle serait lisible dans les outils réseau du navigateur. `get_question_participants` reste réservée à l'auteur.
+
+*Vue de l'auteur (« Ma question »)*
+- Même haut de page, titre « Ma question » ; carte **prune** « Ta question est en jeu » : la question, puis sur fond crème la **bonne réponse** et **ton anecdote**, avec un bouton **« Modifier l'anecdote »** et la phrase « Profite de la semaine pour enrichir ton souvenir : elle sera dévoilée à la révélation. (Photo et enregistrement : bientôt.) » — décision du 2026-11-23 : ça donne à l'auteur quelque chose à faire pendant la semaine de sa question. Photo et audio : plus tard (`fact_attachments`, prévu dans le modèle, hors MVP).
+  - **Côté serveur** : la policy actuelle n'autorise l'auteur à modifier que ses faits **pas encore posés** ; il faut une fonction dédiée (ex. `update_fact_context(p_fact_id, p_context_text)`, `security definer`) qui ne touche **que** l'anecdote (`facts.context_text`), réservée à l'auteur, autorisée tant que la question est en cours. La révélation lit déjà `facts.context_text` en direct (pas de copie figée), la nouvelle version y apparaîtra donc.
+  - **Après la révélation** : à revoir avec la future discussion entre membres sur une question révélée (étape 5 de la roadmap) ; pour l'instant, modification réservée à la semaine de la question.
+- **« Qui a répondu ? »** (réservé à l'auteur) : les ronds des destinataires avec une coche pour ceux qui ont répondu, grisés sinon, « N sur M », « On attend encore : … », et une note « Ce détail n'est visible que par toi… ».
+- « Valider les réponses (N) » quand il y en a (écran 7, inchangé, sa refonte est une étape à part), et « Révéler maintenant (test) » avec « Ceux qui n'ont pas répondu compteront faux. »
+
+**Version actuelle (avant la refonte)** :
+
 Affiche :
 - le texte de la question (« En quelle année Mamie M a-t-elle pris l'avion pour la première fois ? »)
 - le champ de réponse du type de la question
@@ -286,6 +306,28 @@ Implémenté (`src/app/validate.tsx`) via `get_pending_validations`/`validate_pe
 ## 8. Révélation
 
 But : découvrir la bonne réponse et les résultats d'une question.
+
+**Refonte décidée le 2026-11-23, maquette validée, prête pour le développement (pas encore codée)** — charte « Coucher de soleil ». Maquette : `docs/maquettes/soleil/Revelation.dc.html` (paramètres `etat` : `suspense`, `trouve`, `rate` ; `exemple` : `annee` ou `artiste` pour une réponse longue) ; écrans `RevelationTrouve`, `RevelationRate`, `RevelationTexte`.
+
+- **Haut de page** : bandeau famille, flèche retour + titre « Révélation ».
+- **Suspense** (seulement pour la **révélation de la semaine**, la première fois que le joueur l'ouvre) : carte prune « Révélation de la semaine » avec le rond de la personne et la question, un cadre en pointillés « ? ? ? ? » qui scintille, et un gros bouton jaune **« Découvrir la réponse »** qui pulse doucement ; dessous : « N joueurs ont tenté leur chance… et qui a posé la question ? ». Rouverte plus tard (accueil, archives, déjà vue sur cet appareil) : tout s'affiche directement, sans suspense ni animation. Le repère « déjà vue » peut réutiliser celui que l'accueil pose déjà (`AsyncStorage`, posé par `reveal.tsx`).
+- **Au toucher de « Découvrir la réponse »** (animations jouées **une seule fois** ; sur le canvas elles tournent en boucle pour qu'on les voie) :
+  - la **bonne réponse surgit** dans un cartouche crème (petit rebond : agrandissement puis retour à la taille normale avec une légère rotation) ; en grand pour une réponse courte (année), plus petit et sur plusieurs lignes pour une réponse longue (« Les Compagnons de la chanson ») ;
+  - **trouvé** : pluie de **confettis** aux couleurs de la charte (jaune, brun, menthe, lavande, orange, rose, et une touche de bleu et rouge) ;
+  - **raté** : pas de confettis, la carte de ma réponse **tremble** brièvement.
+- **Ma réponse, à part et bien distincte** (décision du 2026-11-23), juste sous la question :
+  - trouvé : carte jaune, coche dans un rond brun, « Bravo, tu as trouvé ! » + « Ta réponse : … » ;
+  - raté : carte crème bordée de rouge, croix, « Raté, de peu ! » + « Tu avais dit … » ;
+  - pour les réponses **année ou nombre** : l'écart avec la bonne réponse (« à 4 ans près », « à 3 près ») ; rien pour les autres types ;
+  - l'auteur (qui n'a pas répondu) et un joueur qui n'a pas répondu n'ont pas cette carte (pour ce dernier : « Tu n'as pas répondu cette fois »).
+- **« Question posée par <auteur> »** : son rond + son anecdote présentée comme une citation (guillemet orange, italique).
+- **Résultats des autres joueurs, groupés par résultat** (ma réponse n'y est pas répétée) : titre « X joueurs sur Y ont trouvé » (Y = tous les destinataires, moi compris), puis « Ont trouvé » (rond, prénom, pastille jaune avec coche et la réponse), « Se sont trompés » (pastille rose avec la réponse, **pas barrée** ; l'écart en dessous du prénom pour une année ou un nombre), « N'ont pas répondu » (rond grisé, « compté faux »). Les pastilles passent à la ligne pour une réponse longue. Réponses « annulées » (après une correction acceptée) : à afficher dans un groupe à part ou avec la mention « annulée » (pas maquetté).
+- **« Tous les souvenirs de <prénom> »** (tuile rose) : ouvre l'arbre centré sur la personne, récapitulatif ouvert (`/family-tree?person=<id>&recap=1`, existe déjà), avec « Celui-ci vient de s'y ajouter ».
+- « Retour à l'accueil » (bouton brun), puis un lien discret « Une erreur dans la réponse ? Proposer une correction » (formulaire de correction inchangé dans son fonctionnement, à restyler ; la carte de correction en attente garde « Accepter » / « Refuser » pour l'auteur).
+- **Score cumulé** : toujours pas affiché, il viendra avec l'écran Historique (écran 12).
+- **Côté serveur** : `get_revealed_question` renvoie les participants sans identifiant ; il faudra y ajouter `personId` (ou un indicateur « c'est moi ») pour isoler ma réponse et afficher les ronds avec la bonne couleur.
+
+**Version actuelle (avant la refonte)** :
 
 Affiche :
 - la question et la bonne réponse
