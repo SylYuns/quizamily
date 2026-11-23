@@ -7,8 +7,20 @@
 // comme ailleurs dans l'app (avatarColorFor).
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Redirect, router, useLocalSearchParams } from "expo-router";
-import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  ActivityIndicator,
+  Animated,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 
 import { AnswerInput } from "@/components/answer-input";
 import { FamilyHeaderBar } from "@/components/family-header";
@@ -64,6 +76,114 @@ function numericGap(kind: string, given: string | number, correct: string | numb
   const diff = Math.abs(a - b);
   if (diff === 0) return null;
   return kind === "year" || kind === "age" ? `à ${diff} an${diff === 1 ? "" : "s"} près` : `à ${diff} près`;
+}
+
+// Animations jouées une seule fois, au moment de « Découvrir la réponse » (voir ecrans.md,
+// écran 8) : sur le canvas des maquettes elles tournent en boucle pour qu'on les voie, ici elles
+// ne jouent qu'au moment où `animate` est vrai au montage du composant — jamais en rouvrant une
+// révélation déjà vue sur cet appareil (showSuspense alors déjà à false, voir plus bas).
+// Pas de Reanimated : react-native-reanimated est une dépendance transitive jamais utilisée dans
+// l'app, dont la seule convention d'animation existante (src/app/family-tree.tsx) est l'API
+// Animated native, pilote désactivé sur web (useNativeDriver non pris en charge pour tout, voir
+// USE_NATIVE_DRIVER ci-dessous).
+const USE_NATIVE_DRIVER = Platform.OS !== "web";
+
+const CONFETTI_COLORS = [S.sun, S.action, "#9FD3C7", "#B9A3E3", "#F7A06A", S.flagBlue, S.flagRed, S.white, S.knowledge];
+
+function Confetti() {
+  // eslint-disable-next-line react-hooks/refs -- pieces est une liste d'Animated.Value stable (créée une seule fois), lue hors du rendu réactif par design, comme `pan` dans family-tree.tsx.
+  const pieces = useRef(
+    Array.from({ length: 22 }).map((_, i) => ({
+      left: (i * 37 + 11) % 380,
+      size: 7 + (i % 3) * 3,
+      round: i % 3 === 0,
+      color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+      delay: (i * 90) % 900,
+      duration: 1400 + (i % 4) * 220,
+      progress: new Animated.Value(0),
+    })),
+  ).current;
+
+  useEffect(() => {
+    Animated.parallel(
+      pieces.map((p) =>
+        Animated.timing(p.progress, {
+          toValue: 1,
+          duration: p.duration,
+          delay: p.delay,
+          useNativeDriver: USE_NATIVE_DRIVER,
+        }),
+      ),
+    ).start();
+  }, [pieces]);
+
+  return (
+    <View pointerEvents="none" style={styles.confettiLayer}>
+      {/* eslint-disable-next-line react-hooks/refs -- lit les Animated.Value stables de `pieces` pour positionner chaque confetti. */}
+      {pieces.map((p, i) => {
+        const translateY = p.progress.interpolate({ inputRange: [0, 1], outputRange: [-20, 460] });
+        const rotate = p.progress.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "540deg"] });
+        const opacity = p.progress.interpolate({ inputRange: [0, 0.08, 0.85, 1], outputRange: [0, 1, 1, 0] });
+        return (
+          <Animated.View
+            key={i}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: p.left,
+              width: p.size,
+              height: p.round ? p.size : p.size * 1.6,
+              borderRadius: p.round ? p.size / 2 : 2,
+              backgroundColor: p.color,
+              opacity,
+              transform: [{ translateY }, { rotate }],
+            }}
+          />
+        );
+      })}
+    </View>
+  );
+}
+
+// La bonne réponse « surgit » : agrandissement puis léger dépassement avant de se stabiliser
+// (spring naturellement oscillant), avec une légère rotation qui revient à 0.
+function AnswerCartouche({ label, value, small, animate }: { label: string; value: string; small: boolean; animate: boolean }) {
+  // eslint-disable-next-line react-hooks/refs -- progress est un Animated.Value stable, lu hors du rendu réactif par design, comme `pan` dans family-tree.tsx.
+  const progress = useRef(new Animated.Value(animate ? 0 : 1)).current;
+
+  useEffect(() => {
+    if (!animate) return;
+    Animated.spring(progress, { toValue: 1, friction: 5, tension: 140, useNativeDriver: USE_NATIVE_DRIVER }).start();
+  }, [animate, progress]);
+
+  // eslint-disable-next-line react-hooks/refs -- interpole le même Animated.Value stable.
+  const scale = progress.interpolate({ inputRange: [0, 1], outputRange: [0.2, 1] });
+  // eslint-disable-next-line react-hooks/refs -- idem.
+  const rotate = progress.interpolate({ inputRange: [0, 1], outputRange: ["-10deg", "0deg"] });
+
+  return (
+    <Animated.View style={[styles.answerCartouche, { transform: [{ scale }, { rotate }] }]}>
+      <Text style={styles.answerCartoucheLabel}>{label}</Text>
+      <Text style={[styles.answerCartoucheValue, small && styles.answerCartoucheValueSmall]}>{value}</Text>
+    </Animated.View>
+  );
+}
+
+// La carte de ma réponse tremble brièvement quand j'ai raté (pas de confettis dans ce cas).
+function ShakeView({ style, animate, children }: { style: StyleProp<ViewStyle>; animate: boolean; children: ReactNode }) {
+  // eslint-disable-next-line react-hooks/refs -- shakeX est un Animated.Value stable, lu hors du rendu réactif par design, comme `pan` dans family-tree.tsx.
+  const shakeX = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!animate) return;
+    Animated.sequence(
+      [-7, 7, -5, 4, -2, 0].map((toValue) =>
+        Animated.timing(shakeX, { toValue, duration: 55, useNativeDriver: USE_NATIVE_DRIVER }),
+      ),
+    ).start();
+  }, [animate, shakeX]);
+
+  return <Animated.View style={[style, { transform: [{ translateX: shakeX }] }]}>{children}</Animated.View>;
 }
 
 export default function RevealScreen() {
@@ -408,19 +528,16 @@ export default function RevealScreen() {
                 </Pressable>
               </>
             ) : (
-              <View style={styles.answerCartouche}>
-                <Text style={styles.answerCartoucheLabel}>Bonne réponse</Text>
-                <Text
-                  style={[
-                    styles.answerCartoucheValue,
-                    typeof displayedAnswer === "string" && displayedAnswer.length > 10 && styles.answerCartoucheValueSmall,
-                  ]}
-                >
-                  {formatAnswerDisplay(reveal.answerInputKind, displayedAnswer)}
-                </Text>
-              </View>
+              <AnswerCartouche
+                label="Bonne réponse"
+                value={formatAnswerDisplay(reveal.answerInputKind, displayedAnswer)}
+                small={typeof displayedAnswer === "string" && displayedAnswer.length > 10}
+                animate={showSuspense}
+              />
             )}
           </View>
+
+          {showSuspense && discovered && isWin && <Confetti />}
 
           {showSuspense && !discovered && (
             <Text style={styles.suspenseSub}>
@@ -445,7 +562,7 @@ export default function RevealScreen() {
                 </View>
               )}
               {isLoss && (
-                <View style={styles.resultCardLoss}>
+                <ShakeView style={styles.resultCardLoss} animate={showSuspense}>
                   <View style={styles.resultIconLoss}>
                     <Text style={styles.resultIconLossText}>✗</Text>
                   </View>
@@ -459,7 +576,7 @@ export default function RevealScreen() {
                       })()}
                     </Text>
                   </View>
-                </View>
+                </ShakeView>
               )}
               {myPersonId !== null && myPersonId !== authorPersonId && !myParticipant && (
                 <View style={styles.resultCardNeutral}>
@@ -662,6 +779,7 @@ const styles = StyleSheet.create({
 
   card: { position: "relative", padding: 20, borderRadius: RADIUS.card, overflow: "hidden", gap: 14 },
   cardWaiting: { backgroundColor: S.waiting, ...solidShadow(S.waitingShadow) },
+  confettiLayer: { position: "absolute", left: 0, right: 0, top: 0, height: 480, overflow: "hidden", zIndex: 5 },
   decorDot: { position: "absolute", borderRadius: 3, backgroundColor: S.actionSoft },
   cardHeaderRow: { flexDirection: "row", alignItems: "center", gap: 10, zIndex: 1 },
   cardLabel: { fontSize: 13, fontFamily: FONTS.bodyHeavy, letterSpacing: 0.84, textTransform: "uppercase" },
