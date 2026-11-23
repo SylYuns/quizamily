@@ -392,9 +392,9 @@ export default function AddFactScreen() {
 
   function visibleAvailable(cat: CategoryBucket<Fact>): Template[] {
     const query = searchText.trim();
-    const base = query.length > 0 ? cat.available.filter((t) => matchesSearch(t, query)) : cat.available;
-    if (openTile?.kind === "new") return base.filter((t) => t.id !== openTile.template.id);
-    return base;
+    // La question ouverte reste dans la liste, à sa place : l'éditeur s'affiche à la place de
+    // sa tuile (voir renderOpenTileEditor), elle n'est plus exclue puis réaffichée en haut.
+    return query.length > 0 ? cat.available.filter((t) => matchesSearch(t, query)) : cat.available;
   }
 
   const isDirty =
@@ -669,6 +669,51 @@ export default function AddFactScreen() {
     setOpenTile(null);
   }
 
+  // Rendue à la place exacte de la tuile touchée (dans la liste "à renseigner" ou "Mes
+  // questions"), jamais hissée en haut de la carte : sinon, en étant scrollé plus bas, la
+  // question semble disparaître (signalé par l'utilisateur le 2026-11-23 — la carte ne
+  // suivait pas le saut en haut).
+  function renderOpenTileEditor(subjectPerson: Person, tile: OpenTile, key: string) {
+    return (
+      <OpenTileEditor
+        key={key}
+        openTile={tile}
+        subject={subjectPerson}
+        relatedPersonId={relatedPersonId}
+        relatedName={relatedNameFor(relatedPersonId)}
+        slotValues={slotValues}
+        answerValue={answerValue}
+        contextText={contextText}
+        error={error}
+        submitting={submitting}
+        isDirty={isDirty}
+        confirmDelete={confirmDelete}
+        deleting={deleting}
+        familyId={familyId!}
+        allPersons={allPersons}
+        showSpouseCreator={showSpouseCreator}
+        newSpouseFirstName={newSpouseFirstName}
+        newSpouseLastName={newSpouseLastName}
+        newSpouseGender={newSpouseGender}
+        creatingSpouse={creatingSpouse}
+        onAnswerChange={setAnswerValue}
+        onContextChange={setContextText}
+        onSlotChange={(slot, value) => setSlotValues((v) => ({ ...v, [slot]: value }))}
+        onPickExistingSpouse={setRelatedPersonId}
+        onShowSpouseCreator={() => setShowSpouseCreator(true)}
+        onNewSpouseFirstName={setNewSpouseFirstName}
+        onNewSpouseLastName={setNewSpouseLastName}
+        onNewSpouseGender={setNewSpouseGender}
+        onCreateSpouse={createSpouse}
+        onCancel={closeTile}
+        onSubmit={tile.kind === "new" ? submitNew : submitEdit}
+        onConfirmDelete={() => setConfirmDelete(true)}
+        onCancelDelete={() => setConfirmDelete(false)}
+        onDelete={deleteCurrentFact}
+      />
+    );
+  }
+
   return (
     <View style={[styles.screen, sunsetBackground]}>
       <FamilyHeaderBar
@@ -777,8 +822,11 @@ export default function AddFactScreen() {
                     .map((c) => ({ cat: c, n: visibleAvailable(c).length }))
                     .filter((x) => x.n > 0)
                 : [];
-              const mineVisible = cat.mine.filter((f) => !(openTile?.kind === "edit" && openTile.fact?.id === f.id));
-              const othersVisible = cat.others.filter((f) => !(openTile?.kind === "edit" && openTile.fact?.id === f.id));
+              // "Mes questions" garde la question en cours de modification à sa place (voir
+              // renderOpenTileEditor) ; "Déjà renseignées" n'a jamais rien de cliquable, donc
+              // jamais rien à y remplacer.
+              const mineVisible = cat.mine;
+              const othersVisible = cat.others;
 
               return (
                 <View key={cat.category} style={[styles.card, { width: CARD_WIDTH, backgroundColor: CARD_BG[cat.category] ?? S.cream }]}>
@@ -792,44 +840,6 @@ export default function AddFactScreen() {
                   </View>
 
                   <ScrollView style={styles.cardScroll} contentContainerStyle={styles.cardBody}>
-                    {openTile && openTile.template.category === cat.category && (
-                      <OpenTileEditor
-                        openTile={openTile}
-                        subject={subject}
-                        relatedPersonId={relatedPersonId}
-                        relatedName={relatedNameFor(relatedPersonId)}
-                        slotValues={slotValues}
-                        answerValue={answerValue}
-                        contextText={contextText}
-                        error={error}
-                        submitting={submitting}
-                        isDirty={isDirty}
-                        confirmDelete={confirmDelete}
-                        deleting={deleting}
-                        familyId={familyId!}
-                        allPersons={allPersons}
-                        showSpouseCreator={showSpouseCreator}
-                        newSpouseFirstName={newSpouseFirstName}
-                        newSpouseLastName={newSpouseLastName}
-                        newSpouseGender={newSpouseGender}
-                        creatingSpouse={creatingSpouse}
-                        onAnswerChange={setAnswerValue}
-                        onContextChange={setContextText}
-                        onSlotChange={(slot, value) => setSlotValues((v) => ({ ...v, [slot]: value }))}
-                        onPickExistingSpouse={setRelatedPersonId}
-                        onShowSpouseCreator={() => setShowSpouseCreator(true)}
-                        onNewSpouseFirstName={setNewSpouseFirstName}
-                        onNewSpouseLastName={setNewSpouseLastName}
-                        onNewSpouseGender={setNewSpouseGender}
-                        onCreateSpouse={createSpouse}
-                        onCancel={closeTile}
-                        onSubmit={openTile.kind === "new" ? submitNew : submitEdit}
-                        onConfirmDelete={() => setConfirmDelete(true)}
-                        onCancelDelete={() => setConfirmDelete(false)}
-                        onDelete={deleteCurrentFact}
-                      />
-                    )}
-
                     {cat.isComplete && !(openTile && openTile.template.category === cat.category && openTile.kind === "new") && (
                       <View style={styles.completeBanner}>
                         <Text style={styles.completeBannerIcon}>✓</Text>
@@ -851,17 +861,24 @@ export default function AddFactScreen() {
                       </View>
                     )}
 
-                    {avail.map((t) => (
-                      <Pressable key={`t-${t.id}`} onPress={() => openNewTile(t)} style={styles.availableTile}>
-                        <Text style={styles.availableTileText}>
-                          {previewQuestionText(t, subject.display_name, relatedPersonNameForTemplate(t), {}, subject.gender)}
-                        </Text>
-                        <Text style={styles.plusIcon}>+</Text>
-                      </Pressable>
-                    ))}
+                    {avail.map((t) =>
+                      openTile?.kind === "new" && openTile.template.id === t.id ? (
+                        renderOpenTileEditor(subject, openTile, `t-${t.id}`)
+                      ) : (
+                        <Pressable key={`t-${t.id}`} onPress={() => openNewTile(t)} style={styles.availableTile}>
+                          <Text style={styles.availableTileText}>
+                            {previewQuestionText(t, subject.display_name, relatedPersonNameForTemplate(t), {}, subject.gender)}
+                          </Text>
+                          <Text style={styles.plusIcon}>+</Text>
+                        </Pressable>
+                      ),
+                    )}
 
                     {mineVisible.length > 0 && <Text style={styles.groupLabel}>Mes questions (modifiables)</Text>}
                     {mineVisible.map((f) => {
+                      if (openTile?.kind === "edit" && openTile.fact?.id === f.id) {
+                        return renderOpenTileEditor(subject, openTile, `m-${f.id}`);
+                      }
                       const t = templatesById.get(f.template_id);
                       if (!t) return null;
                       const answer = myAnswers.get(f.id);
