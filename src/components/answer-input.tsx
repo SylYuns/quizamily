@@ -1,12 +1,18 @@
-import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import { useState } from "react";
+import { StyleSheet, TextInput, View } from "react-native";
 
 import DateInput from "@/components/date-input";
+import { SearchableDropdown } from "@/components/searchable-dropdown";
 import { ThemedText } from "@/components/themed-text";
 import { COUNTRIES } from "@/constants/countries";
 import { Spacing } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
 import { Template } from "@/types/question-template";
+
+// Calculées une fois (pas à chaque rendu) : 126 âges (0 à 125) et 1001 années (1800 à 2800).
+const AGE_OPTIONS = Array.from({ length: 126 }, (_, i) => String(i));
+const YEAR_OPTIONS = Array.from({ length: 1001 }, (_, i) => String(1800 + i));
+const YEAR_DEFAULT_VISIBLE = "2000";
 
 export function AnswerInput(props: {
   template: Template;
@@ -28,28 +34,29 @@ export function AnswerInput(props: {
     return <DateInput value={value} onChange={onChange} />;
   }
 
-  if (kind === "year" || kind === "age" || kind === "number") {
+  if (kind === "year") {
     return (
-      <TextInput
+      <SearchableDropdown
         value={value}
-        onChangeText={onChange}
-        placeholder={kind === "year" ? "Année" : kind === "age" ? "Âge" : "Nombre"}
+        onChange={onChange}
+        options={YEAR_OPTIONS}
+        initialScrollValue={YEAR_DEFAULT_VISIBLE}
+        placeholder="Année, par exemple 1965"
         keyboardType="number-pad"
-        style={styles.input}
       />
     );
   }
 
+  if (kind === "age") {
+    return <SearchableDropdown value={value} onChange={onChange} options={AGE_OPTIONS} placeholder="Âge" keyboardType="number-pad" />;
+  }
+
+  if (kind === "number") {
+    return <TextInput value={value} onChangeText={onChange} placeholder="Nombre" keyboardType="number-pad" style={styles.input} />;
+  }
+
   if (kind === "country") {
-    return (
-      <View style={styles.chipsRow}>
-        {COUNTRIES.map((c) => (
-          <Pressable key={c} onPress={() => onChange(c)} style={[styles.chip, value === c && styles.chipSelected]}>
-            <ThemedText style={value === c ? { color: "#ffffff" } : undefined}>{c}</ThemedText>
-          </Pressable>
-        ))}
-      </View>
-    );
+    return <SearchableDropdown value={value} onChange={onChange} options={COUNTRIES} placeholder="Tape pour chercher un pays" />;
   }
 
   if (kind === "list" && template.list_name) {
@@ -83,67 +90,33 @@ function ListSearchInput(props: {
   answerMode: boolean;
 }) {
   const { listName, category, familyId, value, onChange, answerMode } = props;
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [picked, setPicked] = useState<string | null>(null);
+  const [currentOptions, setCurrentOptions] = useState<string[]>([]);
 
-  useEffect(() => {
-    const query = value.trim();
-    function clearSuggestions() {
-      setSuggestions([]);
-    }
-    if (query.length === 0 || query === picked) {
-      clearSuggestions();
-      return;
-    }
-    let cancelled = false;
-    const timer = setTimeout(async () => {
-      const { data } = await supabase.rpc("search_list_items", {
-        p_list_name: listName,
-        p_query: query,
-        p_category: category,
-        p_family_id: familyId,
-        p_limit: 8,
-      });
-      if (!cancelled) setSuggestions((data ?? []) as Suggestion[]);
-    }, 200);
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [value, picked, listName, category, familyId]);
+  async function fetchOptions(query: string): Promise<string[]> {
+    const { data } = await supabase.rpc("search_list_items", {
+      p_list_name: listName,
+      p_query: query,
+      p_category: category,
+      p_family_id: familyId,
+      p_limit: 8,
+    });
+    const values = ((data ?? []) as Suggestion[]).map((s) => s.value);
+    return Array.from(new Set(values));
+  }
 
   const typed = value.trim();
-  const exactMatch = suggestions.some((s) => s.value.toLowerCase() === typed.toLowerCase());
+  const exactMatch = currentOptions.some((o) => o.toLowerCase() === typed.toLowerCase());
 
   return (
     <View style={{ gap: Spacing.two }}>
-      <TextInput
+      <SearchableDropdown
         value={value}
-        onChangeText={(text) => {
-          setPicked(null);
-          onChange(text);
-        }}
-        placeholder="Tape les premières lettres…"
-        autoCorrect={false}
-        style={styles.input}
+        onChange={onChange}
+        fetchOptions={fetchOptions}
+        onOptionsChange={setCurrentOptions}
+        placeholder="Tape pour chercher…"
       />
-      {suggestions.length > 0 && (
-        <View style={styles.suggestions}>
-          {suggestions.map((s) => (
-            <Pressable
-              key={`${s.value}-${s.is_family_item ? "f" : "g"}`}
-              onPress={() => {
-                setPicked(s.value);
-                onChange(s.value);
-              }}
-              style={styles.suggestion}
-            >
-              <ThemedText>{s.value}</ThemedText>
-            </Pressable>
-          ))}
-        </View>
-      )}
-      {typed.length > 0 && typed !== picked && !exactMatch && (
+      {typed.length > 0 && !exactMatch && (
         <ThemedText themeColor="textSecondary">
           {answerMode
             ? "Pas dans les propositions ? Tape ta réponse en entier."
@@ -155,39 +128,11 @@ function ListSearchInput(props: {
 }
 
 const styles = StyleSheet.create({
-  suggestions: {
-    borderWidth: 1,
-    borderColor: "#999999",
-    borderRadius: 8,
-    overflow: "hidden",
-  },
-  suggestion: {
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.three,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e5e5",
-  },
   input: {
     borderWidth: 1,
     borderColor: "#999999",
     borderRadius: 8,
     padding: Spacing.three,
     width: "100%",
-  },
-  chipsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.two,
-  },
-  chip: {
-    borderWidth: 1,
-    borderColor: "#999999",
-    borderRadius: 16,
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.three,
-  },
-  chipSelected: {
-    backgroundColor: "#3c87f7",
-    borderColor: "#3c87f7",
   },
 });
