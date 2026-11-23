@@ -611,10 +611,33 @@ export default function FamilyTreeScreen() {
             onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
             {...panResponder.panHandlers}
           >
+            {/* Panneau ouvert : toucher l'arbre le ferme — rendu en premier, donc SOUS les
+                cartes de personnes dans l'ordre d'empilement (comportement par défaut de React
+                Native sans z-index explicite, comme la bande centrée ci-dessous déjà sous les
+                cartes) : sinon un calque plein écran avec un z-index plus haut interceptait
+                aussi les touches sur une personne visible de la même génération, qui fermait
+                alors juste le panneau au lieu d'ouvrir le sien (signalé par l'utilisateur le
+                2026-11-23). Les glissements restent captés par l'arbre (panResponder, phase de
+                capture) et changent de personne. */}
+            {showPanel && (
+              <Pressable
+                accessibilityLabel="Fermer les souvenirs"
+                onPress={() => closePanel()}
+                style={StyleSheet.absoluteFill}
+              />
+            )}
             {/* Bande de la génération centrée : pleine largeur, sans arrondis (avec des
-                arrondis, on croyait à une sélection). Elle remonte avec l'arbre. */}
-            <Animated.View style={[styles.centerBand, { transform: [{ translateY: treeShift }] }]} />
+                arrondis, on croyait à une sélection). Elle remonte avec l'arbre. Purement
+                décorative : pointerEvents="none" pour laisser les touches sur une zone vide
+                atteindre le calque de fermeture en dessous (voir plus haut) — un View plein
+                écran sans pointerEvents="none" intercepte les clics sur le web même sans
+                gestionnaire posé dessus. */}
+            <Animated.View pointerEvents="none" style={[styles.centerBand, { transform: [{ translateY: treeShift }] }]} />
+            {/* pointerEvents="box-none" : ce conteneur plein écran ne doit pas lui-même
+                intercepter les touches (même raison que centerBand ci-dessus) — seules ses
+                cartes de personnes (Pressable) doivent rester cliquables. */}
             <Animated.View
+              pointerEvents="box-none"
               style={[
                 StyleSheet.absoluteFill,
                 // eslint-disable-next-line react-hooks/refs -- pan est un Animated.ValueXY stable, lu hors du rendu réactif par design.
@@ -690,15 +713,6 @@ export default function FamilyTreeScreen() {
                   />
                 ))}
               </View>
-            )}
-            {/* Panneau ouvert : toucher l'arbre le ferme ; les glissements horizontaux restent
-                captés par l'arbre (panResponder, phase de capture) et changent de personne. */}
-            {showPanel && (
-              <Pressable
-                accessibilityLabel="Fermer les souvenirs"
-                onPress={() => closePanel()}
-                style={[StyleSheet.absoluteFill, { zIndex: 2 }]}
-              />
             )}
           </View>
         )}

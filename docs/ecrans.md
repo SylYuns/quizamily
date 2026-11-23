@@ -494,6 +494,7 @@ But : lire ce que la famille sait d'une personne, sous une forme agréable, et n
 - les **traits de filiation restent dessinés** : ceux qui partent de la ligne remontée vers les enfants descendent et passent sous le panneau ; une amorce au-dessus de la ligne montre que l'arbre continue vers les parents ;
 - panneau ouvert, **glisser la ligne à gauche ou à droite** change de personne et **met à jour le panneau** (feuilleter une fratrie, un couple) ;
 - panneau ouvert, **pas de glissement vers le haut ou le bas** (pas de changement de génération) : on ferme d'abord le panneau, avec la croix ou en touchant en dehors du panneau, puis on navigue ;
+- panneau ouvert, **toucher une autre personne visible de la même génération ouvre directement son récapitulatif** (pas besoin de fermer le panneau d'abord) ; **corrigé le 2026-11-23** (signalé par l'utilisateur) : un calque invisible plein écran, posé pour fermer le panneau au toucher d'une zone vide, était par-dessus les cartes de personnes et interceptait aussi leurs touches — cliquer sur une autre personne fermait donc juste le panneau au lieu d'ouvrir le sien. Le calque reste maintenant sous les cartes dans l'ordre d'empilement (`pointerEvents="none"`/`"box-none"` sur les éléments décoratifs ou conteneurs au-dessus, pour que les touches sur une zone vide les traversent) ;
 - le texte du panneau **défile** quand la personne a beaucoup de souvenirs ;
 - ouvert directement depuis un profil de l'accueil (écran 4), l'arbre arrive centré sur la personne, panneau déjà ouvert.
 
