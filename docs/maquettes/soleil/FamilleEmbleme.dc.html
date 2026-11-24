@@ -22,6 +22,18 @@ body{margin:0}
     </button>
     <h1 style="margin: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 26px">Créer une famille</h1>
   </header>
+  <sc-if value="{{progression}}" hint-placeholder-val="{{ false }}">
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 0 20px 4px">
+      <span style="display: flex; gap: 6px">
+        <span style="flex: 2.4; height: 8px; border-radius: 4px; background: #8A3A12"></span>
+        <span style="flex: 1; height: 8px; border-radius: 4px; background: rgba(255,244,232,0.7)"></span>
+        <span style="flex: 1; height: 8px; border-radius: 4px; background: rgba(255,244,232,0.7)"></span>
+        <span style="flex: 1; height: 8px; border-radius: 4px; background: rgba(255,244,232,0.7)"></span>
+        <span style="flex: 1; height: 8px; border-radius: 4px; background: rgba(255,244,232,0.7)"></span>
+      </span>
+      <span style="font-size: 13px; font-weight: 800; color: #5E2A12">Étape 1 sur 5 · La famille</span>
+    </div>
+  </sc-if>
 
   <main style="display: flex; flex-direction: column; gap: 14px; padding: 8px 16px 16px">
     <section style="display: flex; flex-direction: column; gap: 14px; padding: 18px; border-radius: 30px; background: #FFF4E8; box-shadow: 0 7px 0 rgba(138,58,18,0.22)">
@@ -78,19 +90,22 @@ body{margin:0}
       </label>
     </section>
 
-    <button type="button" style="min-height: 54px; border: none; border-radius: 27px; background: #8A3A12; color: #FFFFFF; font-family: Nunito, sans-serif; font-size: 17px; font-weight: 800; cursor: pointer; box-shadow: 0 5px 0 #5E260B">Créer la famille</button>
+    <button type="button" style="min-height: 54px; border: none; border-radius: 27px; background: #8A3A12; color: #FFFFFF; font-family: Nunito, sans-serif; font-size: 17px; font-weight: 800; cursor: pointer; box-shadow: 0 5px 0 #5E260B">{{mainLabel}}</button>
     <p style="margin: 0; text-align: center; font-size: 13px; font-weight: 700; color: #5E2A12">Seul le créateur de la famille pourra changer l’emblème ensuite.</p>
   </main>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":900}}'>
+<script type="text/x-dc" data-dc-script data-props='{"progression":{"editor":"boolean","default":false},"$preview":{"width":390,"height":900}}'>
 class Component extends DCLogic {
   renderVals() {
     const palette = [
       ['Bleu', '#2F5AA8'], ['Rouge', '#C8423A'], ['Jaune', '#F2B33D'], ['Vert', '#5E9E68'],
       ['Orange', '#F07C3A'], ['Rose', '#E58FA0'], ['Violet', '#8E6CC9'], ['Brun', '#8A3A12'],
     ];
+    const prog = this.props.progression === true || this.props.progression === 'true';
     return {
+      progression: prog,
+      mainLabel: prog ? 'Suivant' : 'Créer la famille',
       placeholders: ['chien', 'chat', 'hibou', 'abeille', 'arbre', 'maison', 'soleil', 'bateau'],
       colors: palette.map(([name, hex], i) => ({
         name: name + (i === 0 ? ' (choisie)' : ''),

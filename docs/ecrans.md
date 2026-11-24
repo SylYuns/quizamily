@@ -33,6 +33,11 @@ Connexion
 
 But : se connecter sans mot de passe.
 
+**Charte « Coucher de soleil » : 3 pistes maquettées le 2026-11-24, choix à faire** (canvas, rangée « Arrivée : connexion » ; sources `docs/maquettes/soleil/Connexion*.dc.html`, paramètre `etat` = `email` | `envoye`). Dans les trois, l'état « lien envoyé » passe en prune (attente), comme sur l'accueil :
+- **A « Soleil levant »** : grand soleil derrière le nom « Quizamily », accroche, carte crème posée en bas comme un horizon ; une fois le lien envoyé, le soleil descend et pâlit, la carte devient prune (« Regarde tes e-mails », « Renvoyer le lien », « Changer d'adresse ») ;
+- **B « Une question pour commencer »** : une fausse carte « Question de la semaine » avec les réponses de la famille montre tout de suite le principe du jeu, puis le formulaire (« Entrer dans le jeu ») ;
+- **C « La famille en ronds »** : un petit arbre de ronds colorés flotte en haut, la connexion est un panneau qui monte du bas (comme le récapitulatif de l'arbre).
+
 Affiche :
 - un champ email
 - le message « Un lien de connexion vous a été envoyé » après envoi
@@ -51,6 +56,11 @@ But : démarrer une famille, ou rejoindre celle où l'on a été invité.
 
 ### Créer une famille
 
+**Charte « Coucher de soleil » : 2 pistes maquettées le 2026-11-24, choix à faire** (canvas, rangée « Arrivée : créer une famille » ; sources `CreerA.dc.html`, paramètre `etape`, `CreerB.dc.html`, et `FamilleEmbleme.dc.html` avec `progression` pour l'étape 1). Les deux suppriment l'étape « Récapitulatif » (5 étapes au lieu de 6) :
+- **A « Étapes »** : barre d'avancement en 5 pastilles (la famille, toi, personnes centrales, leurs enfants, inviter) ; une carte par étape ; les personnes déjà saisies se replient en tuiles « ✎ Modifier » ; la dernière étape fête la famille créée (emblème, confettis, ronds des personnes) et met le lien en avant (« Partager », « Copier ») ;
+- **B « La famille se dessine »** : l'en-tête montre déjà le nom et l'emblème ; en haut, l'arbre se construit au fil de la saisie (le rond en cours de saisie en pointillés bruns) ; en bas, un panneau avec le formulaire de l'étape ; à la fin, les personnes pas encore inscrites restent en pointillés et le panneau devient l'invitation.
+- Dans les deux : genre en deux pastilles (« une femme », « un homme »), « décédé(e) » en interrupteur ou en pastille, lien de parenté en liste.
+
 Étapes :
 1. Nom de la famille, et son **emblème** (décidé le 2026-11-24, maquette `FamilleEmbleme.dc.html`) : un emblème est proposé au hasard (bouton « Au hasard » pour en tirer un autre), modifiable : **symbole** (une vingtaine à dessiner : animaux et objets familiers ; deux faits pour l'instant, vache et lézard), **couleur** (8 couleurs : bleu, rouge, jaune, vert, orange, rose, violet, brun) et **lettres** (2 lettres, par défaut les 2 premières du nom, en majuscules, modifiables). **Seul le créateur de la famille pourra changer l'emblème ensuite** (lien « Personnaliser l'emblème » du menu de la famille, même formulaire).
 2. Ses propres infos de base (prénom, nom, genre — ajouté à l'implémentation, nécessaire pour les conditions femme/homme du catalogue). **Corrigé le 2026-11-20** : sautée si le joueur a déjà une famille — son identité ne change pas d'une famille à l'autre (voir `concept.md`), elle est reprise de sa fiche existante plutôt que redemandée (modifier son prénom/nom/genre attend un écran de profil séparé, pas encore conçu).
@@ -60,6 +70,11 @@ But : démarrer une famille, ou rejoindre celle où l'on a été invité.
 → Accueil - famille
 
 ### Rejoindre une famille (depuis un lien d'invitation)
+
+**Charte « Coucher de soleil » : 2 pistes maquettées le 2026-11-24, choix à faire** (canvas, rangée « Arrivée : rejoindre » ; sources `RejoindreA.dc.html`, paramètre `etape` = `invite` | `choix` | `nouveau`, et `RejoindreB.dc.html`, `invite` | `choix`) :
+- **A « Carton d'invitation »** : l'emblème de la famille en grand sur un carton crème à bord pointillé, « Tu es invité·e dans la Famille Chardaire, par Sylvain », les ronds des membres et « déjà 24 souvenirs » ; puis « Es-tu l'une de ces personnes ? » en tuiles (rond, nom, « Enfant de Marie et Jean ») et « Je ne suis pas dans cette liste » → « Présente-toi » ;
+- **B « Trouve ta place »** : l'arbre de la famille, les profils pas encore réclamés en pointillés ; on se choisit en touchant son rond (« Oui, c'est moi » / « Je ne suis pas dans l'arbre »).
+- **Demande côté serveur** (les deux pistes) : l'aperçu de l'invitation (`get_invite_family_name`) ne renvoie aujourd'hui que le nom ; il faudrait aussi l'emblème, le prénom de qui a créé le lien, et quelques ronds (initiales des personnes centrales, nombre de membres et de souvenirs) — sans rien dévoiler d'autre à un visiteur pas encore membre. La piste B demande en plus les liens de parenté des profils à réclamer.
 
 Étapes :
 1. « Vous êtes invité dans la famille X »
@@ -81,9 +96,11 @@ Actions :
 - Choisir une famille → Accueil - famille
 - Créer une nouvelle famille → écran 2
 
-À la connexion :
+À la connexion (règle précisée par Sylvain le 2026-11-24) :
 - par défaut, le joueur arrive directement sur la dernière famille consultée ;
-- s'il a des questions en attente de réponse dans une autre famille, il arrive sur cet écran de choix.
+- il arrive sur cet écran de choix si **plusieurs familles ont une question en attente**, ou si **une famille autre que la dernière consultée a une question en attente** ;
+- une fois dans une famille, on change de famille par le menu de l'emblème (« Mes familles », voir Règles communes) : l'écran de choix ne sert qu'à l'arrivée.
+- Charte « Coucher de soleil » : pas encore maquetté (une carte par famille avec son emblème et ses badges « 2 questions à répondre »).
 
 
 ## 4. Accueil - famille

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Connexion – piste A, soleil levant</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<!-- Piste A « Soleil levant » : un grand soleil derrière le nom, la carte de connexion posée comme un horizon. -->
+<div style="position: relative; width: 390px; height: 844px; box-sizing: border-box; background: linear-gradient(180deg, #FFC98A 0%, #FFA36B 46%, #F48A86 100%); font-family: Nunito, system-ui, sans-serif; color: #3B1F14; display: flex; flex-direction: column; overflow: hidden">
+
+  <div aria-hidden="true" style="{{sunHalo}}"></div>
+  <div aria-hidden="true" style="{{sunMid}}"></div>
+  <div aria-hidden="true" style="{{sunCore}}"></div>
+  <sc-if value="{{isSent}}" hint-placeholder-val="{{ false }}">
+    <span aria-hidden="true" style="position: absolute; top: 96px; left: 66px; width: 6px; height: 6px; border-radius: 3px; background: #FFF4E8"></span>
+    <span aria-hidden="true" style="position: absolute; top: 150px; left: 40px; width: 4px; height: 4px; border-radius: 2px; background: #FFF4E8"></span>
+    <span aria-hidden="true" style="position: absolute; top: 120px; right: 52px; width: 5px; height: 5px; border-radius: 3px; background: #FFF4E8"></span>
+  </sc-if>
+
+  <div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 250px 28px 0; text-align: center">
+    <h1 style="margin: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 700; font-size: 52px; line-height: 1; letter-spacing: -0.01em"><span style="color: #8A3A12">Quiz</span>amily</h1>
+    <p style="margin: 0; max-width: 280px; font-size: 18px; font-weight: 700; line-height: 1.35; color: #5E2A12">Une question par semaine pour mieux connaître sa famille.</p>
+  </div>
+
+  <sc-if value="{{isForm}}" hint-placeholder-val="{{ true }}">
+    <section style="position: relative; margin-top: auto; display: flex; flex-direction: column; gap: 14px; padding: 28px 24px 34px; border-radius: 34px 34px 0 0; background: #FFF4E8; box-shadow: 0 -6px 0 rgba(255,214,107,0.55)">
+      <label style="display: flex; flex-direction: column; gap: 8px; font-size: 14px; font-weight: 800; color: #6E4A3A">Ton adresse e-mail
+        <input type="email" placeholder="prenom@exemple.fr" style="box-sizing: border-box; height: 54px; padding: 0 16px; border: 2px solid #EAD9BD; border-radius: 16px; background: #FFFFFF; font-family: Nunito, sans-serif; font-size: 17px; font-weight: 700; color: #3B1F14">
+      </label>
+      <button type="button" style="min-height: 56px; border: none; border-radius: 28px; background: #8A3A12; color: #FFFFFF; font-family: Nunito, sans-serif; font-size: 17px; font-weight: 800; cursor: pointer; box-shadow: 0 5px 0 #5E260B">Recevoir mon lien de connexion</button>
+      <p style="margin: 0; text-align: center; font-size: 14px; font-weight: 700; color: #6E4A3A">Pas de mot de passe : on t’envoie un lien par e-mail, il suffit de le toucher.</p>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{isSent}}" hint-placeholder-val="{{ false }}">
+    <section style="position: relative; margin-top: auto; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 30px 24px 34px; border-radius: 34px 34px 0 0; background: #5B2333; color: #FFFFFF; box-shadow: 0 -6px 0 rgba(91,35,51,0.35)">
+      <span style="display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 28px; background: #FFD66B; color: #5B2333">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="M3.5 7l8.5 6 8.5-6"></path></svg>
+      </span>
+      <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 30px; line-height: 1.05">Regarde tes e-mails</span>
+      <span style="font-size: 16px; line-height: 1.4; color: #FFD9C2">Ton lien de connexion est parti vers <b style="color: #FFFFFF">sylvain@exemple.fr</b>. Touche-le depuis ce téléphone pour entrer.</span>
+      <span style="font-size: 14px; font-weight: 700; color: #FFD9C2">Rien reçu ? Regarde dans les courriers indésirables.</span>
+      <span style="display: flex; gap: 10px; margin-top: 6px">
+        <button type="button" style="min-height: 46px; padding: 0 18px; border: 2px solid #FFD66B; border-radius: 23px; background: transparent; color: #FFD66B; font-family: Nunito, sans-serif; font-size: 15px; font-weight: 800; cursor: pointer">Renvoyer le lien</button>
+        <button type="button" style="min-height: 46px; padding: 0 12px; border: none; background: transparent; color: #FFFFFF; font-family: Nunito, sans-serif; font-size: 15px; font-weight: 800; text-decoration: underline; cursor: pointer">Changer d’adresse</button>
+      </span>
+    </section>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"etat":{"editor":"enum","default":"email","options":["email","envoye"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const sent = this.props.etat === 'envoye';
+    // Une fois le lien envoyé, le soleil se couche un peu et pâlit : on attend (code couleur de l'accueil).
+    const top = sent ? 150 : 40;
+    const circle = (size, bg, opacity) => 'position: absolute; left: 50%; top: ' + (top + (300 - size) / 2) + 'px; width: ' + size + 'px; height: ' + size + 'px; margin-left: -' + size / 2 + 'px; border-radius: 50%; background: ' + bg + '; opacity: ' + opacity;
+    return {
+      isForm: !sent,
+      isSent: sent,
+      sunHalo: circle(300, '#FFD66B', sent ? 0.12 : 0.22),
+      sunMid: circle(220, '#FFD66B', sent ? 0.2 : 0.38),
+      sunCore: circle(150, '#FFD66B', sent ? 0.55 : 1),
+    };
+  }
+}
+</script>
+</body>
+</html>

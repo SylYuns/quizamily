@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Rejoindre – piste A, carton d'invitation</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<!-- Piste A « Carton d'invitation » : l'emblème de la famille en grand sur un carton crème à bord pointillé. 3 étapes : invite (pas encore connecté), choix (es-tu l'une de ces personnes ?), nouveau (présente-toi). -->
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: linear-gradient(180deg, #FFC98A 0%, #FFA36B 46%, #F48A86 100%); font-family: Nunito, system-ui, sans-serif; color: #3B1F14; display: flex; flex-direction: column; gap: 16px; padding: 0 18px 26px; overflow: hidden">
+
+  <sc-if value="{{isInvite}}" hint-placeholder-val="{{ true }}">
+    <div style="position: relative; margin-top: 74px; padding: 6px; border-radius: 32px; background: #FFF4E8; box-shadow: 0 8px 0 rgba(138,58,18,0.22)">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 72px 18px 22px; border: 2px dashed rgba(138,58,18,0.35); border-radius: 27px; text-align: center">
+        <span style="font-size: 13px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #8A3A12">Tu es invité·e dans la</span>
+        <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 34px; line-height: 1">Famille Chardaire</span>
+        <span style="font-size: 15px; font-weight: 700; color: #6E4A3A">par Sylvain</span>
+        <span style="display: flex; align-items: center; margin-top: 8px">
+          <sc-for list="{{faces}}" as="f" hint-placeholder-count="5">
+            <span style="{{f.style}}">{{f.letter}}</span>
+          </sc-for>
+        </span>
+        <span style="font-size: 14px; font-weight: 700; color: #6E4A3A">Mamie Marie, Papi Jean et 9 autres · déjà 24 souvenirs</span>
+      </div>
+      <span style="position: absolute; left: 50%; top: -52px; transform: translateX(-50%); display: flex; padding: 5px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 5px 0 rgba(138,58,18,0.22)">
+        <span style="position: relative; display: flex">
+          <dc-import name="Logo" animal="vache" taille="{{ 104 }}" hint-size="104px,104px"></dc-import>
+          <span style="position: absolute; left: 50%; bottom: -16px; transform: translateX(-50%); padding: 0 10px; border-radius: 11px; border: 2px solid #FFFFFF; background: #3B1F14; color: #FFFFFF; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 17px; line-height: 24px; letter-spacing: 0.04em">CH</span>
+        </span>
+      </span>
+    </div>
+
+    <section style="margin-top: auto; display: flex; flex-direction: column; gap: 12px; padding: 20px; border-radius: 30px; background: #FFF4E8; box-shadow: 0 7px 0 rgba(138,58,18,0.22)">
+      <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 21px">Pour entrer, ton e-mail</span>
+      <input type="email" placeholder="prenom@exemple.fr" style="box-sizing: border-box; height: 52px; padding: 0 16px; border: 2px solid #EAD9BD; border-radius: 16px; background: #FFFFFF; font-family: Nunito, sans-serif; font-size: 17px; font-weight: 700; color: #3B1F14">
+      <button type="button" style="min-height: 54px; border: none; border-radius: 27px; background: #8A3A12; color: #FFFFFF; font-family: Nunito, sans-serif; font-size: 17px; font-weight: 800; cursor: pointer; box-shadow: 0 5px 0 #5E260B">Recevoir mon lien</button>
+      <p style="margin: 0; text-align: center; font-size: 13px; font-weight: 700; color: #6E4A3A">Sans mot de passe. Le lien te ramènera ici.</p>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{isCompact}}" hint-placeholder-val="{{ false }}">
+    <div style="display: flex; align-items: center; gap: 14px; margin-top: 40px; padding: 14px 16px 18px; border-radius: 26px; background: #FFF4E8; box-shadow: 0 6px 0 rgba(138,58,18,0.22)">
+      <span style="position: relative; display: flex; flex-shrink: 0; padding: 3px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 3px 0 rgba(138,58,18,0.2)">
+        <dc-import name="Logo" animal="vache" taille="{{ 54 }}" hint-size="54px,54px"></dc-import>
+        <span style="position: absolute; left: 50%; bottom: -12px; transform: translateX(-50%); padding: 0 6px; border-radius: 8px; border: 2px solid #FFFFFF; background: #3B1F14; color: #FFFFFF; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 11px; line-height: 15px; letter-spacing: 0.04em">CH</span>
+      </span>
+      <span style="display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #8A3A12">Tu rejoins la</span>
+        <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 25px; line-height: 1.05">Famille Chardaire</span>
+      </span>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{isChoix}}" hint-placeholder-val="{{ false }}">
+    <h1 style="margin: 6px 4px 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 27px; line-height: 1.1">Es-tu l’une de ces personnes ?</h1>
+    <p style="margin: -8px 4px 0; font-size: 15px; font-weight: 700; color: #5E2A12">Sylvain les a déjà ajoutées. Choisis-toi pour retrouver ta place dans l’arbre.</p>
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <sc-for list="{{profiles}}" as="p" hint-placeholder-count="3">
+        <button type="button" style="{{p.tile}}">
+          <span style="{{p.rond}}">{{p.letter}}</span>
+          <span style="display: flex; flex-direction: column; gap: 2px; flex: 1; text-align: left">
+            <span style="font-size: 18px; font-weight: 800">{{p.name}}</span>
+            <span style="font-size: 14px; font-weight: 700; color: #6E4A3A">{{p.detail}}</span>
+          </span>
+          <span style="{{p.check}}">{{p.checkText}}</span>
+        </button>
+      </sc-for>
+    </div>
+    <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px">
+      <button type="button" style="min-height: 54px; border: none; border-radius: 27px; background: #8A3A12; color: #FFFFFF; font-family: Nunito, sans-serif; font-size: 17px; font-weight: 800; cursor: pointer; box-shadow: 0 5px 0 #5E260B">C’est moi, Bernard</button>
+      <button type="button" style="min-height: 50px; border: 2px solid #8A3A12; border-radius: 25px; background: #FFF4E8; color: #8A3A12; font-family: Nunito, sans-serif; font-size: 16px; font-weight: 800; cursor: pointer">Je ne suis pas dans cette liste</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{isNouveau}}" hint-placeholder-val="{{ false }}">
+    <h1 style="margin: 6px 4px 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 27px; line-height: 1.1">Présente-toi</h1>
+    <p style="margin: -8px 4px 0; font-size: 15px; font-weight: 700; color: #5E2A12">Ton lien avec chacun se placera ensuite dans l’arbre.</p>
+    <section style="display: flex; flex-direction: column; gap: 14px; padding: 20px; border-radius: 30px; background: #FFF4E8; box-shadow: 0 7px 0 rgba(138,58,18,0.22)">
+      <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 800; color: #6E4A3A">Prénom
+        <input type="text" value="Claire" style="box-sizing: border-box; height: 50px; padding: 0 14px; border: 2px solid #EAD9BD; border-radius: 14px; background: #FFFFFF; font-family: Nunito, sans-serif; font-size: 17px; font-weight: 700; color: #3B1F14">
+      </label>
+      <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 800; color: #6E4A3A">Nom
+        <input type="text" placeholder="Nom de famille" style="box-sizing: border-box; height: 50px; padding: 0 14px; border: 2px solid #8A3A12; border-radius: 14px; background: #FFFFFF; font-family: Nunito, sans-serif; font-size: 17px; font-weight: 700; color: #3B1F14">
+      </label>
+      <span style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; font-weight: 800; color: #6E4A3A">Tu es
+        <span style="display: flex; gap: 10px">
+          <button type="button" style="flex: 1; min-height: 46px; border: 3px solid #8A3A12; border-radius: 23px; background: #FFFFFF; color: #8A3A12; font-family: Nunito, sans-serif; font-size: 16px; font-weight: 800; cursor: pointer">une femme</button>
+          <button type="button" style="flex: 1; min-height: 46px; border: 2px solid #EAD9BD; border-radius: 23px; background: transparent; color: #6E4A3A; font-family: Nunito, sans-serif; font-size: 16px; font-weight: 800; cursor: pointer">un homme</button>
+        </span>
+      </span>
+      <span style="font-size: 12px; font-weight: 700; color: #6E4A3A">Sert seulement à bien accorder les questions (« née », « mariée »…).</span>
+    </section>
+    <div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px">
+      <button type="button" style="min-height: 54px; border: none; border-radius: 27px; background: #8A3A12; color: #FFFFFF; font-family: Nunito, sans-serif; font-size: 17px; font-weight: 800; cursor: pointer; box-shadow: 0 5px 0 #5E260B">Rejoindre la famille</button>
+      <button type="button" style="min-height: 44px; border: none; background: transparent; color: #3B1F14; font-family: Nunito, sans-serif; font-size: 15px; font-weight: 800; text-decoration: underline; cursor: pointer">Retour à la liste</button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"etape":{"editor":"enum","default":"invite","options":["invite","choix","nouveau"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const e = this.props.etape ?? 'invite';
+    const colors = { jaune: ['#FFD66B', '#5A3A00'], menthe: ['#9FD3C7', '#134A40'], orange: ['#F7A06A', '#4A1E06'], lavande: ['#B9A3E3', '#2E1A5C'] };
+    const rond = (c, size, extra) => 'display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: ' + size + 'px; height: ' + size + 'px; box-sizing: border-box; border: 3px solid #FFFFFF; border-radius: 50%; background: ' + colors[c][0] + '; color: ' + colors[c][1] + '; font-family: Fredoka, sans-serif; font-weight: 600; font-size: ' + Math.round(size * 0.42) + 'px; ' + (extra || '');
+    const faces = [['M', 'jaune'], ['J', 'menthe'], ['O', 'orange'], ['L', 'lavande'], ['+9', 'jaune']].map(([letter, c], i) => ({
+      letter, style: rond(c, 48, 'margin-left: ' + (i ? -10 : 0) + 'px; box-shadow: 0 3px 0 rgba(138,58,18,0.18)' + (letter === '+9' ? '; background: #FFFFFF; color: #8A3A12; font-size: 16px' : '')),
+    }));
+    const profiles = [
+      ['B', 'menthe', 'Bernard Chardaire', 'Enfant de Marie et Jean', true],
+      ['O', 'orange', 'Odette Chardaire', 'Enfant de Marie et Jean', false],
+      ['A', 'lavande', 'André Morel', 'Conjoint d’Odette', false],
+    ].map(([letter, c, name, detail, sel]) => ({
+      letter, name, detail,
+      rond: rond(c, 50, 'box-shadow: 0 3px 0 rgba(138,58,18,0.18)'),
+      tile: 'display: flex; align-items: center; gap: 14px; box-sizing: border-box; width: 100%; min-height: 76px; padding: 12px 16px; border-radius: 24px; cursor: pointer; font-family: Nunito, sans-serif; color: #3B1F14; ' + (sel ? 'border: 3px solid #8A3A12; background: #FFF4E8; box-shadow: 0 5px 0 rgba(138,58,18,0.25)' : 'border: 2px solid rgba(255,255,255,0.75); background: rgba(255,244,232,0.6)'),
+      check: sel ? 'display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 15px; background: #8A3A12; color: #FFFFFF; font-weight: 800; font-size: 16px' : 'width: 26px; height: 26px; box-sizing: border-box; border-radius: 13px; border: 2px solid rgba(138,58,18,0.35); color: transparent; font-size: 1px',
+      checkText: sel ? '✓' : '',
+    }));
+    return {
+      isInvite: e === 'invite',
+      isCompact: e !== 'invite',
+      isChoix: e === 'choix',
+      isNouveau: e === 'nouveau',
+      faces, profiles,
+    };
+  }
+}
+</script>
+</body>
+</html>

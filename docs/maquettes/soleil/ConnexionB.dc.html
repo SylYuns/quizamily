@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Connexion – piste B, une question pour commencer</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<!-- Piste B « Une question pour commencer » : l'écran montre tout de suite à quoi ressemble le jeu (une question, les réponses de la famille). -->
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: linear-gradient(180deg, #FFC98A 0%, #FFA36B 46%, #F48A86 100%); font-family: Nunito, system-ui, sans-serif; color: #3B1F14; display: flex; flex-direction: column; gap: 18px; padding: 44px 20px 28px; overflow: hidden">
+
+  <div style="display: flex; align-items: center; gap: 10px">
+    <span aria-hidden="true" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 20px; background: #FFD66B; box-shadow: 0 3px 0 rgba(138,58,18,0.22); font-family: Fredoka, sans-serif; font-weight: 700; font-size: 24px; color: #8A3A12">?</span>
+    <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 700; font-size: 30px"><span style="color: #8A3A12">Quiz</span>amily</span>
+  </div>
+
+  <sc-if value="{{isForm}}" hint-placeholder-val="{{ true }}">
+    <div style="position: relative; display: flex; flex-direction: column; gap: 12px; padding: 22px 20px 20px; border-radius: 30px; background: #8A3A12; color: #FFFFFF; overflow: hidden; box-shadow: 0 7px 0 #5E260B; transform: rotate(-1.5deg)">
+      <span aria-hidden="true" style="position: absolute; top: -46px; right: -40px; width: 150px; height: 150px; border-radius: 75px; background: #FFD66B; opacity: 0.22"></span>
+      <span aria-hidden="true" style="position: absolute; top: -12px; right: -6px; width: 82px; height: 82px; border-radius: 41px; background: #FFD66B; opacity: 0.35"></span>
+      <span style="position: relative; font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #FFE3CF">Question de la semaine</span>
+      <span style="position: relative; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 25px; line-height: 1.12">Où Mamie Marie a-t-elle rencontré Papi Jean ?</span>
+      <div style="position: relative; display: flex; flex-direction: column; gap: 8px; margin-top: 4px">
+        <sc-for list="{{answers}}" as="a" hint-placeholder-count="3">
+          <span style="display: flex; align-items: center; gap: 10px">
+            <span style="{{a.rond}}">{{a.letter}}</span>
+            <span style="{{a.bubble}}">{{a.text}}</span>
+          </span>
+        </sc-for>
+      </div>
+    </div>
+    <p style="margin: 0; padding: 0 6px; font-size: 17px; font-weight: 700; line-height: 1.4; color: #5E2A12">Chaque semaine, une question sur quelqu’un de la famille. Dimanche, on découvre la réponse… et l’histoire qui va avec.</p>
+
+    <section style="margin-top: auto; display: flex; flex-direction: column; gap: 12px; padding: 20px; border-radius: 30px; background: #FFF4E8; box-shadow: 0 7px 0 rgba(138,58,18,0.22)">
+      <label style="display: flex; flex-direction: column; gap: 8px; font-size: 14px; font-weight: 800; color: #6E4A3A">Ton adresse e-mail
+        <input type="email" placeholder="prenom@exemple.fr" style="box-sizing: border-box; height: 52px; padding: 0 16px; border: 2px solid #EAD9BD; border-radius: 16px; background: #FFFFFF; font-family: Nunito, sans-serif; font-size: 17px; font-weight: 700; color: #3B1F14">
+      </label>
+      <button type="button" style="min-height: 54px; border: none; border-radius: 27px; background: #8A3A12; color: #FFFFFF; font-family: Nunito, sans-serif; font-size: 17px; font-weight: 800; cursor: pointer; box-shadow: 0 5px 0 #5E260B">Entrer dans le jeu</button>
+      <p style="margin: 0; text-align: center; font-size: 13px; font-weight: 700; color: #6E4A3A">On t’envoie un lien par e-mail, sans mot de passe.</p>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{isSent}}" hint-placeholder-val="{{ false }}">
+    <div style="position: relative; display: flex; flex-direction: column; gap: 12px; padding: 24px 22px; border-radius: 30px; background: #5B2333; color: #FFFFFF; overflow: hidden; box-shadow: 0 7px 0 #3D1622">
+      <span aria-hidden="true" style="position: absolute; top: 18px; right: 30px; width: 46px; height: 46px; border-radius: 23px; background: #FFD66B; opacity: 0.9"></span>
+      <span aria-hidden="true" style="position: absolute; top: 12px; right: 18px; width: 46px; height: 46px; border-radius: 23px; background: #5B2333"></span>
+      <span aria-hidden="true" style="position: absolute; top: 64px; right: 76px; width: 5px; height: 5px; border-radius: 3px; background: #FFE3CF"></span>
+      <span style="position: relative; font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #FFD9C2">Presque !</span>
+      <span style="position: relative; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 30px; line-height: 1.05; padding-right: 64px">Regarde tes e‑mails</span>
+      <span style="position: relative; font-size: 16px; line-height: 1.4; color: #FFD9C2">Un lien vient de partir vers <b style="color: #FFFFFF">sylvain@exemple.fr</b>. Touche-le depuis ce téléphone pour entrer.</span>
+    </div>
+    <div style="display: flex; align-items: flex-start; gap: 12px; padding: 16px 18px; border-radius: 22px; background: rgba(255,244,232,0.55); border: 2px solid rgba(255,255,255,0.7)">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B2333" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>
+      <span style="font-size: 15px; font-weight: 700; line-height: 1.4; color: #3B1F14">Rien reçu au bout d’une minute ? Regarde dans les courriers indésirables.</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <button type="button" style="min-height: 52px; border: 2px solid #8A3A12; border-radius: 26px; background: #FFF4E8; color: #8A3A12; font-family: Nunito, sans-serif; font-size: 16px; font-weight: 800; cursor: pointer">Renvoyer le lien</button>
+      <button type="button" style="min-height: 44px; border: none; background: transparent; color: #3B1F14; font-family: Nunito, sans-serif; font-size: 15px; font-weight: 800; text-decoration: underline; cursor: pointer">Changer d’adresse</button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"etat":{"editor":"enum","default":"email","options":["email","envoye"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const sent = this.props.etat === 'envoye';
+    const rond = (bg, fg) => 'display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 34px; height: 34px; box-sizing: border-box; border: 2px solid #FFFFFF; border-radius: 17px; background: ' + bg + '; color: ' + fg + '; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 16px';
+    const bubble = (hidden) => 'padding: 7px 14px; border-radius: 16px 16px 16px 4px; font-size: 15px; font-weight: 800; ' + (hidden ? 'background: rgba(255,255,255,0.14); color: #FFE3CF; border: 2px dashed rgba(255,227,207,0.6)' : 'background: #FFF4E8; color: #3B1F14');
+    return {
+      isForm: !sent,
+      isSent: sent,
+      answers: [
+        { letter: 'O', text: 'Au bal du village', rond: rond('#F7A06A', '#4A1E06'), bubble: bubble(false) },
+        { letter: 'L', text: 'À l’usine, à Lyon', rond: rond('#B9A3E3', '#2E1A5C'), bubble: bubble(false) },
+        { letter: '?', text: 'Et toi, tu dirais quoi ?', rond: rond('#FFD66B', '#5A3A00'), bubble: bubble(true) },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

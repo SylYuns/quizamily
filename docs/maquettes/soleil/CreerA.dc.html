@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Créer une famille – piste A, étapes</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<!-- Piste A « Étapes » : une carte crème par étape, une barre d'avancement en 5 pastilles en haut. Étape 1 (nom + emblème) = FamilleEmbleme avec progression=true. L'ancien récapitulatif disparaît : chaque étape montre déjà ce qui est rempli (tuiles repliées), et l'étape 5 résume la famille. -->
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: linear-gradient(180deg, #FFC98A 0%, #FFA36B 46%, #F48A86 100%); font-family: Nunito, system-ui, sans-serif; color: #3B1F14; display: flex; flex-direction: column; overflow: hidden">
+
+  <header style="display: flex; align-items: center; gap: 4px; padding: 16px 16px 4px 8px">
+    <button type="button" aria-label="Étape précédente" style="display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 44px; height: 44px; border: none; border-radius: 22px; background: transparent; color: #3B1F14; cursor: pointer">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+    </button>
+    <h1 style="flex: 1; min-width: 0; margin: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 25px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{headerTitle}}</h1>
+  </header>
+  <div style="display: flex; flex-direction: column; gap: 6px; padding: 2px 20px 10px">
+    <span style="display: flex; gap: 6px">
+      <sc-for list="{{steps}}" as="s" hint-placeholder-count="5">
+        <span style="{{s}}"></span>
+      </sc-for>
+    </span>
+    <span style="font-size: 13px; font-weight: 800; color: #5E2A12">{{stepLabel}}</span>
+  </div>
+
+  <main style="flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; padding: 4px 16px 24px">
+
+    <sc-if value="{{isToi}}" hint-placeholder-val="{{ true }}">
+      <p style="margin: 0 4px; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 24px">Et toi, qui es-tu ?</p>
+      <section style="display: flex; flex-direction: column; gap: 14px; padding: 18px; border-radius: 30px; background: #FFF4E8; box-shadow: 0 7px 0 rgba(138,58,18,0.22)">
+        <span style="display: flex; align-items: center; gap: 14px">
+          <span style="{{meRond}}">S</span>
+          <span style="font-size: 15px; font-weight: 700; color: #6E4A3A">Ton rond dans l’arbre. Il prend l’initiale de ton prénom.</span>
+        </span>
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 800; color: #6E4A3A">Prénom
+          <input type="text" value="Sylvain" style="{{input}}">
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 800; color: #6E4A3A">Nom
+          <input type="text" value="Chardaire" style="{{input}}">
+        </label>
+        <span style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; font-weight: 800; color: #6E4A3A">Tu es
+          <span style="display: flex; gap: 10px">
+            <button type="button" style="{{chipOff}}">une femme</button>
+            <button type="button" style="{{chipOn}}">un homme</button>
+          </span>
+        </span>
+      </section>
+      <p style="margin: 0 4px; font-size: 13px; font-weight: 700; color: #5E2A12">Étape sautée si tu as déjà une famille : on reprend ta fiche.</p>
+      <button type="button" style="{{nextBtn}}">Suivant</button>
+    </sc-if>
+
+    <sc-if value="{{isCentrales}}" hint-placeholder-val="{{ false }}">
+      <p style="margin: 0 4px; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 24px; line-height: 1.1">Autour de qui tourne la famille ?</p>
+      <p style="margin: -4px 4px 0; font-size: 14px; font-weight: 700; color: #5E2A12">Souvent les grands-parents : la plupart des questions parleront d’eux. 1 à 4 personnes.</p>
+      <div style="{{doneTile}}">
+        <span style="{{rondM}}">M<span style="{{star}}"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.2 1.3-6.6L2.5 9.3l6.6-.8z"></path></svg></span></span>
+        <span style="display: flex; flex-direction: column; flex: 1">
+          <span style="font-size: 17px; font-weight: 800">Marie Chardaire</span>
+          <span style="font-size: 14px; font-weight: 700; color: #6E4A3A">Ta grand-mère</span>
+        </span>
+        <span style="font-size: 14px; font-weight: 800; color: #8A3A12">✎ Modifier</span>
+      </div>
+      <section style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 26px; background: #FFF4E8; border: 3px solid #8A3A12; box-shadow: 0 6px 0 rgba(138,58,18,0.25)">
+        <span style="display: flex; gap: 10px">
+          <input type="text" value="Jean" aria-label="Prénom" style="{{inputHalf}}">
+          <input type="text" value="Chardaire" aria-label="Nom" style="{{inputHalf}}">
+        </span>
+        <span style="display: flex; gap: 10px">
+          <button type="button" style="{{chipOff}}">une femme</button>
+          <button type="button" style="{{chipOn}}">un homme</button>
+        </span>
+        <span style="display: flex; align-items: center; justify-content: space-between; gap: 10px; box-sizing: border-box; height: 50px; padding: 0 14px; border: 2px solid #EAD9BD; border-radius: 14px; background: #FFFFFF">
+          <span style="font-size: 13px; font-weight: 800; color: #6E4A3A">Son lien avec toi</span>
+          <span style="display: flex; align-items: center; gap: 6px; font-size: 16px; font-weight: 800">Grand-père <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A3A12" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span>
+        </span>
+        <span style="display: flex; align-items: center; justify-content: space-between; font-size: 15px; font-weight: 800; color: #3B1F14">Il est décédé
+          <span style="{{toggleOn}}"><span style="width: 24px; height: 24px; border-radius: 12px; background: #FFFFFF"></span></span>
+        </span>
+      </section>
+      <button type="button" style="{{addBtn}}">+ Ajouter une personne centrale</button>
+      <button type="button" style="{{nextBtn}}">Suivant</button>
+    </sc-if>
+
+    <sc-if value="{{isEnfants}}" hint-placeholder-val="{{ false }}">
+      <p style="margin: 0 4px; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 24px">Les enfants de Marie et Jean</p>
+      <p style="margin: -4px 4px 0; font-size: 14px; font-weight: 700; color: #5E2A12">Facultatif, mais chacun se retrouvera plus facilement en rejoignant la famille.</p>
+      <sc-for list="{{kids}}" as="k" hint-placeholder-count="2">
+        <div style="{{doneTile}}">
+          <span style="{{k.rond}}">{{k.letter}}</span>
+          <span style="display: flex; flex-direction: column; flex: 1">
+            <span style="font-size: 17px; font-weight: 800">{{k.name}}</span>
+            <span style="font-size: 14px; font-weight: 700; color: #6E4A3A">{{k.detail}}</span>
+          </span>
+          <span style="font-size: 14px; font-weight: 800; color: #8A3A12">✎ Modifier</span>
+        </div>
+      </sc-for>
+      <section style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 26px; background: #FFF4E8; border: 3px solid #8A3A12; box-shadow: 0 6px 0 rgba(138,58,18,0.25)">
+        <span style="display: flex; gap: 10px">
+          <input type="text" value="Pierre" aria-label="Prénom" style="{{inputHalf}}">
+          <input type="text" value="Chardaire" aria-label="Nom" style="{{inputHalf}}">
+        </span>
+        <span style="display: flex; gap: 10px">
+          <button type="button" style="{{chipOff}}">une femme</button>
+          <button type="button" style="{{chipOn}}">un homme</button>
+        </span>
+        <span style="display: flex; align-items: center; justify-content: space-between; font-size: 15px; font-weight: 800; color: #3B1F14">Il est décédé
+          <span style="{{toggleOff}}"><span style="width: 24px; height: 24px; border-radius: 12px; background: #FFFFFF"></span></span>
+        </span>
+      </section>
+      <button type="button" style="{{addBtn}}">+ Ajouter un enfant</button>
+      <button type="button" style="{{nextBtn}}">Créer la famille</button>
+    </sc-if>
+
+    <sc-if value="{{isFin}}" hint-placeholder-val="{{ false }}">
+      <div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 22px 0 6px; text-align: center">
+        <sc-for list="{{confetti}}" as="c" hint-placeholder-count="10">
+          <span aria-hidden="true" style="{{c}}"></span>
+        </sc-for>
+        <span style="position: relative; display: flex; padding: 5px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 5px 0 rgba(138,58,18,0.22)">
+          <dc-import name="Logo" animal="vache" taille="{{ 96 }}" hint-size="96px,96px"></dc-import>
+          <span style="position: absolute; left: 50%; bottom: -15px; transform: translateX(-50%); padding: 0 9px; border-radius: 10px; border: 2px solid #FFFFFF; background: #3B1F14; color: #FFFFFF; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 16px; line-height: 22px; letter-spacing: 0.04em">CH</span>
+        </span>
+        <span style="margin-top: 12px; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 28px; line-height: 1.1">La famille Chardaire est prête !</span>
+        <span style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: #5E2A12">
+          <span style="display: flex">
+            <sc-for list="{{faces}}" as="f" hint-placeholder-count="6">
+              <span style="{{f.style}}">{{f.letter}}</span>
+            </sc-for>
+          </span>
+          6 personnes dans l’arbre
+        </span>
+      </div>
+      <section style="display: flex; flex-direction: column; gap: 12px; padding: 18px; border-radius: 30px; background: #FFF4E8; box-shadow: 0 7px 0 rgba(138,58,18,0.22)">
+        <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 22px">Invite les autres</span>
+        <span style="font-size: 14px; font-weight: 700; color: #6E4A3A">Un seul lien pour tout le monde : chacun se choisira dans la liste, ou se présentera.</span>
+        <span style="display: flex; align-items: center; box-sizing: border-box; height: 48px; padding: 0 14px; border: 2px dashed #D9BFA0; border-radius: 14px; background: #FFFFFF; font-size: 15px; font-weight: 800; color: #6E4A3A">quizamily.app/j/4F7K2Q</span>
+        <span style="display: flex; gap: 10px">
+          <button type="button" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; border: none; border-radius: 26px; background: #8A3A12; color: #FFFFFF; font-family: Nunito, sans-serif; font-size: 16px; font-weight: 800; cursor: pointer; box-shadow: 0 5px 0 #5E260B">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"></path></svg>
+            Partager
+          </button>
+          <button type="button" style="min-height: 52px; padding: 0 20px; border: 2px solid #8A3A12; border-radius: 26px; background: transparent; color: #8A3A12; font-family: Nunito, sans-serif; font-size: 16px; font-weight: 800; cursor: pointer">Copier</button>
+        </span>
+      </section>
+      <button type="button" style="margin-top: auto; min-height: 50px; border: 2px solid #FFFFFF; border-radius: 25px; background: rgba(255,244,232,0.55); color: #3B1F14; font-family: Nunito, sans-serif; font-size: 16px; font-weight: 800; cursor: pointer">Aller à l’accueil de la famille</button>
+    </sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"etape":{"editor":"enum","default":"toi","options":["toi","centrales","enfants","fin"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const e = this.props.etape ?? 'toi';
+    const idx = { toi: 1, centrales: 2, enfants: 3, fin: 4 }[e] ?? 1;
+    const names = ['La famille', 'Toi', 'Les personnes centrales', 'Leurs enfants', 'Inviter'];
+    const colors = { jaune: ['#FFD66B', '#5A3A00'], menthe: ['#9FD3C7', '#134A40'], orange: ['#F7A06A', '#4A1E06'], lavande: ['#B9A3E3', '#2E1A5C'] };
+    const rond = (c, size, extra) => 'position: relative; display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: ' + size + 'px; height: ' + size + 'px; box-sizing: border-box; border: 3px solid #FFFFFF; border-radius: 50%; background: ' + colors[c][0] + '; color: ' + colors[c][1] + '; font-family: Fredoka, sans-serif; font-weight: 600; font-size: ' + Math.round(size * 0.42) + 'px; box-shadow: 0 3px 0 rgba(138,58,18,0.18); ' + (extra || '');
+    const chip = (on) => 'flex: 1; min-height: 44px; border-radius: 22px; font-family: Nunito, sans-serif; font-size: 15px; font-weight: 800; cursor: pointer; ' + (on ? 'border: 3px solid #8A3A12; background: #FFFFFF; color: #8A3A12' : 'border: 2px solid #EAD9BD; background: transparent; color: #6E4A3A');
+    const toggle = (on) => 'display: flex; align-items: center; justify-content: ' + (on ? 'flex-end' : 'flex-start') + '; box-sizing: border-box; width: 52px; height: 30px; padding: 3px; border-radius: 15px; background: ' + (on ? '#8A3A12' : '#E6D2B8');
+    const confettiColors = ['#FFD66B', '#9FD3C7', '#B9A3E3', '#F7A06A', '#FFFFFF', '#8A3A12'];
+    const spots = [[40, 20], [80, 70], [62, 108], [300, 24], [330, 84], [292, 112], [120, 10], [250, 50], [20, 96], [352, 40]];
+    return {
+      isToi: e === 'toi', isCentrales: e === 'centrales', isEnfants: e === 'enfants', isFin: e === 'fin',
+      headerTitle: e === 'fin' ? 'Famille créée' : 'Créer une famille',
+      stepLabel: 'Étape ' + (idx + 1) + ' sur 5 · ' + names[idx],
+      steps: names.map((_, i) => 'height: 8px; border-radius: 4px; ' + (i === idx ? 'flex: 2.4; background: #8A3A12' : i < idx ? 'flex: 1; background: #8A3A12; opacity: 0.55' : 'flex: 1; background: rgba(255,244,232,0.7)')),
+      input: 'box-sizing: border-box; height: 50px; padding: 0 14px; border: 2px solid #EAD9BD; border-radius: 14px; background: #FFFFFF; font-family: Nunito, sans-serif; font-size: 17px; font-weight: 700; color: #3B1F14',
+      inputHalf: 'flex: 1; min-width: 0; box-sizing: border-box; height: 50px; padding: 0 14px; border: 2px solid #EAD9BD; border-radius: 14px; background: #FFFFFF; font-family: Nunito, sans-serif; font-size: 17px; font-weight: 700; color: #3B1F14',
+      chipOn: chip(true), chipOff: chip(false),
+      toggleOn: toggle(true), toggleOff: toggle(false),
+      meRond: rond('orange', 64),
+      rondM: rond('jaune', 50),
+      star: 'position: absolute; right: -6px; bottom: -6px; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 11px; border: 2px solid #FFFFFF; background: #8A3A12; color: #FFD66B; box-sizing: border-box',
+      doneTile: 'display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 22px; background: rgba(255,244,232,0.8); border: 2px solid #FFFFFF',
+      kids: [
+        { letter: 'O', name: 'Odette Chardaire', detail: 'Fille de Marie et Jean', rond: rond('orange', 46) },
+        { letter: 'B', name: 'Bernard Chardaire', detail: 'Fils de Marie et Jean', rond: rond('menthe', 46) },
+      ],
+      addBtn: 'min-height: 50px; border: 2px dashed #8A3A12; border-radius: 25px; background: rgba(255,244,232,0.35); color: #8A3A12; font-family: Nunito, sans-serif; font-size: 16px; font-weight: 800; cursor: pointer',
+      nextBtn: 'margin-top: auto; min-height: 54px; border: none; border-radius: 27px; background: #8A3A12; color: #FFFFFF; font-family: Nunito, sans-serif; font-size: 17px; font-weight: 800; cursor: pointer; box-shadow: 0 5px 0 #5E260B',
+      faces: [['M', 'jaune'], ['J', 'menthe'], ['O', 'orange'], ['B', 'menthe'], ['P', 'lavande'], ['S', 'orange']].map(([letter, c], i) => ({ letter, style: rond(c, 34, 'margin-left: ' + (i ? -8 : 0) + 'px; border-width: 2px; box-shadow: none') })),
+      confetti: spots.map(([x, y], i) => 'position: absolute; left: ' + x + 'px; top: ' + y + 'px; width: ' + (i % 3 ? 10 : 14) + 'px; height: ' + (i % 2 ? 6 : 14) + 'px; border-radius: ' + (i % 2 ? '3px' : '50%') + '; background: ' + confettiColors[i % confettiColors.length] + '; transform: rotate(' + (i * 37) + 'deg)'),
+    };
+  }
+}
+</script>
+</body>
+</html>

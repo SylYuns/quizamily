@@ -225,6 +225,139 @@
       "x": 3260,
       "y": 7100,
       "title": "Emblème · Choix à la création d'une famille"
+    },
+    "ConnexionA.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 1100,
+      "y": 8800,
+      "title": "Connexion · A « Soleil levant » : e-mail"
+    },
+    "ConnexionAEnvoye.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 1570,
+      "y": 8800,
+      "title": "Connexion · A : lien envoyé"
+    },
+    "ConnexionB.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 2040,
+      "y": 8800,
+      "title": "Connexion · B « Une question pour commencer » : e-mail"
+    },
+    "ConnexionBEnvoye.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 2510,
+      "y": 8800,
+      "title": "Connexion · B : lien envoyé"
+    },
+    "ConnexionC.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 2980,
+      "y": 8800,
+      "title": "Connexion · C « La famille en ronds » : e-mail"
+    },
+    "ConnexionCEnvoye.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 3450,
+      "y": 8800,
+      "title": "Connexion · C : lien envoyé"
+    },
+    "RejoindreA.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 1100,
+      "y": 10200,
+      "title": "Rejoindre · A « Carton d’invitation » : pas encore connecté"
+    },
+    "RejoindreAChoix.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 1570,
+      "y": 10200,
+      "title": "Rejoindre · A : es-tu l’une de ces personnes ?"
+    },
+    "RejoindreANouveau.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 2040,
+      "y": 10200,
+      "title": "Rejoindre · A : présente-toi"
+    },
+    "RejoindreB.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 2510,
+      "y": 10200,
+      "title": "Rejoindre · B « Trouve ta place » : pas encore connecté"
+    },
+    "RejoindreBChoix.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 2980,
+      "y": 10200,
+      "title": "Rejoindre · B : touche ton rond"
+    },
+    "CreerAFamille.dc.html": {
+      "h": 900,
+      "w": 390,
+      "x": 1100,
+      "y": 11600,
+      "title": "Créer · A « Étapes » : 1. la famille"
+    },
+    "CreerA.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 1570,
+      "y": 11600,
+      "title": "Créer · A : 2. toi"
+    },
+    "CreerACentrales.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 2040,
+      "y": 11600,
+      "title": "Créer · A : 3. personnes centrales"
+    },
+    "CreerAEnfants.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 2510,
+      "y": 11600,
+      "title": "Créer · A : 4. leurs enfants"
+    },
+    "CreerAFin.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 2980,
+      "y": 11600,
+      "title": "Créer · A : 5. inviter"
+    },
+    "CreerB.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 3450,
+      "y": 11600,
+      "title": "Créer · B « La famille se dessine » : 3. personnes centrales"
+    },
+    "CreerBEnfants.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 3920,
+      "y": 11600,
+      "title": "Créer · B : 4. leurs enfants"
+    },
+    "CreerBFin.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 4390,
+      "y": 11600,
+      "title": "Créer · B : 5. inviter"
     }
   },
   "createdOnFiles": {
@@ -294,6 +427,27 @@
       "text": "B · Emblème de la famille",
       "x": 1100,
       "y": 6800
+    },
+    "titreArriveeConnexion": {
+      "kind": "title1",
+      "maxW": 2740,
+      "text": "B · Arrivée : connexion (3 pistes)",
+      "x": 1100,
+      "y": 8500
+    },
+    "titreArriveeRejoindre": {
+      "kind": "title1",
+      "maxW": 2270,
+      "text": "B · Arrivée : rejoindre une famille par invitation (2 pistes)",
+      "x": 1100,
+      "y": 9900
+    },
+    "titreArriveeCreer": {
+      "kind": "title1",
+      "maxW": 3680,
+      "text": "B · Arrivée : créer une famille (2 pistes)",
+      "x": 1100,
+      "y": 11300
     }
   },
   "order": [
@@ -328,7 +482,26 @@
     "Logo.dc.html",
     "AccueilEmbleme.dc.html",
     "AccueilMenu.dc.html",
-    "FamilleEmbleme.dc.html"
+    "FamilleEmbleme.dc.html",
+    "ConnexionA.dc.html",
+    "ConnexionAEnvoye.dc.html",
+    "ConnexionB.dc.html",
+    "ConnexionBEnvoye.dc.html",
+    "ConnexionC.dc.html",
+    "ConnexionCEnvoye.dc.html",
+    "RejoindreA.dc.html",
+    "RejoindreAChoix.dc.html",
+    "RejoindreANouveau.dc.html",
+    "RejoindreB.dc.html",
+    "RejoindreBChoix.dc.html",
+    "CreerAFamille.dc.html",
+    "CreerA.dc.html",
+    "CreerACentrales.dc.html",
+    "CreerAEnfants.dc.html",
+    "CreerAFin.dc.html",
+    "CreerB.dc.html",
+    "CreerBEnfants.dc.html",
+    "CreerBFin.dc.html"
   ],
   "pages": [],
   "title": "Quizamily – Pistes chaleureuses"
