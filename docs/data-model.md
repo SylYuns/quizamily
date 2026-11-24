@@ -76,6 +76,11 @@ fact_attachments
 
 quiz_sessions
   id, family_id, status, opens_at, closes_at
+  revealed_at              -- À AJOUTER (2026-11-24, Historique) : moment réel de la révélation, rempli au passage
+                           -- status 'open' → 'closed' (3 fonctions : révélation manuelle, automatique, règles de
+                           -- délai) ; reprise = closes_at pour les semaines déjà terminées. closes_at est la date
+                           -- limite prévue, pas le moment de la révélation (qui peut être plus tôt). Sert à savoir
+                           -- dans quel mois compte une question (fuseau Europe/Paris).
 
 quiz_questions
   id, session_id, fact_id
@@ -92,6 +97,27 @@ question_recipients
   answered_at
   validated_by_person_id, validated_at   -- nullable ; null si validation automatique (réponse identique après normalisation)
 
+-- À AJOUTER (2026-11-24) : archive des stats du mois pour l'Historique (écran 12), figée le 1er de chaque mois
+-- pour le mois précédent par une tâche planifiée (pg_cron, comme la pioche et la révélation). Le mois en cours est
+-- calculé en direct ; une fois figé, un mois ne bouge plus (une correction acceptée après coup ne le modifie pas).
+monthly_person_stats       -- une ligne par joueur et par mois
+  family_id, month (date : 1er jour du mois), person_id
+  correct_count            -- bonnes réponses (result = 'correct') aux questions révélées dans le mois
+  received_count           -- questions reçues (l'auteur d'un fait ne reçoit pas sa propre question)
+  answered_count           -- réponses données (≠ 'unanswered')
+  facts_added_count        -- souvenirs ajoutés dans le mois (facts.created_at)
+  authored_count           -- questions du mois dont il était l'auteur (« Les auteurs du mois »)
+  best_streak              -- plus longue suite de bonnes réponses d'affilée dans le mois, dans l'ordre des révélations
+  podium_rank              -- 1, 2, 3 ou null (égalités : même rang, la marche est partagée)
+  titles                   -- text[] : 'coup_de_maitre' | 'plume_or' | 'toujours_present'
+  primary key (family_id, month, person_id)
+
+monthly_family_stats       -- une ligne par famille et par mois
+  family_id, month
+  questions_revealed       -- nombre de questions révélées dans le mois
+  correct_total, expected_total   -- jauge « Ensemble, N bonnes réponses sur M »
+  primary key (family_id, month)
+
 fact_reactions
   id, fact_id, person_id, emoji, created_at
 
@@ -101,6 +127,7 @@ fact_comments
 
 ## Notes de conception
 
+- **Historique : stats du mois (décidé le 2026-11-24)** : mois **calendaire** (fuseau Europe/Paris), d'après `quiz_sessions.revealed_at`. Mois en cours : calculé en direct par une fonction serveur ; mois terminés : lus dans `monthly_person_stats` / `monthly_family_stats`, **figées le 1er du mois** (choix de Sylvain, plutôt que tout recalculer : le palmarès ne change plus après coup). Règles de calcul : podium = **bonnes réponses seulement** (ni souvenirs ajoutés ni participation, ni point compensatoire pour les auteurs — refusé par Sylvain : « ça n'a pas de sens ») ; comptes faits sur les **questions reçues** ; Coup de maître = seul joueur à avoir trouvé une question du mois ; Plume d'or = le plus de souvenirs ajoutés ; Toujours présent = a répondu à toutes les questions reçues ; égalités partagées partout. Lecture : membres de la famille (RLS `is_family_member`) ; écriture : seulement la tâche planifiée (fonction `security definer`).
 - **Emblème de la famille (décidé le 2026-11-24, à coder)** : `families.emblem_symbol`, `emblem_color`, `emblem_letters`, remplis à la création (tirage au hasard proposé, modifiable). Les familles existantes reçoivent un emblème au hasard dans la migration. **Seul le créateur (`families.created_by`) peut les modifier** : fonction `security definer` dédiée (ou policy `update` limitée à `created_by = auth.uid()` et à ces 3 colonnes), les autres membres ne peuvent que les lire. Voir `ecrans.md`, « Règles communes ».
 - **`answer_input_kind`** détermine le widget de saisie (date picker, dropdown pays, autocomplétion ville/prénom basée sur `SELECT DISTINCT answer_value` de la famille, etc.). Pour les types guidés, la validation est entièrement automatique.
 - **`free_text`** : l'auteur du fait et les joueurs saisissent librement. Une réponse identique à la bonne réponse après normalisation (minuscules, sans accents, sans espaces superflus, tirets ni apostrophes) est validée automatiquement ; les autres passent en `pending_validation` jusqu'à la décision du validateur.
