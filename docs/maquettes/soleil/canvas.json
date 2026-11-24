@@ -203,7 +203,7 @@
       "w": 120,
       "x": 2080,
       "y": 7320,
-      "title": "Composant : logo (vache, lézard)"
+      "title": "Composant : logo (vache, lézard, chien ; couleur au choix)"
     },
     "AccueilEmbleme.dc.html": {
       "h": 844,
@@ -372,6 +372,13 @@
       "x": 3920,
       "y": 8800,
       "title": "Connexion · B : intro animée (tourne en boucle, 16 s)"
+    },
+    "ChoixFamille.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 1100,
+      "y": 13000,
+      "title": "Choix de famille · une carte par famille (actions, alertes)"
     }
   },
   "createdOnFiles": {
@@ -462,6 +469,13 @@
       "text": "B · Arrivée : créer une famille (2 pistes)",
       "x": 1100,
       "y": 11300
+    },
+    "titreArriveeChoix": {
+      "kind": "title1",
+      "maxW": 860,
+      "text": "B · Arrivée : choix de famille",
+      "x": 1100,
+      "y": 12700
     }
   },
   "order": [
@@ -517,7 +531,8 @@
     "CreerAFin.dc.html",
     "CreerB.dc.html",
     "CreerBEnfants.dc.html",
-    "CreerBFin.dc.html"
+    "CreerBFin.dc.html",
+    "ChoixFamille.dc.html"
   ],
   "pages": [],
   "title": "Quizamily – Pistes chaleureuses"

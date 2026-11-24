@@ -20,7 +20,7 @@ body{margin:0}
   <sc-if value="{{isDessus}}" hint-placeholder-val="{{ true }}">
     <span style="{{ringRound}}">
       <span style="position: relative; display: flex">
-        <dc-import name="Logo" animal="{{animal}}" taille="{{ 46 }}" hint-size="46px,46px"></dc-import>
+        <dc-import name="Logo" animal="{{animal}}" couleur="{{couleur}}" taille="{{ 46 }}" hint-size="46px,46px"></dc-import>
         <span style="position: absolute; left: 50%; bottom: -13px; transform: translateX(-50%); padding: 0 6px; border-radius: 8px; border: 2px solid #FFFFFF; background: #3B1F14; color: #FFFFFF; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 11px; line-height: 15px; letter-spacing: 0.04em">{{lettres}}</span>
       </span>
     </span>
@@ -29,7 +29,7 @@ body{margin:0}
   <sc-if value="{{isDedans}}" hint-placeholder-val="{{ false }}">
     <span style="{{ringTall}}">
       <span style="display: flex; flex-direction: column; align-items: center; gap: 1px; box-sizing: border-box; width: 50px; height: 62px; padding-top: 4px; border-radius: 22px; background: #FFFFFF">
-        <dc-import name="Logo" animal="{{animal}}" taille="{{ 38 }}" hint-size="38px,38px"></dc-import>
+        <dc-import name="Logo" animal="{{animal}}" couleur="{{couleur}}" taille="{{ 38 }}" hint-size="38px,38px"></dc-import>
         <span style="font-family: Fredoka, sans-serif; font-weight: 600; font-size: 13px; line-height: 16px; letter-spacing: 0.04em; color: #3B1F14">{{lettres}}</span>
       </span>
     </span>
@@ -38,7 +38,7 @@ body{margin:0}
   <sc-if value="{{isDessous}}" hint-placeholder-val="{{ false }}">
     <span style="display: flex; flex-direction: column; align-items: center; gap: 2px">
       <span style="{{ringRound}}">
-        <dc-import name="Logo" animal="{{animal}}" taille="{{ 42 }}" hint-size="42px,42px"></dc-import>
+        <dc-import name="Logo" animal="{{animal}}" couleur="{{couleur}}" taille="{{ 42 }}" hint-size="42px,42px"></dc-import>
       </span>
       <span style="font-family: Fredoka, sans-serif; font-weight: 600; font-size: 12px; line-height: 14px; letter-spacing: 0.04em; color: #3B1F14">{{lettres}}</span>
     </span>
@@ -47,7 +47,7 @@ body{margin:0}
   <sc-if value="{{isCote}}" hint-placeholder-val="{{ false }}">
     <span style="{{ringPill}}">
       <span style="display: flex; align-items: center; gap: 6px; box-sizing: border-box; height: 46px; padding: 0 12px 0 3px; border-radius: 23px; background: #FFFFFF">
-        <dc-import name="Logo" animal="{{animal}}" taille="{{ 40 }}" hint-size="40px,40px"></dc-import>
+        <dc-import name="Logo" animal="{{animal}}" couleur="{{couleur}}" taille="{{ 40 }}" hint-size="40px,40px"></dc-import>
         <span style="font-family: Fredoka, sans-serif; font-weight: 600; font-size: 17px; letter-spacing: 0.04em; color: #3B1F14">{{lettres}}</span>
       </span>
     </span>
@@ -56,14 +56,14 @@ body{margin:0}
   <sc-if value="{{isCoin}}" hint-placeholder-val="{{ false }}">
     <span style="position: relative; display: flex">
       <span style="{{ringRound}}">
-        <dc-import name="Logo" animal="{{animal}}" taille="{{ 46 }}" hint-size="46px,46px"></dc-import>
+        <dc-import name="Logo" animal="{{animal}}" couleur="{{couleur}}" taille="{{ 46 }}" hint-size="46px,46px"></dc-import>
       </span>
       <span style="position: absolute; right: -10px; top: -6px; padding: 0 5px; border-radius: 8px; border: 2px solid #8A3A12; background: #FFF4E8; color: #3B1F14; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 10px; line-height: 14px; letter-spacing: 0.04em">{{lettres}}</span>
     </span>
   </sc-if>
 </button>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"variante":{"editor":"enum","default":"dessus","options":["dessus","dedans","dessous","cote","coin"]},"animal":{"editor":"enum","default":"vache","options":["vache","lezard"]},"lettres":{"editor":"text","default":"CH"},"lisere":{"editor":"boolean","default":true},"$preview":{"width":120,"height":100}}'>
+<script type="text/x-dc" data-dc-script data-props='{"variante":{"editor":"enum","default":"dessus","options":["dessus","dedans","dessous","cote","coin"]},"animal":{"editor":"enum","default":"vache","options":["vache","lezard","chien"]},"couleur":{"editor":"enum","default":"","options":["","bleu","rouge","jaune","vert","orange","rose","violet","brun"]},"lettres":{"editor":"text","default":"CH"},"lisere":{"editor":"boolean","default":true},"$preview":{"width":120,"height":100}}'>
 class Component extends DCLogic {
   renderVals() {
     const v = this.props.variante ?? 'dessus';
@@ -76,6 +76,7 @@ class Component extends DCLogic {
     const ring = (bg, radius) => 'display: flex; padding: 3px; border-radius: ' + radius + '; ' + shadow + '; background: ' + (lisere ? bg : '#FFFFFF');
     return {
       animal,
+      couleur: this.props.couleur ?? '',
       lettres: this.props.lettres ?? 'CH',
       aria: 'Menu de la famille ' + (this.props.lettres ?? 'CH'),
       isDessus: v === 'dessus',

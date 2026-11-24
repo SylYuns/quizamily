@@ -113,7 +113,14 @@ Actions :
 - par défaut, le joueur arrive directement sur la dernière famille consultée ;
 - il arrive sur cet écran de choix si **plusieurs familles ont une question en attente**, ou si **une famille autre que la dernière consultée a une question en attente** ;
 - une fois dans une famille, on change de famille par le menu de l'emblème (« Mes familles », voir Règles communes) : l'écran de choix ne sert qu'à l'arrivée.
-- Charte « Coucher de soleil » : pas encore maquetté (une carte par famille avec son emblème et ses badges « 2 questions à répondre »).
+- **Charte « Coucher de soleil » : maquetté le 2026-11-24 (piste A retenue, à coder)** — maquette `docs/maquettes/soleil/ChoixFamille.dc.html` :
+  - en haut « Bonjour <prénom> », « Du nouveau dans tes familles. » (pas d'emblème en en-tête : on n'est encore dans aucune famille) ;
+  - **une carte par famille**, **teintée de la couleur de son emblème** (fond clair de la couleur, bord 3 px de la couleur franche, ombre pleine de la couleur foncée), avec l'emblème (symbole + 2 lettres), le nom, l'étiquette « Dernière visite » sur la famille de la dernière connexion et une flèche ;
+  - dans la carte, **les actions**, une ligne chacune, avec le **code couleur de l'accueil quelle que soit la couleur de la famille** : brun + soleil = à faire (« Une question t'attend », « N réponses à valider », « La révélation est là », « Une correction proposée sur un de tes souvenirs »), prune + lune = on attend (« Réponse envoyée », « Ta question est en jeu ») ; **valider des réponses est une action, pas une alerte** (précision de Sylvain) ;
+  - puis **les alertes**, en bandeau rose-orangé avec un triangle : pour l'instant « Plus que N questions en réserve — Ajoute des souvenirs » (même seuil que l'accueil : moins de 5) ; plus tard les alertes sur l'arrivée des membres (voir `roadmap.md`, « Points à décider ») ;
+  - famille sans rien : une ligne « Rien à faire pour l'instant · prochaine question <jour> » ;
+  - **toucher une ligne = aller directement à l'action** (répondre, valider, révélation, Mes faits, ajouter un souvenir) ; **toucher l'en-tête de la carte = accueil de la famille** ;
+  - ordre : familles avec une action, puis avec une alerte, puis les autres ; en bas « + Créer une autre famille ».
 
 
 ## 4. Accueil - famille

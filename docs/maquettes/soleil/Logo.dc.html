@@ -15,46 +15,71 @@ body{margin:0}
 <span style="{{rootStyle}}">
   <sc-if value="{{isVache}}" hint-placeholder-val="{{ true }}">
     <svg width="100%" height="100%" viewBox="0 0 48 48" aria-hidden="true">
-      <ellipse cx="15.5" cy="10.5" rx="2.6" ry="5" transform="rotate(-28 15.5 10.5)" fill="#FFF4E8" stroke="#1E3A6E" stroke-width="1.4"></ellipse>
-      <ellipse cx="32.5" cy="10.5" rx="2.6" ry="5" transform="rotate(28 32.5 10.5)" fill="#FFF4E8" stroke="#1E3A6E" stroke-width="1.4"></ellipse>
-      <ellipse cx="9.5" cy="19.5" rx="6" ry="3.4" transform="rotate(-18 9.5 19.5)" fill="#2F5AA8" stroke="#1E3A6E" stroke-width="1.4"></ellipse>
-      <ellipse cx="38.5" cy="19.5" rx="6" ry="3.4" transform="rotate(18 38.5 19.5)" fill="#2F5AA8" stroke="#1E3A6E" stroke-width="1.4"></ellipse>
-      <rect x="13" y="12" width="22" height="27" rx="11" fill="#2F5AA8" stroke="#1E3A6E" stroke-width="1.4"></rect>
+      <ellipse cx="15.5" cy="10.5" rx="2.6" ry="5" transform="rotate(-28 15.5 10.5)" fill="#FFF4E8" stroke="{{c.dark}}" stroke-width="1.4"></ellipse>
+      <ellipse cx="32.5" cy="10.5" rx="2.6" ry="5" transform="rotate(28 32.5 10.5)" fill="#FFF4E8" stroke="{{c.dark}}" stroke-width="1.4"></ellipse>
+      <ellipse cx="9.5" cy="19.5" rx="6" ry="3.4" transform="rotate(-18 9.5 19.5)" fill="{{c.main}}" stroke="{{c.dark}}" stroke-width="1.4"></ellipse>
+      <ellipse cx="38.5" cy="19.5" rx="6" ry="3.4" transform="rotate(18 38.5 19.5)" fill="{{c.main}}" stroke="{{c.dark}}" stroke-width="1.4"></ellipse>
+      <rect x="13" y="12" width="22" height="27" rx="11" fill="{{c.main}}" stroke="{{c.dark}}" stroke-width="1.4"></rect>
       <ellipse cx="29.5" cy="17" rx="4" ry="3" fill="#FFFFFF" opacity="0.85"></ellipse>
       <circle cx="19" cy="23" r="2.2" fill="#1B1F3B"></circle>
       <circle cx="29" cy="23" r="2.2" fill="#1B1F3B"></circle>
-      <ellipse cx="24" cy="33.5" rx="10" ry="6.8" fill="#F7C6CF" stroke="#1E3A6E" stroke-width="1.4"></ellipse>
+      <ellipse cx="24" cy="33.5" rx="10" ry="6.8" fill="#F7C6CF" stroke="{{c.dark}}" stroke-width="1.4"></ellipse>
       <circle cx="20.5" cy="33.5" r="1.6" fill="#7A3A48"></circle>
       <circle cx="27.5" cy="33.5" r="1.6" fill="#7A3A48"></circle>
     </svg>
   </sc-if>
   <sc-if value="{{isLezard}}" hint-placeholder-val="{{ false }}">
     <svg width="100%" height="100%" viewBox="0 0 48 48" aria-hidden="true">
-      <path d="M24 31 C24 39 30 41 34 45" fill="none" stroke="#7A5200" stroke-width="7" stroke-linecap="round"></path>
-      <path d="M24 31 C24 39 30 41 34 45" fill="none" stroke="#F2B33D" stroke-width="4.4" stroke-linecap="round"></path>
-      <path d="M19 17 L11.5 12.5 M29 17 L36.5 12.5 M19 28 L11.5 32.5 M29 28 L36.5 32.5" fill="none" stroke="#7A5200" stroke-width="6" stroke-linecap="round"></path>
-      <path d="M19 17 L11.5 12.5 M29 17 L36.5 12.5 M19 28 L11.5 32.5 M29 28 L36.5 32.5" fill="none" stroke="#F2B33D" stroke-width="3.4" stroke-linecap="round"></path>
-      <ellipse cx="24" cy="23" rx="6.4" ry="10.5" fill="#F2B33D" stroke="#7A5200" stroke-width="1.4"></ellipse>
-      <ellipse cx="24" cy="9.5" rx="5.6" ry="6.4" fill="#F2B33D" stroke="#7A5200" stroke-width="1.4"></ellipse>
+      <path d="M24 31 C24 39 30 41 34 45" fill="none" stroke="{{c.dark}}" stroke-width="7" stroke-linecap="round"></path>
+      <path d="M24 31 C24 39 30 41 34 45" fill="none" stroke="{{c.main}}" stroke-width="4.4" stroke-linecap="round"></path>
+      <path d="M19 17 L11.5 12.5 M29 17 L36.5 12.5 M19 28 L11.5 32.5 M29 28 L36.5 32.5" fill="none" stroke="{{c.dark}}" stroke-width="6" stroke-linecap="round"></path>
+      <path d="M19 17 L11.5 12.5 M29 17 L36.5 12.5 M19 28 L11.5 32.5 M29 28 L36.5 32.5" fill="none" stroke="{{c.main}}" stroke-width="3.4" stroke-linecap="round"></path>
+      <ellipse cx="24" cy="23" rx="6.4" ry="10.5" fill="{{c.main}}" stroke="{{c.dark}}" stroke-width="1.4"></ellipse>
+      <ellipse cx="24" cy="9.5" rx="5.6" ry="6.4" fill="{{c.main}}" stroke="{{c.dark}}" stroke-width="1.4"></ellipse>
       <circle cx="21.4" cy="7.6" r="1.4" fill="#3B1F14"></circle>
       <circle cx="26.6" cy="7.6" r="1.4" fill="#3B1F14"></circle>
-      <circle cx="22" cy="20" r="1.3" fill="#C97F0E"></circle>
-      <circle cx="26.2" cy="24" r="1.3" fill="#C97F0E"></circle>
-      <circle cx="22.4" cy="28" r="1.1" fill="#C97F0E"></circle>
+      <circle cx="22" cy="20" r="1.3" fill="{{c.dark}}" opacity="0.45"></circle>
+      <circle cx="26.2" cy="24" r="1.3" fill="{{c.dark}}" opacity="0.45"></circle>
+      <circle cx="22.4" cy="28" r="1.1" fill="{{c.dark}}" opacity="0.45"></circle>
+    </svg>
+  </sc-if>
+  <sc-if value="{{isChien}}" hint-placeholder-val="{{ false }}">
+    <svg width="100%" height="100%" viewBox="0 0 48 48" aria-hidden="true">
+      <ellipse cx="12.5" cy="21" rx="5" ry="10.5" transform="rotate(16 12.5 21)" fill="{{c.dark}}" stroke="{{c.dark}}" stroke-width="1.4"></ellipse>
+      <ellipse cx="35.5" cy="21" rx="5" ry="10.5" transform="rotate(-16 35.5 21)" fill="{{c.dark}}" stroke="{{c.dark}}" stroke-width="1.4"></ellipse>
+      <ellipse cx="24" cy="24" rx="12" ry="13" fill="{{c.main}}" stroke="{{c.dark}}" stroke-width="1.4"></ellipse>
+      <ellipse cx="29" cy="15.5" rx="3.4" ry="2.3" fill="#FFFFFF" opacity="0.55"></ellipse>
+      <circle cx="19.2" cy="21.5" r="2" fill="#1B1F3B"></circle>
+      <circle cx="28.8" cy="21.5" r="2" fill="#1B1F3B"></circle>
+      <ellipse cx="24" cy="31" rx="7.5" ry="5.8" fill="#FFF4E8" stroke="{{c.dark}}" stroke-width="1.4"></ellipse>
+      <ellipse cx="24" cy="28.6" rx="2.8" ry="2" fill="#1B1F3B"></ellipse>
+      <path d="M24 30.6 V32.6 M21.2 33 Q24 35.4 26.8 33" fill="none" stroke="#1B1F3B" stroke-width="1.3" stroke-linecap="round"></path>
+      <ellipse cx="24" cy="36" rx="1.9" ry="1.5" fill="#F7A6B5"></ellipse>
     </svg>
   </sc-if>
 </span>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"animal":{"editor":"enum","default":"vache","options":["vache","lezard"]},"taille":{"editor":"int","default":48},"$preview":{"width":120,"height":120}}'>
+<script type="text/x-dc" data-dc-script data-props='{"animal":{"editor":"enum","default":"vache","options":["vache","lezard","chien"]},"couleur":{"editor":"enum","default":"","options":["","bleu","rouge","jaune","vert","orange","rose","violet","brun"]},"taille":{"editor":"int","default":48},"$preview":{"width":120,"height":120}}'>
 class Component extends DCLogic {
   renderVals() {
+    // Les 8 couleurs d'emblème : [couleur franche, contour foncé, fond clair]. Sans couleur choisie : vache bleue, lézard jaune, chien vert.
+    const palette = {
+      bleu: ['#2F5AA8', '#1E3A6E', '#DCE6F7'], rouge: ['#C8423A', '#7A1F1A', '#F8DAD7'],
+      jaune: ['#F2B33D', '#7A5200', '#FFF0C2'], vert: ['#5E9E68', '#2F5A36', '#DCEFDD'],
+      orange: ['#F07C3A', '#7A3A10', '#FDE2D0'], rose: ['#E58FA0', '#8A3A4A', '#FBE3E8'],
+      violet: ['#8E6CC9', '#4A3277', '#E8E0F6'], brun: ['#8A3A12', '#4A1E06', '#F1DCCB'],
+    };
     const animal = this.props.animal ?? 'vache';
+    const parDefaut = { vache: 'bleu', lezard: 'jaune', chien: 'vert' };
+    const nom = this.props.couleur && palette[this.props.couleur] ? this.props.couleur : (parDefaut[animal] ?? 'bleu');
+    const [main, dark, light] = palette[nom];
     const taille = Number(this.props.taille ?? 48);
-    const bg = animal === 'lezard' ? '#FFF0C2' : '#DCE6F7';
     return {
-      isVache: animal !== 'lezard',
+      isVache: animal === 'vache',
       isLezard: animal === 'lezard',
-      rootStyle: 'display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-sizing: border-box; width: ' + taille + 'px; height: ' + taille + 'px; padding: ' + Math.round(taille * 0.1) + 'px; border-radius: 50%; background: ' + bg,
+      isChien: animal === 'chien',
+      c: { main, dark },
+      rootStyle: 'display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-sizing: border-box; width: ' + taille + 'px; height: ' + taille + 'px; padding: ' + Math.round(taille * 0.1) + 'px; border-radius: 50%; background: ' + light,
     };
   }
 }

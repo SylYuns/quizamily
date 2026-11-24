@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Choix de famille à l'arrivée</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<!-- Choix de famille à la connexion (écran 3), piste A retenue le 2026-11-24 : une carte par famille, teintée de la couleur de son emblème.
+     Dans la carte : les actions (code couleur de l'accueil : brun + soleil = à faire, prune + lune = on attend), puis les alertes (bandeau rose-orangé).
+     Toucher une ligne = aller directement à l'action ; toucher le reste de la carte (en-tête) = accueil de la famille. -->
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: linear-gradient(180deg, #FFC98A 0%, #FFA36B 46%, #F48A86 100%); font-family: Nunito, system-ui, sans-serif; color: #3B1F14; display: flex; flex-direction: column; gap: 14px; padding: 48px 16px 24px; overflow: hidden">
+
+  <div style="display: flex; flex-direction: column; gap: 2px; padding: 0 6px 4px">
+    <h1 style="margin: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 30px">Bonjour Sylvain</h1>
+    <p style="margin: 0; font-size: 16px; font-weight: 700; color: #5E2A12">Du nouveau dans tes familles.</p>
+  </div>
+
+  <sc-for list="{{families}}" as="f" hint-placeholder-count="3">
+    <section style="{{f.card}}">
+      <button type="button" aria-label="{{f.openLabel}}" style="display: flex; align-items: center; gap: 12px; width: 100%; padding: 0 2px 0 0; border: none; background: transparent; color: #3B1F14; text-align: left; cursor: pointer; font-family: Nunito, sans-serif">
+        <span style="position: relative; display: flex; flex-shrink: 0; padding: 3px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 3px 0 rgba(59,31,20,0.15)">
+          <dc-import name="Logo" animal="{{f.animal}}" couleur="{{f.couleur}}" taille="{{ 50 }}" hint-size="50px,50px"></dc-import>
+          <span style="position: absolute; left: 50%; bottom: -12px; transform: translateX(-50%); padding: 0 6px; border-radius: 8px; border: 2px solid #FFFFFF; background: #3B1F14; color: #FFFFFF; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 11px; line-height: 15px; letter-spacing: 0.04em">{{f.lettres}}</span>
+        </span>
+        <span style="display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0">
+          <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 23px; line-height: 1.05">{{f.name}}</span>
+          <sc-if value="{{f.last}}" hint-placeholder-val="{{ false }}">
+            <span style="align-self: flex-start; padding: 1px 8px; border-radius: 8px; background: rgba(255,255,255,0.75); font-size: 12px; font-weight: 800; color: #6E4A3A">Dernière visite</span>
+          </sc-if>
+        </span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{f.dark}}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+
+      <sc-for list="{{f.rows}}" as="r" hint-placeholder-count="2">
+        <button type="button" style="{{r.style}}">
+          <sc-if value="{{r.isAction}}" hint-placeholder-val="{{ true }}">
+            <span aria-hidden="true" style="position: relative; flex-shrink: 0; width: 30px; height: 30px; border-radius: 15px; background: #FFD66B; box-shadow: 0 0 0 4px rgba(255,214,107,0.3)"></span>
+          </sc-if>
+          <sc-if value="{{r.isWait}}" hint-placeholder-val="{{ false }}">
+            <span aria-hidden="true" style="position: relative; flex-shrink: 0; width: 30px; height: 30px; overflow: hidden">
+              <span style="position: absolute; left: 2px; top: 3px; width: 24px; height: 24px; border-radius: 12px; background: #FFD66B"></span>
+              <span style="position: absolute; left: 9px; top: -1px; width: 24px; height: 24px; border-radius: 12px; background: #5B2333"></span>
+            </span>
+          </sc-if>
+          <sc-if value="{{r.isAlert}}" hint-placeholder-val="{{ false }}">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#A33A2A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin: 0 3px"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path><path d="M12 9v4M12 17h.01"></path></svg>
+          </sc-if>
+          <span style="display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; text-align: left">
+            <span style="{{r.titleStyle}}">{{r.title}}</span>
+            <span style="{{r.subStyle}}">{{r.sub}}</span>
+          </span>
+          <sc-if value="{{r.arrow}}" hint-placeholder-val="{{ true }}">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+          </sc-if>
+        </button>
+      </sc-for>
+    </section>
+  </sc-for>
+
+  <button type="button" style="margin-top: auto; min-height: 52px; border: 2px dashed #8A3A12; border-radius: 26px; background: rgba(255,244,232,0.4); color: #8A3A12; font-family: Nunito, sans-serif; font-size: 16px; font-weight: 800; cursor: pointer">+ Créer une autre famille</button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    // [couleur franche, contour foncé, teinte de la carte] — mêmes couleurs que Logo.dc.html (la teinte de la carte est un peu plus soutenue que le fond du logo).
+    const palette = {
+      bleu: ['#2F5AA8', '#1E3A6E', '#D3DFF5'], jaune: ['#F2B33D', '#7A5200', '#FFEDB8'], vert: ['#5E9E68', '#2F5A36', '#D5ECD7'],
+    };
+    const row = (kind, title, sub) => {
+      const base = 'display: flex; align-items: center; gap: 12px; box-sizing: border-box; width: 100%; padding: 11px 14px 11px 12px; border: none; border-radius: 18px; cursor: pointer; font-family: Nunito, sans-serif; ';
+      const styles = {
+        action: base + 'background: #8A3A12; color: #FFFFFF; box-shadow: 0 4px 0 #5E260B',
+        wait: base + 'background: #5B2333; color: #FFFFFF; box-shadow: 0 4px 0 #3D1622',
+        alert: base + 'padding: 9px 14px 9px 10px; background: #FDE3D3; color: #A33A2A; box-shadow: inset 0 0 0 2px rgba(163,58,42,0.25)',
+      };
+      return {
+        isAction: kind === 'action', isWait: kind === 'wait', isAlert: kind === 'alert',
+        arrow: kind !== 'wait',
+        title, sub, style: styles[kind],
+        titleStyle: 'font-size: ' + (kind === 'alert' ? 15 : 17) + 'px; font-weight: 800; line-height: 1.2',
+        subStyle: 'font-size: 13px; font-weight: 700; color: ' + (kind === 'action' ? '#FFE3CF' : kind === 'wait' ? '#FFD9C2' : '#A33A2A') + (sub ? '' : '; display: none'),
+      };
+    };
+    const card = (couleur) => {
+      const [main, dark, tint] = palette[couleur];
+      return { dark, card: 'display: flex; flex-direction: column; gap: 10px; padding: 14px 14px 16px; border-radius: 28px; background: ' + tint + '; border: 3px solid ' + main + '; box-shadow: 0 6px 0 ' + dark + '55' };
+    };
+    const families = [
+      Object.assign(card('bleu'), {
+        name: 'Famille Chardaire', animal: 'vache', couleur: 'bleu', lettres: 'CH', last: false, openLabel: 'Ouvrir l’accueil de la famille Chardaire',
+        rows: [row('action', 'Une question t’attend', 'Avant dimanche 29 novembre'), row('alert', 'Plus que 3 questions en réserve', 'Ajoute des souvenirs')],
+      }),
+      Object.assign(card('jaune'), {
+        name: 'Famille Delatour', animal: 'lezard', couleur: 'jaune', lettres: 'DE', last: false, openLabel: 'Ouvrir l’accueil de la famille Delatour',
+        rows: [row('action', 'La révélation est là', 'Qui a trouvé ? Découvre la réponse')],
+      }),
+      Object.assign(card('vert'), {
+        name: 'Famille Morel', animal: 'chien', couleur: 'vert', lettres: 'MO', last: true, openLabel: 'Ouvrir l’accueil de la famille Morel',
+        rows: [row('wait', 'Réponse envoyée', 'Révélation dimanche 29 novembre')],
+      }),
+    ];
+    return { families };
+  }
+}
+</script>
+</body>
+</html>
