@@ -159,23 +159,30 @@
     "FaitFormeAnnee.dc.html": {
       "h": 844,
       "w": 390,
-      "x": 1100,
+      "x": 1570,
       "y": 5900,
-      "title": "Forme de la réponse · Année"
+      "title": "Forme · 2. Année choisie (soulignée, cliquable)"
     },
     "FaitFormeDate.dc.html": {
       "h": 844,
       "w": 390,
-      "x": 1570,
+      "x": 2040,
       "y": 5900,
-      "title": "Forme de la réponse · Date précise"
+      "title": "Forme · Date précise choisie"
     },
     "FaitFormeAge.dc.html": {
       "h": 844,
       "w": 390,
-      "x": 2040,
+      "x": 2510,
       "y": 5900,
-      "title": "Forme de la réponse · Âge"
+      "title": "Forme · Âge choisi"
+    },
+    "FaitFormeChoix.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 1100,
+      "y": 5900,
+      "title": "Forme · 1. Question ouverte : choisir la forme"
     }
   },
   "createdOnFiles": {
@@ -234,7 +241,7 @@
     },
     "titreForme": {
       "kind": "title1",
-      "maxW": 1330,
+      "maxW": 1800,
       "text": "B · Forme de la réponse (au choix de l'auteur)",
       "x": 1100,
       "y": 5600
@@ -265,7 +272,8 @@
     "RevelationTexte.dc.html",
     "FaitFormeAnnee.dc.html",
     "FaitFormeDate.dc.html",
-    "FaitFormeAge.dc.html"
+    "FaitFormeAge.dc.html",
+    "FaitFormeChoix.dc.html"
   ],
   "pages": [],
   "title": "Quizamily – Pistes chaleureuses"

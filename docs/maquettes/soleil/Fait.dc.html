@@ -106,20 +106,18 @@ a{color:#8A3A12}a:hover{color:#5E260B}
 
         <sc-if value="{{isOpen}}" hint-placeholder-val="{{ false }}">
           <div style="flex-shrink: 0; display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 20px; border: 3px solid #8A3A12; background: #FFFBF4; box-shadow: 0 5px 0 rgba(138,58,18,0.25)">
-            <p style="margin: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 18px; line-height: 1.25">{{openQuestion}}</p>
-            <sc-if value="{{isForme}}" hint-placeholder-val="{{ false }}">
-              <div style="display: flex; flex-direction: column; gap: 5px">
-                <span style="font-size: 13px; font-weight: 800; color: #6E4A3A">Forme de la réponse</span>
-                <div role="radiogroup" aria-label="Forme de la réponse" style="display: flex; gap: 4px; padding: 4px; border-radius: 16px; background: #F1E4D2">
-                  <sc-for list="{{formOptions}}" as="o" hint-placeholder-count="3">
-                    <button type="button" role="radio" aria-checked="{{o.checked}}" style="{{o.style}}">{{o.label}}</button>
-                  </sc-for>
-                </div>
+            <p style="margin: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 18px; line-height: 1.25">{{qBefore}}<sc-if value="{{qPhrase}}" hint-placeholder-val="{{ false }}"><button type="button" aria-label="Changer la forme de la réponse" style="padding: 0; border: none; background: transparent; font: inherit; color: #8A3A12; text-decoration: underline dotted; text-decoration-thickness: 2px; text-underline-offset: 4px; cursor: pointer">{{qPhrase}}</button></sc-if>{{qAfter}}</p>
+            <sc-if value="{{isChoix}}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px">
+                <span style="font-size: 13px; font-weight: 800; color: #6E4A3A">Répondre par :</span>
+                <sc-for list="{{formOptions}}" as="o" hint-placeholder-count="3">
+                  <button type="button" style="min-height: 36px; padding: 0 12px; border: 2px dashed #8A3A12; border-radius: 18px; background: #FFFFFF; color: #8A3A12; font-family: Nunito, sans-serif; font-size: 14px; font-weight: 800; cursor: pointer">{{o.label}}</button>
+                </sc-for>
               </div>
             </sc-if>
             <label style="display: flex; flex-direction: column; gap: 5px; font-size: 13px; font-weight: 800; color: #6E4A3A">Ta réponse
               <sc-if value="{{isForme}}" hint-placeholder-val="{{ false }}">
-                <span style="display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; height: 46px; padding: 0 14px; border: 2px solid #8A3A12; border-radius: 14px; background: #FFFFFF; font-family: Nunito, sans-serif; font-size: 16px; font-weight: 700; color: #3B1F14">
+                <span style="{{formeFieldStyle}}">
                   {{formeValue}}
                   <span style="display: flex; align-items: center; gap: 6px; color: #8A3A12; font-size: 12px; font-weight: 800">{{formeHint}}
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{formeIcon}}"></path></svg>
@@ -143,7 +141,7 @@ a{color:#8A3A12}a:hover{color:#5E260B}
               <textarea placeholder="Un détail, un souvenir qui va avec…" style="box-sizing: border-box; height: 56px; padding: 10px 14px; border: 2px solid #EAD9BD; border-radius: 14px; background: #FFFFFF; font-family: Nunito, sans-serif; font-size: 15px; color: #3B1F14; resize: none"></textarea>
             </label>
             <div style="display: flex; align-items: center; gap: 10px">
-              <sc-if value="{{isApercu}}" hint-placeholder-val="{{ true }}">
+              <sc-if value="{{showCloseHint}}" hint-placeholder-val="{{ true }}">
                 <span style="flex: 1; font-size: 12px; font-weight: 700; color: #6E4A3A">Touche ailleurs pour refermer</span>
               </sc-if>
               <sc-if value="{{isFilled}}" hint-placeholder-val="{{ false }}">
@@ -238,7 +236,7 @@ a{color:#8A3A12}a:hover{color:#5E260B}
   </sc-if>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"etat":{"editor":"enum","default":"liste","options":["liste","apercu","saisie","recherche","complet","forme"]},"forme":{"editor":"enum","default":"year","options":["date","year","age"]},"repere":{"editor":"enum","default":"noms","options":["noms","points"]},"$preview":{"width":390,"height":844}}'>
+<script type="text/x-dc" data-dc-script data-props='{"etat":{"editor":"enum","default":"liste","options":["liste","apercu","saisie","recherche","complet","forme"]},"forme":{"editor":"enum","default":"year","options":["aucune","date","year","age"]},"repere":{"editor":"enum","default":"noms","options":["noms","points"]},"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
   renderVals() {
     const etat = this.props.etat ?? 'liste';
@@ -249,12 +247,21 @@ class Component extends DCLogic {
     const isOpen = isApercu || isSaisie || isForme;
     // Forme de la réponse choisie par l'auteur (2026-11-24) : exemple de la retraite.
     const forme = this.props.forme ?? 'year';
+    const isChoix = isForme && forme === 'aucune';
     const formeDefs = {
       date: { label: 'Date précise', q: 'À quelle date Marie a-t-elle officiellement pris sa retraite ?', value: '30/06/1996', hint: 'calendrier', icon: 'M7 3v3M17 3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z' },
+      aucune: { label: '', q: '', value: 'Choisis d’abord la forme de la réponse', hint: '', icon: 'M6 9l6 6 6-6' },
       year: { label: 'Année', q: 'En quelle année Marie a-t-elle officiellement pris sa retraite ?', value: '1996', hint: '', icon: 'M6 9l6 6 6-6' },
       age: { label: 'Âge', q: 'À quel âge Marie a-t-elle pris sa retraite ?', value: '60 ans', hint: '', icon: 'M6 9l6 6 6-6' },
     };
     const fd = formeDefs[forme] ?? formeDefs.year;
+    // Question découpée : la partie « forme » est soulignée et cliquable (comme un élément choisi).
+    const qParts = {
+      aucune: ['Quand Marie a-t-elle pris sa retraite ?', '', ''],
+      date: ['', 'À quelle date', ' Marie a-t-elle officiellement pris sa retraite ?'],
+      year: ['', 'En quelle année', ' Marie a-t-elle officiellement pris sa retraite ?'],
+      age: ['', 'À quel âge', ' Marie a-t-elle pris sa retraite ?'],
+    }[forme] ?? ['', '', ''];
     const formOptions = ['date', 'year', 'age'].map((k) => ({
       label: formeDefs[k].label,
       checked: k === forme ? 'true' : 'false',
@@ -362,24 +369,29 @@ class Component extends DCLogic {
       isSaisie,
       isOpen,
       isForme,
-      isFilled: isSaisie || isForme,
+      isFilled: isSaisie || (isForme && !isChoix),
       formOptions,
-      openQuestion: isForme ? fd.q : 'Quel animal de compagnie Marie a-t-elle eu pendant son enfance ?',
+      isChoix,
+      showCloseHint: isApercu || isChoix,
+      qBefore: isForme ? qParts[0] : 'Quel animal de compagnie Marie a-t-elle eu pendant son enfance ?',
+      qPhrase: isForme ? qParts[1] : '',
+      qAfter: isForme ? qParts[2] : '',
+      formeFieldStyle: 'display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; height: 46px; padding: 0 14px; border-radius: 14px; background: #FFFFFF; font-family: Nunito, sans-serif; font-size: ' + (isChoix ? '14px; font-weight: 700; color: #9A8070; border: 2px solid #EAD9BD' : '16px; font-weight: 700; color: #3B1F14; border: 2px solid #8A3A12'),
       formeValue: fd.value,
       formeHint: fd.hint,
       formeIcon: fd.icon,
-      isLocked: isSaisie || isForme,
+      isLocked: isSaisie || (isForme && !isChoix),
       isComplete,
       isSearchEmpty: isSearch,
       isSearchIdle: !isSearch,
-      showSearch: !isSaisie && !isForme,
+      showSearch: !isSaisie && !(isForme && !isChoix),
       showSurprise: !isComplete,
       persons,
       themes,
       dots,
       dotsCaption: (activeIndex + 1) + ' / ' + themeDefs.length,
       pillRowStyle: 'display: flex; gap: 8px; padding: 0 16px; ' + (isComplete ? 'transform: translateX(-520px)' : isForme ? 'transform: translateX(-330px)' : ''),
-      lockStyle: isSaisie || isForme ? 'opacity: 0.45' : '',
+      lockStyle: isSaisie || (isForme && !isChoix) ? 'opacity: 0.45' : '',
       cardTitle: active.label,
       cardStyle: 'flex-shrink: 0; width: 344px; display: flex; flex-direction: column; min-height: 0; border-radius: 30px; background: ' + active.bg + '; box-shadow: 0 7px 0 rgba(138,58,18,0.22); overflow: hidden',
       peekStyle: 'flex-shrink: 0; width: 40px; border-radius: 30px 0 0 30px; background: ' + next.bg + '; opacity: 0.85; margin-bottom: 7px',
@@ -388,7 +400,7 @@ class Component extends DCLogic {
       others,
       hasMine: mine.length > 0,
       hasOthers: others.length > 0,
-      saveStyle: 'min-height: 44px; padding: 0 18px; border: none; border-radius: 22px; background: #8A3A12; color: #FFFFFF; font-family: Nunito, sans-serif; font-size: 15px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 #5E260B' + (isApercu ? '; opacity: 0.45' : ''),
+      saveStyle: 'min-height: 44px; padding: 0 18px; border: none; border-radius: 22px; background: #8A3A12; color: #FFFFFF; font-family: Nunito, sans-serif; font-size: 15px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 #5E260B' + (isApercu || isChoix ? '; opacity: 0.45' : ''),
     };
   }
 }
