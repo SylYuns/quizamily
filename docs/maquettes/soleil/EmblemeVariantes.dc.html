@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Emblème de la famille – variantes</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 900px; height: 1180px; box-sizing: border-box; padding: 36px 40px; background: #FFF4E8; font-family: Nunito, system-ui, sans-serif; color: #3B1F14; display: flex; flex-direction: column; gap: 18px">
+  <div style="display: flex; flex-direction: column; gap: 6px">
+    <h1 style="margin: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 30px">Le bouton de la famille : où mettre les lettres ?</h1>
+    <p style="margin: 0; font-size: 15px; font-weight: 600; color: #6E4A3A">Le bouton remplace « Famille Chardaire » et le menu. Exemple : vache bleue, lettres « CH ». Chaque variante est montrée dans l’en-tête d’un écran, sans puis avec le liseré bleu-blanc-rouge.</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 40px; font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #8A3A12">
+    <span>Sans liseré (bord blanc)</span>
+    <span>Avec liseré bleu-blanc-rouge</span>
+  </div>
+
+  <sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 15px; font-weight: 800">{{r.label}} <span style="font-weight: 600; color: #6E4A3A">— {{r.note}}</span></span>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px">
+        <sc-for list="{{r.cells}}" as="c" hint-placeholder-count="2">
+          <div style="display: flex; align-items: center; gap: 4px; box-sizing: border-box; height: 84px; padding: 0 14px 0 6px; border-radius: 22px; background: linear-gradient(180deg, #FFC98A 0%, #FFA36B 100%)">
+            <span aria-hidden="true" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 44px; color: #3B1F14">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>
+            </span>
+            <span style="flex: 1; min-width: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Ajouter un souvenir</span>
+            <dc-import name="Embleme" variante="{{c.variante}}" animal="vache" lettres="CH" lisere="{{c.lisere}}" hint-size="90px,70px"></dc-import>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-for>
+
+  <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 6px">
+    <span style="font-size: 15px; font-weight: 800">Deuxième exemple : famille Delatour, lézard jaune, lettres « DE » <span style="font-weight: 600; color: #6E4A3A">— les 5 variantes avec liseré</span></span>
+    <div style="display: flex; align-items: center; gap: 36px; padding: 14px 20px; border-radius: 22px; background: linear-gradient(180deg, #FFC98A 0%, #FFA36B 100%)">
+      <sc-for list="{{gallery}}" as="g" hint-placeholder-count="5">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px">
+          <dc-import name="Embleme" variante="{{g.variante}}" animal="lezard" lettres="DE" lisere="{{ true }}" hint-size="90px,70px"></dc-import>
+          <span style="font-size: 12px; font-weight: 800; color: #5E2A12">{{g.label}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":900,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const defs = [
+      { variante: 'dessus', label: '1. Lettres par-dessus le logo', note: 'une étiquette collée en bas du rond' },
+      { variante: 'dedans', label: '2. Lettres sous le logo, dans le bouton', note: 'bouton un peu plus haut que large' },
+      { variante: 'dessous', label: '3. Lettres sous le bouton', note: 'le rond seul, les lettres en dessous' },
+      { variante: 'cote', label: '4. Logo et lettres côte à côte', note: 'une pastille horizontale (autre proposition)' },
+      { variante: 'coin', label: '5. Lettres dans un coin', note: 'petite étiquette en haut à droite (autre proposition)' },
+    ];
+    return {
+      rows: defs.map((d) => ({ ...d, cells: [{ variante: d.variante, lisere: false }, { variante: d.variante, lisere: true }] })),
+      gallery: defs.map((d) => ({ variante: d.variante, label: d.label.split('.')[0] })),
+    };
+  }
+}
+</script>
+</body>
+</html>

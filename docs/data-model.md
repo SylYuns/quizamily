@@ -3,6 +3,9 @@
 ```
 families
   id, name, created_by, created_at
+  emblem_symbol           -- À AJOUTER (2026-11-24) : symbole dessiné ('vache', 'lezard'…, liste fermée côté appli)
+  emblem_color            -- À AJOUTER : une des 8 couleurs ('bleu', 'rouge', 'jaune', 'vert', 'orange', 'rose', 'violet', 'brun')
+  emblem_letters          -- À AJOUTER : 2 lettres en majuscules, par défaut les 2 premières du nom
 
 persons
   id, family_id
@@ -98,6 +101,7 @@ fact_comments
 
 ## Notes de conception
 
+- **Emblème de la famille (décidé le 2026-11-24, à coder)** : `families.emblem_symbol`, `emblem_color`, `emblem_letters`, remplis à la création (tirage au hasard proposé, modifiable). Les familles existantes reçoivent un emblème au hasard dans la migration. **Seul le créateur (`families.created_by`) peut les modifier** : fonction `security definer` dédiée (ou policy `update` limitée à `created_by = auth.uid()` et à ces 3 colonnes), les autres membres ne peuvent que les lire. Voir `ecrans.md`, « Règles communes ».
 - **`answer_input_kind`** détermine le widget de saisie (date picker, dropdown pays, autocomplétion ville/prénom basée sur `SELECT DISTINCT answer_value` de la famille, etc.). Pour les types guidés, la validation est entièrement automatique.
 - **`free_text`** : l'auteur du fait et les joueurs saisissent librement. Une réponse identique à la bonne réponse après normalisation (minuscules, sans accents, sans espaces superflus, tirets ni apostrophes) est validée automatiquement ; les autres passent en `pending_validation` jusqu'à la décision du validateur.
 - **Réponse des joueurs** : les joueurs répondent avec le même widget que l'auteur du fait (déterminé par `answer_input_kind`), pas de QCM en V1.

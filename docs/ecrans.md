@@ -6,10 +6,12 @@ Les points marqués **À décider** sont des questions ouvertes.
 
 ## Règles communes
 
-- **Bandeau collé en haut de l'écran**, dans tous les écrans liés à une famille :
-  - le **nom de la famille active**, sous forme de bouton : il ouvre le choix de famille (écran 3) si le joueur en a plusieurs, ou propose « Créer une autre famille » s'il n'en a qu'une ;
-  - à côté, un **petit bouton « Inviter »** qui donne le lien à partager pour rejoindre la famille (copie ou partage) ;
-  - dans un coin, un **menu burger** : déconnexion, « Créer une session maintenant » (outil de test), et plus tard profil et réglages des notifications.
+- **En-tête : titre de la page + emblème de la famille** (décidé le 2026-11-24, pas encore codé ; remplace l'ancien bandeau « nom de la famille + Inviter + menu burger tricolore », pour gagner de la hauteur). Une seule ligne collée en haut de chaque écran lié à une famille :
+  - à gauche, la flèche retour (sauf sur l'accueil), puis le **titre de la page** en grand (« Ajouter un souvenir », « Répondre »…). **Sur l'accueil, le titre est le nom de la famille** (« Famille Chardaire ») ;
+  - à droite, l'**emblème de la famille** : un rond avec un symbole dessiné sur fond de couleur (ex. vache bleue, lézard jaune), bord blanc 3 px, et une **étiquette de 2 lettres** collée en bas du rond (brun foncé `#3B1F14`, lettres blanches, bord blanc, qui déborde de quelques pixels sous le rond pour ne pas cacher le dessin). Variante 1 « dessus », **sans liseré bleu-blanc-rouge** (choix de Sylvain parmi 5 placements × avec/sans liseré, planche `EmblemeVariantes.dc.html`) ;
+  - toucher l'emblème ouvre le **menu de la famille** (panneau crème sous l'emblème, contenu validé « pour l'instant ») : en tête le grand emblème, le nom de la famille et le lien « Personnaliser l'emblème » (seulement pour le créateur de la famille) ; bouton « Inviter dans la famille » (lien à partager, copie ou partage) ; « Mes familles » (une ligne par famille avec son emblème, la famille active marquée ; remplace l'écran 3 quand on est déjà dans une famille) ; « + Créer une autre famille » ; puis « Créer une session maintenant (test) » et « Se déconnecter ». Plus tard : profil et réglages des notifications.
+  - l'emblème distingue d'un coup d'œil les familles d'un même joueur (utile avec plusieurs familles, voir le bug « famille active » juste en dessous).
+  - Maquettes : `AccueilEmbleme.dc.html` (accueil, paramètre `menu` pour ouvrir le panneau), `AccueilMenu.dc.html`, `Fait.dc.html` (« Ajouter un souvenir ») ; composants `Embleme.dc.html` et `Logo.dc.html`.
 - Un joueur peut appartenir à plusieurs familles (famille recomposée, belle-famille…). Il a une fiche par famille, avec un lien de parenté propre à chacune.
 - **« Famille active » : bug critique corrigé le 2026-11-20, complété le 2026-11-23.** Chaque écran liée à une famille devait deviner la sienne (`persons.user_id` n'est pas unique : une ligne par famille) via une requête `.limit(1).maybeSingle()` sans tri — l'ordre renvoyé par Postgres sans `ORDER BY` n'est pas garanti, et rien ne reliait ce choix à la famille affichée ailleurs. Un joueur avec 2 familles pouvait cliquer depuis l'accueil de la famille A et atterrir sur les données de la famille B. Résolu par `src/lib/my-family.ts` : la famille active est explicite dans chaque lien de navigation (paramètre `?family=`) et mémorisée sur l'appareil (clé par compte) dès qu'elle est choisie ou déduite, pour que tous les écrans restent cohérents entre eux — y compris après création d'une famille supplémentaire ou jonction par invitation (`family-setup.tsx`, `join/[token].tsx`, corrigés le 2026-11-23 après une relecture complète de tous les liens et requêtes). **Jamais un risque de fuite entre comptes différents** : les fonctions serveur (`is_family_member()`, migration `20261106130000_rls_policies.sql`) vérifient toujours l'appartenance réelle à la famille, indépendamment de ce que devinait le client — voir `roadmap.md` pour le détail de la vérification.
 - Les emails indiquent toujours la famille concernée dans l'objet (ex : « [Famille Chardaire] Nouvelle question »).
@@ -50,7 +52,7 @@ But : démarrer une famille, ou rejoindre celle où l'on a été invité.
 ### Créer une famille
 
 Étapes :
-1. Nom de la famille
+1. Nom de la famille, et son **emblème** (décidé le 2026-11-24, maquette `FamilleEmbleme.dc.html`) : un emblème est proposé au hasard (bouton « Au hasard » pour en tirer un autre), modifiable : **symbole** (une vingtaine à dessiner : animaux et objets familiers ; deux faits pour l'instant, vache et lézard), **couleur** (8 couleurs : bleu, rouge, jaune, vert, orange, rose, violet, brun) et **lettres** (2 lettres, par défaut les 2 premières du nom, en majuscules, modifiables). **Seul le créateur de la famille pourra changer l'emblème ensuite** (lien « Personnaliser l'emblème » du menu de la famille, même formulaire).
 2. Ses propres infos de base (prénom, nom, genre — ajouté à l'implémentation, nécessaire pour les conditions femme/homme du catalogue). **Corrigé le 2026-11-20** : sautée si le joueur a déjà une famille — son identité ne change pas d'une famille à l'autre (voir `concept.md`), elle est reprise de sa fiche existante plutôt que redemandée (modifier son prénom/nom/genre attend un écran de profil séparé, pas encore conçu).
 3. La ou les personnes centrales (1 à 4) : prénom, nom, genre, vivante ou décédée, lien de parenté avec soi (choisi dans une liste : grand-mère, petit-fils, gendre…)
 4. Pour chaque personne centrale : créer un profil sans compte. (**Simplifié pour l'implémentation initiale** : l'option "l'inviter directement" est repoussée — elle demande un mécanisme de rattachement d'un compte à un profil déjà créé, pas encore conçu.)
@@ -92,7 +94,7 @@ But : point d'entrée dans une famille. Le but de l'app est de proposer des quiz
 
 Du haut vers le bas, par ordre d'importance :
 
-1. **Bandeau** (voir Règles communes) : nom de la famille, bouton « Inviter », menu burger.
+1. **En-tête** (voir Règles communes) : le nom de la famille en titre, l'emblème de la famille à droite (menu de la famille, avec « Inviter »).
 2. **Deux gros boutons centraux** :
    - **« Participer au quiz »** : mène à la bonne action selon la phase du jeu (voir États ci-dessous). Son libellé, une icône ou un badge indiquent l'état.
    - **« Consulter les connaissances »** (bouton blanc à liserés bleu et rouge, jamais rouge plein) : ouvre l'arbre familial en mode consultation (écran 10). En touchant une personne, on lit le récapitulatif de ce qu'on sait d'elle (écran 11).
@@ -449,7 +451,8 @@ But : **porte d'entrée vers les connaissances** de la famille (bouton « Consul
 ### Deux modes
 
 - **Consultation** (mode d'arrivée) : l'arbre généalogique, épuré. Sur chaque personne, un petit compteur : « 5 souvenirs », plus « 2 à découvrir » pour ses faits pas encore posés (le nombre ne dévoile rien et donne envie de jouer). Toucher une personne → son récapitulatif (écran 11).
-- **Modification** (bouton « Modifier » dans l'écran) : ajouter des membres, créer des relations (formulaire existant + nouveaux types ci-dessous). La modification reste dans l'écran de l'arbre, pas dans le menu burger.
+- **Modification** (bouton « Modifier » dans l'écran) : ajouter des membres, créer des relations (formulaire existant + nouveaux types ci-dessous). La modification reste dans l'écran de l'arbre, pas dans le menu de la famille.
+- **En-tête** (décidé le 2026-11-24) : l'emblème de la famille se place **à droite du bouton « Modifier »** (voir Règles communes).
 
 ### Existant (`src/app/family-tree.tsx`)
 

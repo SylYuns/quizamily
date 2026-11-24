@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Créer une famille – emblème</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 900px; box-sizing: border-box; background: linear-gradient(180deg, #FFC98A 0%, #FFA36B 42%, #F48A86 100%); font-family: Nunito, system-ui, sans-serif; color: #3B1F14; display: flex; flex-direction: column; overflow: hidden">
+
+  <header style="display: flex; align-items: center; gap: 4px; padding: 16px 16px 6px 8px">
+    <button type="button" aria-label="Retour" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: none; border-radius: 22px; background: transparent; color: #3B1F14; cursor: pointer">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+    </button>
+    <h1 style="margin: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 26px">Créer une famille</h1>
+  </header>
+
+  <main style="display: flex; flex-direction: column; gap: 14px; padding: 8px 16px 16px">
+    <section style="display: flex; flex-direction: column; gap: 14px; padding: 18px; border-radius: 30px; background: #FFF4E8; box-shadow: 0 7px 0 rgba(138,58,18,0.22)">
+      <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 800; color: #6E4A3A">Nom de la famille
+        <span style="display: flex; align-items: center; gap: 8px; box-sizing: border-box; height: 50px; padding: 0 14px; border: 2px solid #EAD9BD; border-radius: 14px; background: #FFFFFF">
+          <span style="font-size: 17px; font-weight: 700; color: #6E4A3A">Famille</span>
+          <input type="text" value="Chardaire" style="flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-family: Nunito, sans-serif; font-size: 17px; font-weight: 700; color: #3B1F14">
+        </span>
+      </label>
+
+      <div style="display: flex; align-items: center; gap: 16px; padding-top: 4px">
+        <span style="position: relative; display: flex; flex-shrink: 0; padding: 4px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 4px 0 rgba(138,58,18,0.22)">
+          <dc-import name="Logo" animal="vache" taille="{{ 88 }}" hint-size="88px,88px"></dc-import>
+          <span style="position: absolute; left: 50%; bottom: -14px; transform: translateX(-50%); padding: 0 9px; border-radius: 10px; border: 2px solid #FFFFFF; background: #3B1F14; color: #FFFFFF; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 15px; line-height: 21px; letter-spacing: 0.04em">CH</span>
+        </span>
+        <span style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #8A3A12">Son emblème</span>
+          <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 22px">Vache bleue</span>
+          <button type="button" style="align-self: flex-start; display: flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border: 2px solid #8A3A12; border-radius: 20px; background: transparent; color: #8A3A12; font-family: Nunito, sans-serif; font-size: 14px; font-weight: 800; cursor: pointer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"></rect><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"></circle><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"></circle><circle cx="12" cy="12" r="1.2" fill="currentColor"></circle></svg>
+            Au hasard
+          </button>
+        </span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px">
+        <span style="font-size: 13px; font-weight: 800; color: #6E4A3A">Symbole</span>
+        <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px">
+          <button type="button" aria-label="Vache (choisie)" style="display: flex; align-items: center; justify-content: center; padding: 3px; border: 3px solid #8A3A12; border-radius: 50%; background: #FFFFFF; cursor: pointer">
+            <dc-import name="Logo" animal="vache" taille="{{ 46 }}" hint-size="46px,46px"></dc-import>
+          </button>
+          <button type="button" aria-label="Lézard" style="display: flex; align-items: center; justify-content: center; padding: 3px; border: 3px solid transparent; border-radius: 50%; background: transparent; cursor: pointer">
+            <dc-import name="Logo" animal="lezard" taille="{{ 46 }}" hint-size="46px,46px"></dc-import>
+          </button>
+          <sc-for list="{{placeholders}}" as="p" hint-placeholder-count="8">
+            <span aria-hidden="true" style="display: flex; align-items: center; justify-content: center; aspect-ratio: 1; margin: 3px; border-radius: 50%; border: 2px dashed rgba(138,58,18,0.35); color: #8A6A5A; font-size: 10px; font-weight: 800; text-align: center; line-height: 1.1">{{p}}</span>
+          </sc-for>
+        </div>
+        <span style="font-size: 12px; font-weight: 700; color: #6E4A3A">Une vingtaine de symboles à dessiner : animaux et objets familiers.</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 13px; font-weight: 800; color: #6E4A3A">Couleur</span>
+        <div style="display: flex; gap: 10px">
+          <sc-for list="{{colors}}" as="c" hint-placeholder-count="8">
+            <button type="button" aria-label="{{c.name}}" style="{{c.style}}"></button>
+          </sc-for>
+        </div>
+      </div>
+
+      <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 800; color: #6E4A3A">Lettres
+        <input type="text" value="CH" maxlength="2" style="box-sizing: border-box; width: 64px; height: 42px; padding: 0 10px; border: 2px solid #EAD9BD; border-radius: 12px; background: #FFFFFF; font-family: Fredoka, sans-serif; font-size: 18px; font-weight: 600; letter-spacing: 0.06em; text-align: center; color: #3B1F14">
+        <span style="flex: 1; font-size: 12px; font-weight: 700">les 2 premières lettres du nom, modifiables</span>
+      </label>
+    </section>
+
+    <button type="button" style="min-height: 54px; border: none; border-radius: 27px; background: #8A3A12; color: #FFFFFF; font-family: Nunito, sans-serif; font-size: 17px; font-weight: 800; cursor: pointer; box-shadow: 0 5px 0 #5E260B">Créer la famille</button>
+    <p style="margin: 0; text-align: center; font-size: 13px; font-weight: 700; color: #5E2A12">Seul le créateur de la famille pourra changer l’emblème ensuite.</p>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const palette = [
+      ['Bleu', '#2F5AA8'], ['Rouge', '#C8423A'], ['Jaune', '#F2B33D'], ['Vert', '#5E9E68'],
+      ['Orange', '#F07C3A'], ['Rose', '#E58FA0'], ['Violet', '#8E6CC9'], ['Brun', '#8A3A12'],
+    ];
+    return {
+      placeholders: ['chien', 'chat', 'hibou', 'abeille', 'arbre', 'maison', 'soleil', 'bateau'],
+      colors: palette.map(([name, hex], i) => ({
+        name: name + (i === 0 ? ' (choisie)' : ''),
+        style: 'width: 32px; height: 32px; padding: 0; border-radius: 16px; cursor: pointer; background: ' + hex + '; ' + (i === 0 ? 'border: 3px solid #FFFFFF; box-shadow: 0 0 0 3px #3B1F14' : 'border: 3px solid #FFFFFF; box-shadow: 0 2px 0 rgba(138,58,18,0.2)'),
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>

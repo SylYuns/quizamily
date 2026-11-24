@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Bouton emblème de la famille</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<button type="button" aria-label="{{aria}}" style="{{buttonStyle}}">
+  <!-- Variante retenue le 2026-11-24 : « dessus » (étiquette collée sous le rond), sans liseré. -->
+
+  <sc-if value="{{isDessus}}" hint-placeholder-val="{{ true }}">
+    <span style="{{ringRound}}">
+      <span style="position: relative; display: flex">
+        <dc-import name="Logo" animal="{{animal}}" taille="{{ 46 }}" hint-size="46px,46px"></dc-import>
+        <span style="position: absolute; left: 50%; bottom: -13px; transform: translateX(-50%); padding: 0 6px; border-radius: 8px; border: 2px solid #FFFFFF; background: #3B1F14; color: #FFFFFF; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 11px; line-height: 15px; letter-spacing: 0.04em">{{lettres}}</span>
+      </span>
+    </span>
+  </sc-if>
+
+  <sc-if value="{{isDedans}}" hint-placeholder-val="{{ false }}">
+    <span style="{{ringTall}}">
+      <span style="display: flex; flex-direction: column; align-items: center; gap: 1px; box-sizing: border-box; width: 50px; height: 62px; padding-top: 4px; border-radius: 22px; background: #FFFFFF">
+        <dc-import name="Logo" animal="{{animal}}" taille="{{ 38 }}" hint-size="38px,38px"></dc-import>
+        <span style="font-family: Fredoka, sans-serif; font-weight: 600; font-size: 13px; line-height: 16px; letter-spacing: 0.04em; color: #3B1F14">{{lettres}}</span>
+      </span>
+    </span>
+  </sc-if>
+
+  <sc-if value="{{isDessous}}" hint-placeholder-val="{{ false }}">
+    <span style="display: flex; flex-direction: column; align-items: center; gap: 2px">
+      <span style="{{ringRound}}">
+        <dc-import name="Logo" animal="{{animal}}" taille="{{ 42 }}" hint-size="42px,42px"></dc-import>
+      </span>
+      <span style="font-family: Fredoka, sans-serif; font-weight: 600; font-size: 12px; line-height: 14px; letter-spacing: 0.04em; color: #3B1F14">{{lettres}}</span>
+    </span>
+  </sc-if>
+
+  <sc-if value="{{isCote}}" hint-placeholder-val="{{ false }}">
+    <span style="{{ringPill}}">
+      <span style="display: flex; align-items: center; gap: 6px; box-sizing: border-box; height: 46px; padding: 0 12px 0 3px; border-radius: 23px; background: #FFFFFF">
+        <dc-import name="Logo" animal="{{animal}}" taille="{{ 40 }}" hint-size="40px,40px"></dc-import>
+        <span style="font-family: Fredoka, sans-serif; font-weight: 600; font-size: 17px; letter-spacing: 0.04em; color: #3B1F14">{{lettres}}</span>
+      </span>
+    </span>
+  </sc-if>
+
+  <sc-if value="{{isCoin}}" hint-placeholder-val="{{ false }}">
+    <span style="position: relative; display: flex">
+      <span style="{{ringRound}}">
+        <dc-import name="Logo" animal="{{animal}}" taille="{{ 46 }}" hint-size="46px,46px"></dc-import>
+      </span>
+      <span style="position: absolute; right: -10px; top: -6px; padding: 0 5px; border-radius: 8px; border: 2px solid #8A3A12; background: #FFF4E8; color: #3B1F14; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 10px; line-height: 14px; letter-spacing: 0.04em">{{lettres}}</span>
+    </span>
+  </sc-if>
+</button>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"variante":{"editor":"enum","default":"dessus","options":["dessus","dedans","dessous","cote","coin"]},"animal":{"editor":"enum","default":"vache","options":["vache","lezard"]},"lettres":{"editor":"text","default":"CH"},"lisere":{"editor":"boolean","default":true},"$preview":{"width":120,"height":100}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const v = this.props.variante ?? 'dessus';
+    const lisere = this.props.lisere !== false && this.props.lisere !== 'false';
+    const animal = this.props.animal ?? 'vache';
+    // Liseré tricolore (la touche bleu-blanc-rouge de la charte) ou simple bord blanc.
+    const conic = 'conic-gradient(from -60deg, #2F5AA8 0 33.3%, #FFFFFF 33.3% 66.6%, #C8423A 66.6% 100%)';
+    const flag = 'linear-gradient(90deg, #2F5AA8 0 33.3%, #FFFFFF 33.3% 66.6%, #C8423A 66.6% 100%)';
+    const shadow = 'box-shadow: 0 3px 0 rgba(138,58,18,0.22)';
+    const ring = (bg, radius) => 'display: flex; padding: 3px; border-radius: ' + radius + '; ' + shadow + '; background: ' + (lisere ? bg : '#FFFFFF');
+    return {
+      animal,
+      lettres: this.props.lettres ?? 'CH',
+      aria: 'Menu de la famille ' + (this.props.lettres ?? 'CH'),
+      isDessus: v === 'dessus',
+      isDedans: v === 'dedans',
+      isDessous: v === 'dessous',
+      isCote: v === 'cote',
+      isCoin: v === 'coin',
+      ringRound: ring(conic, '50%'),
+      ringTall: ring(flag, '25px'),
+      ringPill: ring(flag, '26px'),
+      buttonStyle: 'display: inline-flex; padding: 0; border: none; background: transparent; cursor: pointer',
+    };
+  }
+}
+</script>
+</body>
+</html>

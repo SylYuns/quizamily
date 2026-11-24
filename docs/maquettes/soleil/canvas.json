@@ -183,6 +183,48 @@
       "x": 1100,
       "y": 5900,
       "title": "Forme · 1. Question ouverte : choisir la forme"
+    },
+    "EmblemeVariantes.dc.html": {
+      "h": 1180,
+      "w": 900,
+      "x": 1100,
+      "y": 7100,
+      "title": "Emblème · 5 placements des lettres, sans / avec liseré"
+    },
+    "Embleme.dc.html": {
+      "h": 100,
+      "w": 120,
+      "x": 2080,
+      "y": 7100,
+      "title": "Composant : bouton emblème"
+    },
+    "Logo.dc.html": {
+      "h": 120,
+      "w": 120,
+      "x": 2080,
+      "y": 7320,
+      "title": "Composant : logo (vache, lézard)"
+    },
+    "AccueilEmbleme.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 2320,
+      "y": 7100,
+      "title": "Emblème · Accueil avec le nouvel en-tête"
+    },
+    "AccueilMenu.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 2790,
+      "y": 7100,
+      "title": "Emblème · Menu de la famille ouvert"
+    },
+    "FamilleEmbleme.dc.html": {
+      "h": 900,
+      "w": 390,
+      "x": 3260,
+      "y": 7100,
+      "title": "Emblème · Choix à la création d'une famille"
     }
   },
   "createdOnFiles": {
@@ -245,6 +287,13 @@
       "text": "B · Forme de la réponse (au choix de l'auteur)",
       "x": 1100,
       "y": 5600
+    },
+    "titreEmbleme": {
+      "kind": "title1",
+      "maxW": 2550,
+      "text": "B · Emblème de la famille",
+      "x": 1100,
+      "y": 6800
     }
   },
   "order": [
@@ -273,7 +322,13 @@
     "FaitFormeAnnee.dc.html",
     "FaitFormeDate.dc.html",
     "FaitFormeAge.dc.html",
-    "FaitFormeChoix.dc.html"
+    "FaitFormeChoix.dc.html",
+    "EmblemeVariantes.dc.html",
+    "Embleme.dc.html",
+    "Logo.dc.html",
+    "AccueilEmbleme.dc.html",
+    "AccueilMenu.dc.html",
+    "FamilleEmbleme.dc.html"
   ],
   "pages": [],
   "title": "Quizamily – Pistes chaleureuses"
