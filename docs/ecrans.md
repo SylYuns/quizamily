@@ -33,10 +33,10 @@ Connexion
 
 But : se connecter sans mot de passe.
 
-**Charte « Coucher de soleil » : 3 pistes maquettées le 2026-11-24, choix à faire** (canvas, rangée « Arrivée : connexion » ; sources `docs/maquettes/soleil/Connexion*.dc.html`, paramètre `etat` = `email` | `envoye`). Dans les trois, l'état « lien envoyé » passe en prune (attente), comme sur l'accueil :
-- **A « Soleil levant »** : grand soleil derrière le nom « Quizamily », accroche, carte crème posée en bas comme un horizon ; une fois le lien envoyé, le soleil descend et pâlit, la carte devient prune (« Regarde tes e-mails », « Renvoyer le lien », « Changer d'adresse ») ;
-- **B « Une question pour commencer »** : une fausse carte « Question de la semaine » avec les réponses de la famille montre tout de suite le principe du jeu, puis le formulaire (« Entrer dans le jeu ») ;
-- **C « La famille en ronds »** : un petit arbre de ronds colorés flotte en haut, la connexion est un panneau qui monte du bas (comme le récapitulatif de l'arbre).
+**Charte « Coucher de soleil » : piste B retenue le 2026-11-24, à coder** (canvas, rangée « Arrivée : connexion » ; sources `docs/maquettes/soleil/Connexion*.dc.html`, paramètre `etat` = `email` | `envoye`). Dans les trois, l'état « lien envoyé » passe en prune (attente), comme sur l'accueil :
+- A « Soleil levant » (non retenue) : grand soleil derrière le nom « Quizamily », accroche, carte crème posée en bas comme un horizon ; une fois le lien envoyé, le soleil descend et pâlit, la carte devient prune (« Regarde tes e-mails », « Renvoyer le lien », « Changer d'adresse ») ;
+- **B « Une question pour commencer » — retenue** : en haut, le nom de l'appli en grand (52 px, « Quiz » en brun, pastille « ? » jaune), descendu pour profiter de la hauteur (retour de Sylvain) ; une fausse carte « Question de la semaine » avec les réponses de la famille montre tout de suite le principe du jeu ; une phrase d'explication ; le formulaire (« Entrer dans le jeu »). Lien envoyé : la carte devient prune « Regarde tes e-mails », encart « Rien reçu ? », « Renvoyer le lien », « Changer d'adresse » ;
+- C « La famille en ronds » (non retenue) : un petit arbre de ronds colorés flotte en haut, la connexion est un panneau qui monte du bas (comme le récapitulatif de l'arbre).
 
 Affiche :
 - un champ email
@@ -56,9 +56,9 @@ But : démarrer une famille, ou rejoindre celle où l'on a été invité.
 
 ### Créer une famille
 
-**Charte « Coucher de soleil » : 2 pistes maquettées le 2026-11-24, choix à faire** (canvas, rangée « Arrivée : créer une famille » ; sources `CreerA.dc.html`, paramètre `etape`, `CreerB.dc.html`, et `FamilleEmbleme.dc.html` avec `progression` pour l'étape 1). Les deux suppriment l'étape « Récapitulatif » (5 étapes au lieu de 6) :
-- **A « Étapes »** : barre d'avancement en 5 pastilles (la famille, toi, personnes centrales, leurs enfants, inviter) ; une carte par étape ; les personnes déjà saisies se replient en tuiles « ✎ Modifier » ; la dernière étape fête la famille créée (emblème, confettis, ronds des personnes) et met le lien en avant (« Partager », « Copier ») ;
-- **B « La famille se dessine »** : l'en-tête montre déjà le nom et l'emblème ; en haut, l'arbre se construit au fil de la saisie (le rond en cours de saisie en pointillés bruns) ; en bas, un panneau avec le formulaire de l'étape ; à la fin, les personnes pas encore inscrites restent en pointillés et le panneau devient l'invitation.
+**Charte « Coucher de soleil » : piste A retenue le 2026-11-24, à coder** (canvas, rangée « Arrivée : créer une famille » ; sources `CreerA.dc.html`, paramètre `etape`, `CreerB.dc.html`, et `FamilleEmbleme.dc.html` avec `progression` pour l'étape 1). Les deux suppriment l'étape « Récapitulatif » (5 étapes au lieu de 6) :
+- **A « Étapes » — retenue** : barre d'avancement en 5 pastilles (la famille, toi, personnes centrales, leurs enfants, inviter) ; une carte par étape ; les personnes déjà saisies se replient en tuiles « ✎ Modifier » ; la dernière étape fête la famille créée (emblème, confettis, ronds des personnes) et met le lien en avant (« Partager », « Copier ») ;
+- B « La famille se dessine » (non retenue) : l'en-tête montre déjà le nom et l'emblème ; en haut, l'arbre se construit au fil de la saisie (le rond en cours de saisie en pointillés bruns) ; en bas, un panneau avec le formulaire de l'étape ; à la fin, les personnes pas encore inscrites restent en pointillés et le panneau devient l'invitation.
 - Dans les deux : genre en deux pastilles (« une femme », « un homme »), « décédé(e) » en interrupteur ou en pastille, lien de parenté en liste.
 
 Étapes :
@@ -71,10 +71,13 @@ But : démarrer une famille, ou rejoindre celle où l'on a été invité.
 
 ### Rejoindre une famille (depuis un lien d'invitation)
 
-**Charte « Coucher de soleil » : 2 pistes maquettées le 2026-11-24, choix à faire** (canvas, rangée « Arrivée : rejoindre » ; sources `RejoindreA.dc.html`, paramètre `etape` = `invite` | `choix` | `nouveau`, et `RejoindreB.dc.html`, `invite` | `choix`) :
-- **A « Carton d'invitation »** : l'emblème de la famille en grand sur un carton crème à bord pointillé, « Tu es invité·e dans la Famille Chardaire, par Sylvain », les ronds des membres et « déjà 24 souvenirs » ; puis « Es-tu l'une de ces personnes ? » en tuiles (rond, nom, « Enfant de Marie et Jean ») et « Je ne suis pas dans cette liste » → « Présente-toi » ;
-- **B « Trouve ta place »** : l'arbre de la famille, les profils pas encore réclamés en pointillés ; on se choisit en touchant son rond (« Oui, c'est moi » / « Je ne suis pas dans l'arbre »).
-- **Demande côté serveur** (les deux pistes) : l'aperçu de l'invitation (`get_invite_family_name`) ne renvoie aujourd'hui que le nom ; il faudrait aussi l'emblème, le prénom de qui a créé le lien, et quelques ronds (initiales des personnes centrales, nombre de membres et de souvenirs) — sans rien dévoiler d'autre à un visiteur pas encore membre. La piste B demande en plus les liens de parenté des profils à réclamer.
+**Charte « Coucher de soleil » : piste A retenue le 2026-11-24, à coder** (canvas, rangée « Arrivée : rejoindre » ; sources `RejoindreA.dc.html`, paramètres `etape` = `invite` | `choix` | `nouveau` et `selection` = `aucune` | `bernard`, et `RejoindreB.dc.html`, non retenue) :
+- **A « Carton d'invitation » — retenue** : l'emblème de la famille en grand sur un carton crème à bord pointillé, « Tu es invité·e dans la Famille Chardaire, par Sylvain », les ronds des membres et « déjà 24 souvenirs », puis l'e-mail pour se connecter. Ensuite « Es-tu l'une de ces personnes ? » (retours de Sylvain le 2026-11-24) :
+  - une tuile par profil à réclamer (rond, nom, « Enfant de Marie et Jean »), et **en dernier, au même niveau, une tuile « Je ne suis pas dans cette liste »** (rond « + » en pointillés, « Je me présente », flèche) qui ouvre directement « Présente-toi » ;
+  - **aucun bouton tant que personne n'est choisi** ; dès qu'on touche une fiche, elle se marque (bord brun, coche) et **un panneau monte du bas** avec un grand bouton brun « C'est moi, Bernard → » (avec le rond de la personne, léger halo jaune pour attirer l'œil) et « Tu reprendras sa place dans l'arbre et ses souvenirs. » ; toucher une autre fiche change le prénom du bouton ;
+  - « Présente-toi » : prénom, nom, genre en deux pastilles, « Rejoindre la famille », « Retour à la liste » ;
+- B « Trouve ta place » (non retenue) : l'arbre de la famille, les profils pas encore réclamés en pointillés ; on se choisit en touchant son rond (« Oui, c'est moi » / « Je ne suis pas dans l'arbre »).
+- **Demande côté serveur** (les deux pistes) : l'aperçu de l'invitation (`get_invite_family_name`) ne renvoie aujourd'hui que le nom ; il faudrait aussi l'emblème, le prénom de qui a créé le lien, et quelques ronds (initiales des personnes centrales, nombre de membres et de souvenirs) — sans rien dévoiler d'autre à un visiteur pas encore membre. 
 
 Étapes :
 1. « Vous êtes invité dans la famille X »

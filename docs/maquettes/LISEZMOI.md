@@ -7,7 +7,7 @@ référence pour le développement. Chaque dossier est la copie d'un canvas :
 |---|---|---|
 | `accueil/` | accueil, première charte (2026-11-10) | remplacé par `soleil/` |
 | `arbre/` | arbre familial, première charte (2026-11-11) | remplacé par `soleil/` |
-| `soleil/` | charte « Coucher de soleil » (2026-11-19/20) : pistes A/B/C de l'accueil, accueil retenu (`Soleil*`), arbre (`Arbre*`), écran « Ajouter un souvenir » (`Fait*`), répondre et vue de l'auteur (`Repondre*`, `MaQuestion`), révélation (`Revelation*`), forme de la réponse (`FaitForme*`), emblème de la famille (`Embleme*`, `Logo`, `AccueilEmbleme`, `AccueilMenu`, `FamilleEmbleme` ; 2026-11-24), parcours d'arrivée en plusieurs pistes (`Connexion*`, `Rejoindre*`, `Creer*` ; 2026-11-24, choix à faire) | **référence actuelle** |
+| `soleil/` | charte « Coucher de soleil » (2026-11-19/20) : pistes A/B/C de l'accueil, accueil retenu (`Soleil*`), arbre (`Arbre*`), écran « Ajouter un souvenir » (`Fait*`), répondre et vue de l'auteur (`Repondre*`, `MaQuestion`), révélation (`Revelation*`), forme de la réponse (`FaitForme*`), emblème de la famille (`Embleme*`, `Logo`, `AccueilEmbleme`, `AccueilMenu`, `FamilleEmbleme` ; 2026-11-24), parcours d'arrivée en plusieurs pistes (`Connexion*`, `Rejoindre*`, `Creer*` ; 2026-11-24 : retenues ConnexionB, RejoindreA, CreerA) | **référence actuelle** |
 
 Le canvas en ligne (pour les voir rendues) : lien dans `docs/design.md`.
 

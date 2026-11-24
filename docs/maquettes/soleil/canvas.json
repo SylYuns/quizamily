@@ -231,7 +231,7 @@
       "w": 390,
       "x": 1100,
       "y": 8800,
-      "title": "Connexion · A « Soleil levant » : e-mail"
+      "title": "Connexion · A « Soleil levant » (non retenue) : e-mail"
     },
     "ConnexionAEnvoye.dc.html": {
       "h": 844,
@@ -245,7 +245,7 @@
       "w": 390,
       "x": 2040,
       "y": 8800,
-      "title": "Connexion · B « Une question pour commencer » : e-mail"
+      "title": "Connexion · B « Une question pour commencer » (retenue) : e-mail"
     },
     "ConnexionBEnvoye.dc.html": {
       "h": 844,
@@ -259,7 +259,7 @@
       "w": 390,
       "x": 2980,
       "y": 8800,
-      "title": "Connexion · C « La famille en ronds » : e-mail"
+      "title": "Connexion · C « La famille en ronds » (non retenue) : e-mail"
     },
     "ConnexionCEnvoye.dc.html": {
       "h": 844,
@@ -273,33 +273,33 @@
       "w": 390,
       "x": 1100,
       "y": 10200,
-      "title": "Rejoindre · A « Carton d’invitation » : pas encore connecté"
+      "title": "Rejoindre · A « Carton d’invitation » (retenue) : pas encore connecté"
     },
     "RejoindreAChoix.dc.html": {
       "h": 844,
       "w": 390,
       "x": 1570,
       "y": 10200,
-      "title": "Rejoindre · A : es-tu l’une de ces personnes ?"
+      "title": "Rejoindre · A : es-tu l’une de ces personnes ? (rien de choisi)"
     },
     "RejoindreANouveau.dc.html": {
       "h": 844,
       "w": 390,
-      "x": 2040,
+      "x": 2510,
       "y": 10200,
       "title": "Rejoindre · A : présente-toi"
     },
     "RejoindreB.dc.html": {
       "h": 844,
       "w": 390,
-      "x": 2510,
+      "x": 2980,
       "y": 10200,
-      "title": "Rejoindre · B « Trouve ta place » : pas encore connecté"
+      "title": "Rejoindre · B « Trouve ta place » (non retenue) : pas encore connecté"
     },
     "RejoindreBChoix.dc.html": {
       "h": 844,
       "w": 390,
-      "x": 2980,
+      "x": 3450,
       "y": 10200,
       "title": "Rejoindre · B : touche ton rond"
     },
@@ -308,7 +308,7 @@
       "w": 390,
       "x": 1100,
       "y": 11600,
-      "title": "Créer · A « Étapes » : 1. la famille"
+      "title": "Créer · A « Étapes » (retenue) : 1. la famille"
     },
     "CreerA.dc.html": {
       "h": 844,
@@ -343,7 +343,7 @@
       "w": 390,
       "x": 3450,
       "y": 11600,
-      "title": "Créer · B « La famille se dessine » : 3. personnes centrales"
+      "title": "Créer · B « La famille se dessine » (non retenue) : 3. personnes centrales"
     },
     "CreerBEnfants.dc.html": {
       "h": 844,
@@ -358,6 +358,13 @@
       "x": 4390,
       "y": 11600,
       "title": "Créer · B : 5. inviter"
+    },
+    "RejoindreAChoixSelection.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 2040,
+      "y": 10200,
+      "title": "Rejoindre · A : Bernard touché, le bouton monte du bas"
     }
   },
   "createdOnFiles": {
@@ -437,7 +444,7 @@
     },
     "titreArriveeRejoindre": {
       "kind": "title1",
-      "maxW": 2270,
+      "maxW": 2740,
       "text": "B · Arrivée : rejoindre une famille par invitation (2 pistes)",
       "x": 1100,
       "y": 9900
@@ -491,6 +498,7 @@
     "ConnexionCEnvoye.dc.html",
     "RejoindreA.dc.html",
     "RejoindreAChoix.dc.html",
+    "RejoindreAChoixSelection.dc.html",
     "RejoindreANouveau.dc.html",
     "RejoindreB.dc.html",
     "RejoindreBChoix.dc.html",
