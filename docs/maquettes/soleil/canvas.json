@@ -155,6 +155,27 @@
       "x": 3920,
       "y": 3900,
       "title": "Révélation · Réponse longue (question à liste)"
+    },
+    "FaitFormeAnnee.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 1100,
+      "y": 5900,
+      "title": "Forme de la réponse · Année"
+    },
+    "FaitFormeDate.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 1570,
+      "y": 5900,
+      "title": "Forme de la réponse · Date précise"
+    },
+    "FaitFormeAge.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 2040,
+      "y": 5900,
+      "title": "Forme de la réponse · Âge"
     }
   },
   "createdOnFiles": {
@@ -210,6 +231,13 @@
       "text": "B · Répondre et révélation",
       "x": 1100,
       "y": 3600
+    },
+    "titreForme": {
+      "kind": "title1",
+      "maxW": 1330,
+      "text": "B · Forme de la réponse (au choix de l'auteur)",
+      "x": 1100,
+      "y": 5600
     }
   },
   "order": [
@@ -234,7 +262,10 @@
     "Revelation.dc.html",
     "RevelationTrouve.dc.html",
     "RevelationRate.dc.html",
-    "RevelationTexte.dc.html"
+    "RevelationTexte.dc.html",
+    "FaitFormeAnnee.dc.html",
+    "FaitFormeDate.dc.html",
+    "FaitFormeAge.dc.html"
   ],
   "pages": [],
   "title": "Quizamily – Pistes chaleureuses"

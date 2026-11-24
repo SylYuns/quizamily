@@ -106,8 +106,26 @@ a{color:#8A3A12}a:hover{color:#5E260B}
 
         <sc-if value="{{isOpen}}" hint-placeholder-val="{{ false }}">
           <div style="flex-shrink: 0; display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 20px; border: 3px solid #8A3A12; background: #FFFBF4; box-shadow: 0 5px 0 rgba(138,58,18,0.25)">
-            <p style="margin: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 18px; line-height: 1.25">Quel animal de compagnie Marie a-t-elle eu pendant son enfance ?</p>
+            <p style="margin: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 18px; line-height: 1.25">{{openQuestion}}</p>
+            <sc-if value="{{isForme}}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 5px">
+                <span style="font-size: 13px; font-weight: 800; color: #6E4A3A">Forme de la réponse</span>
+                <div role="radiogroup" aria-label="Forme de la réponse" style="display: flex; gap: 4px; padding: 4px; border-radius: 16px; background: #F1E4D2">
+                  <sc-for list="{{formOptions}}" as="o" hint-placeholder-count="3">
+                    <button type="button" role="radio" aria-checked="{{o.checked}}" style="{{o.style}}">{{o.label}}</button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
             <label style="display: flex; flex-direction: column; gap: 5px; font-size: 13px; font-weight: 800; color: #6E4A3A">Ta réponse
+              <sc-if value="{{isForme}}" hint-placeholder-val="{{ false }}">
+                <span style="display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; height: 46px; padding: 0 14px; border: 2px solid #8A3A12; border-radius: 14px; background: #FFFFFF; font-family: Nunito, sans-serif; font-size: 16px; font-weight: 700; color: #3B1F14">
+                  {{formeValue}}
+                  <span style="display: flex; align-items: center; gap: 6px; color: #8A3A12; font-size: 12px; font-weight: 800">{{formeHint}}
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{formeIcon}}"></path></svg>
+                  </span>
+                </span>
+              </sc-if>
               <sc-if value="{{isSaisie}}" hint-placeholder-val="{{ false }}">
                 <input type="text" value="Chi" style="box-sizing: border-box; height: 46px; padding: 0 14px; border: 2px solid #8A3A12; border-radius: 14px; background: #FFFFFF; font-family: Nunito, sans-serif; font-size: 16px; color: #3B1F14">
               </sc-if>
@@ -128,7 +146,7 @@ a{color:#8A3A12}a:hover{color:#5E260B}
               <sc-if value="{{isApercu}}" hint-placeholder-val="{{ true }}">
                 <span style="flex: 1; font-size: 12px; font-weight: 700; color: #6E4A3A">Touche ailleurs pour refermer</span>
               </sc-if>
-              <sc-if value="{{isSaisie}}" hint-placeholder-val="{{ false }}">
+              <sc-if value="{{isFilled}}" hint-placeholder-val="{{ false }}">
                 <span style="flex: 1"></span>
               </sc-if>
               <button type="button" style="min-height: 44px; padding: 0 16px; border: 2px solid #8A3A12; border-radius: 22px; background: transparent; color: #8A3A12; font-family: Nunito, sans-serif; font-size: 15px; font-weight: 800; cursor: pointer">Annuler</button>
@@ -220,14 +238,29 @@ a{color:#8A3A12}a:hover{color:#5E260B}
   </sc-if>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"etat":{"editor":"enum","default":"liste","options":["liste","apercu","saisie","recherche","complet"]},"repere":{"editor":"enum","default":"noms","options":["noms","points"]},"$preview":{"width":390,"height":844}}'>
+<script type="text/x-dc" data-dc-script data-props='{"etat":{"editor":"enum","default":"liste","options":["liste","apercu","saisie","recherche","complet","forme"]},"forme":{"editor":"enum","default":"year","options":["date","year","age"]},"repere":{"editor":"enum","default":"noms","options":["noms","points"]},"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
   renderVals() {
     const etat = this.props.etat ?? 'liste';
     const repere = this.props.repere ?? 'noms';
     const isApercu = etat === 'apercu';
     const isSaisie = etat === 'saisie';
-    const isOpen = isApercu || isSaisie;
+    const isForme = etat === 'forme';
+    const isOpen = isApercu || isSaisie || isForme;
+    // Forme de la réponse choisie par l'auteur (2026-11-24) : exemple de la retraite.
+    const forme = this.props.forme ?? 'year';
+    const formeDefs = {
+      date: { label: 'Date précise', q: 'À quelle date Marie a-t-elle officiellement pris sa retraite ?', value: '30/06/1996', hint: 'calendrier', icon: 'M7 3v3M17 3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z' },
+      year: { label: 'Année', q: 'En quelle année Marie a-t-elle officiellement pris sa retraite ?', value: '1996', hint: '', icon: 'M6 9l6 6 6-6' },
+      age: { label: 'Âge', q: 'À quel âge Marie a-t-elle pris sa retraite ?', value: '60 ans', hint: '', icon: 'M6 9l6 6 6-6' },
+    };
+    const fd = formeDefs[forme] ?? formeDefs.year;
+    const formOptions = ['date', 'year', 'age'].map((k) => ({
+      label: formeDefs[k].label,
+      checked: k === forme ? 'true' : 'false',
+      style: 'flex: 1; min-height: 40px; padding: 0 6px; border: none; border-radius: 12px; font-family: Nunito, sans-serif; font-size: 14px; font-weight: 800; cursor: pointer; ' +
+        (k === forme ? 'background: #8A3A12; color: #FFFFFF; box-shadow: 0 2px 0 #5E260B' : 'background: transparent; color: #5E2A12'),
+    }));
     const isSearch = etat === 'recherche';
     const isComplete = etat === 'complet';
 
@@ -262,7 +295,7 @@ class Component extends DCLogic {
       { id: 'retraite', label: 'Retraite, voyages et loisirs', bg: '#FFD0B0', hits: 0 },
       { id: 'culture', label: 'Culture et premières fois', bg: '#DCD0F2', hits: 0, complete: true },
     ];
-    const activeIndex = isComplete ? 4 : 0;
+    const activeIndex = isComplete ? 4 : isForme ? 3 : 0;
     const active = themeDefs[activeIndex];
     const next = themeDefs[(activeIndex + 1) % themeDefs.length];
 
@@ -304,6 +337,14 @@ class Component extends DCLogic {
         { text: 'En quelle année Marie a-t-elle eu une télévision à la maison ?' },
         { text: 'À quel âge Marie a-t-elle utilisé un ordinateur pour la première fois ?' },
       ];
+    } else if (isForme) {
+      // Dans la liste, tant que rien n'est choisi : la question neutre (« Quand… »).
+      available = [
+        { text: 'Quand Marie a-t-elle pris l’avion pour la première fois ?' },
+        { text: 'Quel pays étranger Marie a-t-elle visité lors de son premier voyage hors de France ?' },
+        { text: 'Quel est le nom du club associatif dont Marie fait partie ?' },
+      ];
+      others = [{ text: 'Quel est le dernier pays étranger que Marie a visité ?' }];
     } else if (!isSearch) {
       // Question ouverte : remontée en haut de la liste ; les autres restent dessous.
       available = (isOpen ? avail.slice(0, 3) : avail).map((text) => ({ text }));
@@ -320,18 +361,25 @@ class Component extends DCLogic {
       isApercu,
       isSaisie,
       isOpen,
-      isLocked: isSaisie,
+      isForme,
+      isFilled: isSaisie || isForme,
+      formOptions,
+      openQuestion: isForme ? fd.q : 'Quel animal de compagnie Marie a-t-elle eu pendant son enfance ?',
+      formeValue: fd.value,
+      formeHint: fd.hint,
+      formeIcon: fd.icon,
+      isLocked: isSaisie || isForme,
       isComplete,
       isSearchEmpty: isSearch,
       isSearchIdle: !isSearch,
-      showSearch: !isSaisie,
+      showSearch: !isSaisie && !isForme,
       showSurprise: !isComplete,
       persons,
       themes,
       dots,
       dotsCaption: (activeIndex + 1) + ' / ' + themeDefs.length,
-      pillRowStyle: 'display: flex; gap: 8px; padding: 0 16px; ' + (isComplete ? 'transform: translateX(-520px)' : ''),
-      lockStyle: isSaisie ? 'opacity: 0.45' : '',
+      pillRowStyle: 'display: flex; gap: 8px; padding: 0 16px; ' + (isComplete ? 'transform: translateX(-520px)' : isForme ? 'transform: translateX(-330px)' : ''),
+      lockStyle: isSaisie || isForme ? 'opacity: 0.45' : '',
       cardTitle: active.label,
       cardStyle: 'flex-shrink: 0; width: 344px; display: flex; flex-direction: column; min-height: 0; border-radius: 30px; background: ' + active.bg + '; box-shadow: 0 7px 0 rgba(138,58,18,0.22); overflow: hidden',
       peekStyle: 'flex-shrink: 0; width: 40px; border-radius: 30px 0 0 30px; background: ' + next.bg + '; opacity: 0.85; margin-bottom: 7px',
