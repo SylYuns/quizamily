@@ -1,5 +1,5 @@
 import json, sys
-P = 14.0
+P = 16.0
 NB = ' '
 EASE = 'cubic-bezier(.22,.8,.3,1)'
 SOFT = 'cubic-bezier(.45,0,.25,1)'
@@ -71,13 +71,8 @@ card = anim([(T['card'], 'opacity:0;transform:translateY(46px) rotate(-1.5deg);a
 label = appear(T['label'], 0.2)
 question, t_q_end = typed('Où Mamie Marie a-t-elle rencontré Papi Jean' + NB + '?', T['q'], 0.026)
 
-# Version A : le formulaire arrive dès que la question est écrite ; la conversation continue pendant ce temps.
-T['form'] = t_q_end + 0.15
-para = appear(T['form'], 0.4, 'transform:translateY(12px);', 'transform:translateY(0);')
-form = appear(T['form'] + 0.05, 0.5, 'transform:translateY(70px);', 'transform:translateY(0);')
-
 rows = []
-t = T['form'] + 0.25
+t = t_q_end + 0.35  # la conversation commence juste après la question
 people = [('O', '#F7A06A', '#4A1E06', 'Au bal du village', True), ('L', '#B9A3E3', '#2E1A5C', 'À l’usine, à Lyon', True), ('?', '#FFD66B', '#5A3A00', 'Et toi, tu dirais quoi' + NB + '?', False)]
 for letter, bg, fg, text, dots in people:
     rond_style = anim([(t, 'opacity:0;transform:scale(.4);animation-timing-function:' + POP), (t + 0.3, 'opacity:1;transform:scale(1)')])
@@ -109,14 +104,20 @@ for letter, bg, fg, text, dots in people:
           </span>
         </span>''' % (row_style, bg, fg, rond_style, letter, bubble_look, bubble_style, words, dots_html))
     t = t_end + 0.25
-T['fin'] = t
+T['fin_conversation'] = t
+# Retour de Sylvain (2026-11-24) : le texte puis le formulaire n'arrivent qu'une fois la carte terminée, l'un après l'autre.
+T['texte'] = t + 0.1
+T['form'] = T['texte'] + 0.6
+para = appear(T['texte'], 0.45, 'transform:translateY(12px);', 'transform:translateY(0);')
+form = appear(T['form'], 0.5, 'transform:translateY(70px);', 'transform:translateY(0);')
+T['fin'] = T['form'] + 0.5
 voile = anim([(0, 'opacity:0'), (P - 0.6, 'opacity:0;animation-timing-function:' + EASE), (P - 0.1, 'opacity:1')])
 
 html = '''<!doctype html>
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<title>Connexion – intro animée (version A)</title>
+<title>Connexion – intro animée</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -130,7 +131,7 @@ body{margin:0}
 %s
 </style>
 </helmet>
-<!-- Intro animée de la connexion (piste B retenue), version A : le formulaire arrive dès que la question est écrite (~%.1f s), la petite conversation continue pendant qu'on tape son e-mail (fin ~%.1f s).
+<!-- Intro animée de la connexion (piste B retenue) : la carte (question puis conversation) se joue d'abord ; le texte d'explication puis le formulaire n'arrivent qu'ensuite, l'un après l'autre (formulaire à ~%.1f s, fin ~%.1f s).
      Sur le canvas, la séquence tourne en boucle toutes les %d s (fondu au noir… au dégradé, puis on recommence). Dans l'appli : jouée à chaque arrivée sur l'écran de connexion, une seule fois, double toucher = passer directement à l'état final (ConnexionB).
      Chronologie détaillée : docs/ecrans.md, écran 1. -->
 <div style="position: relative; width: 390px; height: 844px; box-sizing: border-box; background: linear-gradient(180deg, #FFC98A 0%%, #FFA36B 46%%, #F48A86 100%%); font-family: Nunito, system-ui, sans-serif; color: #3B1F14; display: flex; flex-direction: column; gap: 22px; padding: 70px 20px 30px; overflow: hidden">
