@@ -187,6 +187,30 @@ Actions :
 
 ### Nouveau fait
 
+#### Forme de la réponse choisie par l'auteur (décidé le 2026-11-24, pas encore codé)
+
+Pour certaines questions, c'est **l'auteur du fait qui choisit la forme de la réponse** : une date précise ou juste l'année, un âge ou une année, une commune ou un pays (ou une adresse ou une commune). Exemple : « Quand Marie a-t-elle pris sa retraite ? » → date précise, année ou âge, selon ce que l'auteur sait.
+
+- **Catalogue** (`docs/question-templates.toml`, complété le 2026-11-24) : champ `formes` (types possibles, le premier = celui par défaut, égal à `kind`), `text_neutre`, et pour chaque autre type un bloc `[template.forme.<type>]` avec son `text` et son `recap`. 17 questions concernées :
+  - **date / année / âge** : naissance (date, année), retraite (date, année, âge), mariage (date, année, âge), rencontre (année, date, âge), permis (année, âge, date), emménagement (année, date) ;
+  - **âge / année** : fin de l'école, apprendre à nager, départ du domicile, premier ordinateur (âge, année) ; premier concert, premier avion, voyage dans un pays (année, âge) ;
+  - **lieu** : mariage (commune, pays), voyage de noces (pays, ville), service militaire (ville, pays), adresse de naissance (adresse en saisie libre, commune).
+  Ne changent pas : questions dont la forme découle de la question (âge de l'aîné à la naissance, télévision à la maison, pays étrangers, listes, saisie libre).
+- **Deux formulations** (décision du 2026-11-24) :
+  - **dans la liste** de « Ajouter un souvenir », tant que l'auteur n'a rien choisi : la question **neutre** (`text_neutre`), ex. « Quand Marie a-t-elle pris sa retraite ? », « Où s'est-elle mariée ? » ;
+  - **une fois la forme choisie** (dans la tuile ouverte, dans « Mes questions », pour les joueurs, à la révélation) : la question **précise** de cette forme, ex. « À quelle date… », « En quelle année… », « À quel âge… », « Dans quel pays… » ;
+  - **récapitulatif** : la phrase de la forme choisie (« … le 3 mars 2001 », « … en 2001 », « … à 62 ans »).
+- **Dans la tuile ouverte** (« Ajouter un souvenir », et « Mes questions modifiables » tant que le fait n'est pas posé) : un **sélecteur à 2 ou 3 choix** au-dessus du champ de réponse, avec des libellés courts : « Date précise » / « Année » / « Âge », « Commune » / « Pays », « Adresse » / « Commune ». Choix initial : le type par défaut (premier de `formes`). Changer de forme change le champ de réponse (calendrier, liste des années, liste des âges, communes, pays) et le texte de la question affiché dans la tuile ; la valeur saisie est gardée quand elle se convertit sans ambiguïté (date → année : on garde l'année), sinon effacée. Choisir une forme ne compte pas comme « saisie commencée » (la tuile reste « ouverte pour voir » tant qu'aucune valeur n'est saisie).
+- **Pour les joueurs** : ils répondent avec le **même type** que celui choisi par l'auteur (champ adapté dans « Répondre »), et la comparaison juste/faux se fait dans ce type. Pas d'écart affiché pour une date précise (décision du 2026-11-24 ; l'écart « à N ans près » reste pour les années, et les nombres/âges).
+- **Préposition de lieu** : `{réponse_lieu}` (dans `recap`) et `<pays_lieu>` (dans `text` et `recap`) ajoutent la bonne préposition : « à Lyon » (commune ou ville), « en Italie », « au Portugal », « aux États-Unis » (pays). Il faut donc connaître la préposition de chaque pays de `src/constants/countries.ts` (féminin ou commençant par une voyelle → « en », masculin → « au », pluriel → « aux » ; quelques exceptions : « à Cuba », « à Malte », « à Singapour »…). Corrige au passage « en <pays> » de la question du voyage, faux pour « au Portugal ».
+- **À faire côté serveur** (migration) :
+  - `question_templates` : `answer_forms`, `template_text_neutral`, `form_texts` (voir `data-model.md`), remplis depuis le catalogue (et `supabase/seed.sql` à resynchroniser) ;
+  - `facts.answer_kind` (null = type par défaut) ; `quiz_questions.answer_kind_snapshot` copié à la pioche ;
+  - `submit_answer` compare avec le type du fait ; `get_revealed_question` (et ce qui affiche une question : Répondre, Ma question, Mes faits, récapitulatif) renvoie le type et le texte de la forme choisie ; `substitute_question_text` doit savoir prendre le texte d'une forme et gérer `<pays_lieu>` ;
+  - vérifier que les faits déjà créés (sans `answer_kind`) gardent exactement leur comportement actuel.
+- **Type « commune » (`city`) pas encore construit** : aujourd'hui, `city` et `place` retombent en saisie libre (texte comparé après normalisation). Pour le proposer comme forme, il faut au minimum un champ qui l'accepte ; idéalement une liste des communes françaises (ex. nouvelle liste de référence `communes`, depuis les données INSEE ou geo.api.gouv.fr) avec saisie libre possible pour une ville étrangère (« Venise »). À trancher au moment de coder : liste des communes tout de suite, ou saisie libre normalisée en attendant.
+- `place` n'est plus utilisé par le catalogue (remplacé par `formes` : commune + pays) ; le type reste accepté par la base.
+
 **Refonte décidée le 2026-11-20, codée le 2026-11-20** (`src/app/add-fact.tsx`, charte Soleil) — remplace la description « 4 zones » ci-dessous. Maquette : rangée « B · Créer un fait » du canvas « Quizamily – Pistes chaleureuses » (lien dans `design.md`), source dans `docs/maquettes/soleil/` (`Fait.dc.html`, paramètres `etat` et `repere`). Répartition des questions par thème calculée par `src/lib/add-fact-catalog.ts` (module pur, testé par `add-fact-catalog.test.ts`, `npm run test:add-fact-catalog`).
 
 **Écarts avec la description ci-dessous, et simplifications** :

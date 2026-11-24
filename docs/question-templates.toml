@@ -15,6 +15,15 @@
 #   slots      autres éléments à choisir par l'auteur du fait (ex : ["pays"])
 #   condition  condition sur le sujet pour que la question soit proposée
 #   note       remarque libre
+#   formes     (2026-11-24) types de réponse entre lesquels l'AUTEUR du fait choisit, le premier
+#              étant celui par défaut (= `kind`) ; ex : ["date", "year", "age"]. Sans ce champ :
+#              un seul type, `kind`. Le choix est mémorisé sur le fait, et les joueurs répondent
+#              avec ce type-là (voir docs/ecrans.md, écran 5, « Forme de la réponse »).
+#   text_neutre  (avec `formes`) question formulée sans présumer du type (« Quand… », « Où… »),
+#              affichée dans la liste de « Ajouter un souvenir » avant que l'auteur ait choisi ;
+#              une fois le type choisi, on affiche le `text` de ce type
+#   [template.forme.<type>]  (avec `formes`) `text` et `recap` propres à un type autre que celui
+#              par défaut (le type par défaut utilise `text` et `recap` du template)
 #   (implicite) l'ORDRE des blocs dans ce fichier fixe `sort_order` en base (1 = premier bloc,
 #              32 = dernier) : l'ordre narratif du récapitulatif suit cet ordre, pas la date de
 #              révélation. Insérer un nouveau template à sa place logique, pas à la fin.
@@ -24,6 +33,10 @@
 #              le prénom pour la toute première phrase de la bio (voir src/lib/recap.ts) ; à
 #              utiliser en tête de phrase ({Sujet}) quand la phrase porte sur le sujet lui-même.
 #              {forme_homme|forme_femme} = accord selon le genre (ex : {né|née}).
+#              {réponse_lieu} (2026-11-24) = la réponse précédée de la bonne préposition de lieu :
+#              « à Lyon » pour une commune ou une ville, « en Italie », « au Portugal »,
+#              « aux États-Unis » pour un pays. Même chose pour <pays_lieu> (élément choisi
+#              <pays>), dans `text` comme dans `recap`.
 #
 # Types de réponse (kind) :
 #   date        date complète (sélecteur de date)
@@ -57,8 +70,14 @@ id = "naissance-date"
 category = "naissance-enfance"
 status = "mvp"
 text = "Quelle est la date de naissance de <sujet> ?"
+text_neutre = "Quand <sujet> est-{il|elle} {né|née} ?"
 kind = "date"
+formes = ["date", "year"]
 recap = "{Sujet} est {né|née} le {réponse}."
+
+[template.forme.year]
+text = "En quelle année <sujet> est-{il|elle} {né|née} ?"
+recap = "{Sujet} est {né|née} en {réponse}."
 
 [[template]]
 id = "nom-jeune-fille"
@@ -82,8 +101,14 @@ id = "naissance-adresse"
 category = "naissance-enfance"
 status = "mvp"
 text = "À quelle adresse vivait <sujet> à sa naissance ?"
+text_neutre = "Où vivait <sujet> à sa naissance ?"
 kind = "free_text"
+formes = ["free_text", "city"]
 recap = "{Sujet} a vécu, à sa naissance, à {réponse}."
+
+[template.forme.city]
+text = "Dans quelle commune vivait <sujet> à sa naissance ?"
+recap = "À sa naissance, {sujet} vivait {réponse_lieu}."
 
 [[template]]
 id = "naissance-age-aine"
@@ -100,8 +125,14 @@ id = "ecole-age-fin"
 category = "naissance-enfance"
 status = "mvp"
 text = "Jusqu'à quel âge <sujet> est-{il|elle} {allé|allée} à l'école ?"
+text_neutre = "Quand <sujet> a-t-{il|elle} quitté l'école ?"
 kind = "age"
+formes = ["age", "year"]
 recap = "{Sujet} a quitté l'école à {réponse} ans."
+
+[template.forme.year]
+text = "En quelle année <sujet> a-t-{il|elle} quitté l'école ?"
+recap = "{Sujet} a quitté l'école en {réponse}."
 
 [[template]]
 id = "enfance-animal"
@@ -139,8 +170,18 @@ id = "permis-annee"
 category = "jeunesse"
 status = "mvp"
 text = "En quelle année <sujet> a-t-{il|elle} obtenu son permis de conduire ?"
+text_neutre = "Quand <sujet> a-t-{il|elle} obtenu son permis de conduire ?"
 kind = "year"
+formes = ["year", "age", "date"]
 recap = "{Sujet} a obtenu son permis de conduire en {réponse}."
+
+[template.forme.age]
+text = "À quel âge <sujet> a-t-{il|elle} obtenu son permis de conduire ?"
+recap = "{Sujet} a obtenu son permis de conduire à {réponse} ans."
+
+[template.forme.date]
+text = "À quelle date <sujet> a-t-{il|elle} obtenu son permis de conduire ?"
+recap = "{Sujet} a obtenu son permis de conduire le {réponse}."
 
 [[template]]
 id = "premier-metier"
@@ -156,8 +197,14 @@ id = "nage-age"
 category = "jeunesse"
 status = "mvp"
 text = "À quel âge <sujet> a-t-{il|elle} appris à nager ?"
+text_neutre = "Quand <sujet> a-t-{il|elle} appris à nager ?"
 kind = "age"
+formes = ["age", "year"]
 recap = "{Sujet} a appris à nager à {réponse} ans."
+
+[template.forme.year]
+text = "En quelle année <sujet> a-t-{il|elle} appris à nager ?"
+recap = "{Sujet} a appris à nager en {réponse}."
 
 [[template]]
 id = "metier-reve"
@@ -176,44 +223,82 @@ id = "depart-domicile-age"
 category = "couple-installation"
 status = "mvp"
 text = "À quel âge <sujet> a-t-{il|elle} quitté le domicile de ses parents ?"
+text_neutre = "Quand <sujet> a-t-{il|elle} quitté le domicile de ses parents ?"
 kind = "age"
+formes = ["age", "year"]
 recap = "{Sujet} a quitté le domicile de ses parents à {réponse} ans."
+
+[template.forme.year]
+text = "En quelle année <sujet> a-t-{il|elle} quitté le domicile de ses parents ?"
+recap = "{Sujet} a quitté le domicile de ses parents en {réponse}."
 
 [[template]]
 id = "rencontre-annee"
 category = "couple-installation"
 status = "mvp"
 text = "En quelle année <sujet> a-t-{il|elle} rencontré <conjoint> ?"
+text_neutre = "Quand <sujet> a-t-{il|elle} rencontré <conjoint> ?"
 kind = "year"
+formes = ["year", "date", "age"]
 related = "conjoint"
 recap = "{Sujet} a rencontré <conjoint> en {réponse}."
+
+[template.forme.date]
+text = "À quelle date <sujet> a-t-{il|elle} rencontré <conjoint> ?"
+recap = "{Sujet} a rencontré <conjoint> le {réponse}."
+
+[template.forme.age]
+text = "À quel âge <sujet> a-t-{il|elle} rencontré <conjoint> ?"
+recap = "{Sujet} a rencontré <conjoint> à {réponse} ans."
 
 [[template]]
 id = "mariage-date"
 category = "couple-installation"
 status = "mvp"
-text = "Quelle est la date de mariage de <sujet> ?"
+text = "À quelle date <sujet> s'est-{il|elle} {marié|mariée} avec <conjoint> ?"
+text_neutre = "Quand <sujet> s'est-{il|elle} {marié|mariée} avec <conjoint> ?"
 kind = "date"
+formes = ["date", "year", "age"]
 related = "conjoint"
 recap = "{Sujet} {s'est marié|s'est mariée} avec <conjoint> le {réponse}."
+
+[template.forme.year]
+text = "En quelle année <sujet> s'est-{il|elle} {marié|mariée} avec <conjoint> ?"
+recap = "{Sujet} {s'est marié|s'est mariée} avec <conjoint> en {réponse}."
+
+[template.forme.age]
+text = "À quel âge <sujet> s'est-{il|elle} {marié|mariée} avec <conjoint> ?"
+recap = "{Sujet} {s'est marié|s'est mariée} avec <conjoint> à {réponse} ans."
 
 [[template]]
 id = "mariage-commune"
 category = "couple-installation"
 status = "mvp"
 text = "Dans quelle commune <sujet> s'est-{il|elle} {marié|mariée} ?"
+text_neutre = "Où <sujet> s'est-{il|elle} {marié|mariée} ?"
 kind = "city"
+formes = ["city", "country"]
 related = "conjoint"
-recap = "{Sujet} {s'est marié|s'est mariée} à {réponse}."
+recap = "{Sujet} {s'est marié|s'est mariée} {réponse_lieu}."
+
+[template.forme.country]
+text = "Dans quel pays <sujet> s'est-{il|elle} {marié|mariée} ?"
+recap = "{Sujet} {s'est marié|s'est mariée} {réponse_lieu}."
 
 [[template]]
 id = "voyage-noces"
 category = "couple-installation"
 status = "mvp"
-text = "Où <sujet> et <conjoint> sont-ils partis en voyage de noces ?"
-kind = "place"
+text = "Dans quel pays <sujet> et <conjoint> sont-ils partis en voyage de noces ?"
+text_neutre = "Où <sujet> et <conjoint> sont-ils partis en voyage de noces ?"
+kind = "country"
+formes = ["country", "city"]
 related = "conjoint"
-recap = "Leur voyage de noces les a menés à {réponse}."
+recap = "Leur voyage de noces les a menés {réponse_lieu}."
+
+[template.forme.city]
+text = "Dans quelle ville <sujet> et <conjoint> sont-ils partis en voyage de noces ?"
+recap = "Leur voyage de noces les a menés {réponse_lieu}."
 
 [[template]]
 id = "mariage-voiture"
@@ -229,19 +314,31 @@ recap = "Le jour du mariage, les mariés sont arrivés en {réponse}."
 id = "service-militaire-ville"
 category = "couple-installation"
 status = "mvp"
-text = "Où <sujet> a-t-{il|elle} fait son service militaire ?"
-kind = "place"
+text = "Dans quelle ville <sujet> a-t-{il|elle} fait son service militaire ?"
+text_neutre = "Où <sujet> a-t-{il|elle} fait son service militaire ?"
+kind = "city"
+formes = ["city", "country"]
 condition = "homme"
-recap = "{Sujet} a fait son service militaire à {réponse}."
+recap = "{Sujet} a fait son service militaire {réponse_lieu}."
+
+[template.forme.country]
+text = "Dans quel pays <sujet> a-t-{il|elle} fait son service militaire ?"
+recap = "{Sujet} a fait son service militaire {réponse_lieu}."
 
 [[template]]
 id = "adresse-actuelle-annee"
 category = "couple-installation"
 status = "mvp"
 text = "En quelle année <sujet> a-t-{il|elle} emménagé à son adresse actuelle ?"
+text_neutre = "Quand <sujet> a-t-{il|elle} emménagé à son adresse actuelle ?"
 kind = "year"
+formes = ["year", "date"]
 condition = "vivant"
 recap = "{Sujet} a emménagé à son adresse actuelle en {réponse}."
+
+[template.forme.date]
+text = "À quelle date <sujet> a-t-{il|elle} emménagé à son adresse actuelle ?"
+recap = "{Sujet} a emménagé à son adresse actuelle le {réponse}."
 
 
 # ---------- Culture et premières fois ----------
@@ -251,8 +348,14 @@ id = "premier-concert-annee"
 category = "culture-premieres-fois"
 status = "mvp"
 text = "En quelle année <sujet> est-{il|elle} {allé|allée} voir un concert pour la première fois ?"
+text_neutre = "Quand <sujet> est-{il|elle} {allé|allée} voir un concert pour la première fois ?"
 kind = "year"
+formes = ["year", "age"]
 recap = "{Sujet} est {allé|allée} à son premier concert en {réponse}."
+
+[template.forme.age]
+text = "À quel âge <sujet> est-{il|elle} {allé|allée} voir un concert pour la première fois ?"
+recap = "{Sujet} est {allé|allée} à son premier concert à {réponse} ans."
 
 [[template]]
 id = "premier-concert-artiste"
@@ -286,8 +389,14 @@ id = "ordinateur-age"
 category = "culture-premieres-fois"
 status = "mvp"
 text = "À quel âge <sujet> a-t-{il|elle} utilisé un ordinateur pour la première fois ?"
+text_neutre = "Quand <sujet> a-t-{il|elle} utilisé un ordinateur pour la première fois ?"
 kind = "age"
+formes = ["age", "year"]
 recap = "{Sujet} a utilisé un ordinateur pour la première fois à {réponse} ans."
+
+[template.forme.year]
+text = "En quelle année <sujet> a-t-{il|elle} utilisé un ordinateur pour la première fois ?"
+recap = "{Sujet} a utilisé un ordinateur pour la première fois en {réponse}."
 
 
 # ---------- Retraite, voyages et loisirs ----------
@@ -297,8 +406,18 @@ id = "retraite-date"
 category = "retraite-voyages-loisirs"
 status = "mvp"
 text = "À quelle date <sujet> a-t-{il|elle} officiellement pris sa retraite ?"
+text_neutre = "Quand <sujet> a-t-{il|elle} pris sa retraite ?"
 kind = "date"
+formes = ["date", "year", "age"]
 recap = "{Sujet} a pris sa retraite le {réponse}."
+
+[template.forme.year]
+text = "En quelle année <sujet> a-t-{il|elle} officiellement pris sa retraite ?"
+recap = "{Sujet} a pris sa retraite en {réponse}."
+
+[template.forme.age]
+text = "À quel âge <sujet> a-t-{il|elle} pris sa retraite ?"
+recap = "{Sujet} a pris sa retraite à {réponse} ans."
 
 [[template]]
 id = "premier-pays-etranger"
@@ -313,18 +432,30 @@ id = "avion-annee"
 category = "retraite-voyages-loisirs"
 status = "mvp"
 text = "En quelle année <sujet> a-t-{il|elle} pris l'avion pour la première fois ?"
+text_neutre = "Quand <sujet> a-t-{il|elle} pris l'avion pour la première fois ?"
 kind = "year"
+formes = ["year", "age"]
 recap = "{Sujet} a pris l'avion pour la première fois en {réponse}."
+
+[template.forme.age]
+text = "À quel âge <sujet> a-t-{il|elle} pris l'avion pour la première fois ?"
+recap = "{Sujet} a pris l'avion pour la première fois à {réponse} ans."
 
 [[template]]
 id = "voyage-pays-annee"
 category = "retraite-voyages-loisirs"
 status = "mvp"
-text = "En quelle année <sujet> a-t-{il|elle} effectué son voyage en <pays> ?"
+text = "En quelle année <sujet> a-t-{il|elle} effectué son voyage <pays_lieu> ?"
+text_neutre = "Quand <sujet> a-t-{il|elle} effectué son voyage <pays_lieu> ?"
 kind = "year"
+formes = ["year", "age"]
 slots = ["pays"]
 note = "l'auteur choisit le pays au moment d'ajouter le fait"
-recap = "{Sujet} a voyagé en <pays> en {réponse}."
+recap = "{Sujet} a voyagé <pays_lieu> en {réponse}."
+
+[template.forme.age]
+text = "À quel âge <sujet> a-t-{il|elle} effectué son voyage <pays_lieu> ?"
+recap = "{Sujet} a voyagé <pays_lieu> à {réponse} ans."
 
 [[template]]
 id = "dernier-pays-etranger"
