@@ -379,6 +379,13 @@
       "x": 1100,
       "y": 13000,
       "title": "Choix de famille · une carte par famille (actions, alertes)"
+    },
+    "ChoixFamilleMenu.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 1570,
+      "y": 13000,
+      "title": "Choix de famille · menu ouvert"
     }
   },
   "createdOnFiles": {
@@ -532,7 +539,8 @@
     "CreerB.dc.html",
     "CreerBEnfants.dc.html",
     "CreerBFin.dc.html",
-    "ChoixFamille.dc.html"
+    "ChoixFamille.dc.html",
+    "ChoixFamilleMenu.dc.html"
   ],
   "pages": [],
   "title": "Quizamily – Pistes chaleureuses"
