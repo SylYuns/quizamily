@@ -156,7 +156,7 @@ Ce qui reste à faire, dans un ordre logique. Le détail de chaque point est dan
 
 ### Étape 1 — Finir la refonte de la navigation (en cours)
 
-1. **Historique (écran 12)** : questions déjà posées et tableau des scores ; demande le **score cumulé** inter-sessions (agrégation en base, pas encore construite). La tuile « Historique » de l'accueil ne fait rien pour l'instant.
+1. **Historique (écran 12)** : **maquetté le 2026-11-24** (`docs/maquettes/soleil/Historique.dc.html`, spécification complète dans `ecrans.md`, écran 12) — podium du mois calendaire (bonnes réponses seulement, 3 marches, égalités partagées, mois précédent en début de mois), titres (Coup de maître, Plume d'or, Toujours présent), « Toi », jauge de la famille, fil des questions (ronds si 3 ou moins ont trouvé), palmarès. Demande les **agrégats par famille et par mois** côté serveur (rien n'existe encore). La tuile « Historique » de l'accueil ne fait rien pour l'instant.
 2. **Récapitulatif (écran 11) : toucher une phrase** → détail de la question (réponses de chacun, anecdote, proposer une correction).
 3. **Supprimer l'ancien écran Archives** (`src/app/archive.tsx`), une fois les points 1 et 2 faits (il reste le seul accès au détail d'une question ancienne et aux corrections).
 4. ~~**Panneau de récapitulatif sur petit écran**~~ : décidé et codé le 2026-11-20 (panneau qui monte du bas, voir `ecrans.md` écran 11) — à vérifier à l'écran.

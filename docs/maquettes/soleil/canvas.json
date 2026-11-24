@@ -386,6 +386,20 @@
       "x": 1570,
       "y": 13000,
       "title": "Choix de famille · menu ouvert"
+    },
+    "Historique.dc.html": {
+      "h": 2144,
+      "w": 390,
+      "x": 1100,
+      "y": 14300,
+      "title": "Historique · en cours de mois (page entière)"
+    },
+    "HistoriqueDebutMois.dc.html": {
+      "h": 2407,
+      "w": 390,
+      "x": 1570,
+      "y": 14300,
+      "title": "Historique · début de mois : les champions du mois précédent"
     }
   },
   "createdOnFiles": {
@@ -483,6 +497,13 @@
       "text": "B · Arrivée : choix de famille",
       "x": 1100,
       "y": 12700
+    },
+    "titreHistorique": {
+      "kind": "title1",
+      "maxW": 860,
+      "text": "B · Historique (podium, titres, questions passées)",
+      "x": 1100,
+      "y": 14000
     }
   },
   "order": [
@@ -540,7 +561,9 @@
     "CreerBEnfants.dc.html",
     "CreerBFin.dc.html",
     "ChoixFamille.dc.html",
-    "ChoixFamilleMenu.dc.html"
+    "ChoixFamilleMenu.dc.html",
+    "Historique.dc.html",
+    "HistoriqueDebutMois.dc.html"
   ],
   "pages": [],
   "title": "Quizamily – Pistes chaleureuses"

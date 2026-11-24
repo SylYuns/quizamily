@@ -593,14 +593,21 @@ Pistes pour plus tard : frise chronologique construite à partir des faits de ty
 
 ## 12. Historique
 
-But : revoir les quiz passés et les scores.
+But : revoir les quiz passés et les scores, avec **un petit côté compétition pour donner envie de trouver les bonnes réponses, mais qui reste familial** : chacun peut briller dans quelque chose, on se compare surtout à soi-même, la famille gagne ensemble, et **on ne montre jamais une liste du premier au dernier** (décisions de Sylvain le 2026-11-24).
 
-Affiche :
-- la liste des **questions déjà posées**, de la plus récente à la plus ancienne : question, bonne réponse, date de révélation, taux de bonnes réponses (« 3 joueurs sur 5 avaient trouvé ») ;
-- le **tableau des scores** de la famille : score cumulé de chaque joueur (« 12 bonnes / 18 posées »), et score de contribution (nombre de souvenirs ajoutés).
+**Maquette (2026-11-24, à coder)** : `docs/maquettes/soleil/Historique.dc.html` (paramètre `moment` = `milieu` | `debut`) et `HistoriqueDebutMois.dc.html`. Du haut vers le bas :
 
-Actions :
-- Ouvrir une question → son détail (écran 8, avec proposition de correction).
+1. **Podium du mois** (carte jaune soleil) : **mois calendaire** (choisi plutôt que « 5 dernières semaines glissantes » : plus simple à comprendre, crée un rendez-vous de fin de mois et un palmarès ; les semaines glissantes faisaient perdre sa place sans rien faire). **Seulement les bonnes réponses** ; **3 marches seulement** (pas de 4ᵉ, 5ᵉ…) ; **égalité = marche partagée** (« Sylvain et Lucien, 3 bonnes réponses ») ; couronne sur le 1ᵉʳ ; titre qui félicite (« Odette mène la danse », « Bravo Odette ! »).
+   - **Début de mois** : tant que moins de 2 questions du mois sont révélées, on montre **les champions du mois précédent**, avec un bandeau « Décembre commence : 1 question révélée. Le podium de décembre s'affichera dès la 2ᵉ. »
+2. **Titres du mois** (3 tuiles) : pour que presque tout le monde ait le sien, même sans être le meilleur aux réponses :
+   - **Coup de maître** : seul à avoir trouvé une question (« Seul à trouver le métier de Papi Jean ») ;
+   - **Plume d'or** : le plus de souvenirs ajoutés dans le mois ;
+   - **Toujours présent** : a répondu à toutes les questions du mois (plusieurs personnes possibles).
+   - Écartés : « Fin limier » (le plus de bonnes réponses : fait doublon avec le podium) et « Spécialiste de <personne> » (pas convaincant, avis de Sylvain).
+   - Les souvenirs ajoutés et la participation **ne comptent pas dans le podium** (il resterait flou : « pourquoi il est 1ᵉʳ avec moins de bonnes réponses ? ») : ils sont récompensés par les titres.
+3. **« Toi, ce mois-ci »** : progression personnelle, toujours formulée positivement (« Beau mois : déjà mieux qu'en octobre ! ») : bonnes réponses du mois (« 3/4 »), meilleure série de bonnes réponses d'affilée, souvenirs ajoutés ; total depuis le début, sans classement.
+4. **« Toute la famille »** (carte prune) : la jauge commune, « Ensemble, 12 bonnes réponses sur 18 ce mois-ci » (67 %), et « Depuis le début, 31 souvenirs révélés ». Le contrepoids collectif à la compétition.
+5. **Les questions du mois**, de la plus récente à la plus ancienne : date de révélation, question, bonne réponse (pastille jaune), et qui a trouvé — **les ronds de ceux qui ont trouvé s'ils sont 3 ou moins** (« Seul à trouver ! » s'il n'y en a qu'un), **sinon le nombre** (« 4 sur 5 ont trouvé ») ; une question que personne n'a trouvée a l'étiquette **« La question piège ! »** (ton amusé, pas un échec). La révélation montre déjà qui a eu juste ou faux, ce n'est donc pas un problème de montrer les ronds. Toucher une question → son détail (réponses de chacun, anecdote, proposer une correction : remplace l'ancien écran Archives). « Voir les mois précédents » en bas.
+6. **Les champions des mois passés** (palmarès) : mois, rond(s) et prénom(s) du 1ᵉʳ (égalités comprises), nombre de bonnes réponses.
 
-**À construire** : le score cumulé sur plusieurs sessions n'existe pas encore (seul le résultat de chaque question est calculé), il demande une agrégation en base.
-
+**À construire côté serveur** : rien n'agrège encore les résultats sur plusieurs questions. Il faut, par famille et par mois : bonnes réponses par joueur (podium, palmarès, « Toi »), questions trouvées par un seul joueur (Coup de maître), souvenirs ajoutés par joueur (Plume d'or), réponses données par joueur (Toujours présent), total de la famille (jauge), et la meilleure série par joueur. Une fonction serveur par écran (ou une vue) plutôt que des calculs dans l'appli ; le mois se calcule sur la **date de révélation** des questions (fuseau Europe/Paris).
