@@ -39,22 +39,24 @@ a{color:#8A3A12}a:hover{color:#5E260B}
     <div style="display: flex; gap: 6px; padding: 6px 16px 0; overflow: hidden">
       <sc-for list="{{persons}}" as="p" hint-placeholder-count="6">
         <button type="button" aria-label="{{p.aria}}" style="{{p.wrapStyle}}">
+          <span style="display: flex; flex-direction: column; align-items: center; gap: 3px; width: 58px">
           <span style="{{p.avatarStyle}}">{{p.initial}}
             <sc-if value="{{p.central}}" hint-placeholder-val="{{ false }}">
               <span style="position: absolute; right: -5px; bottom: -5px; display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 10px; border: 2px solid #FFFFFF; background: #8A3A12; color: #FFD66B; box-sizing: border-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.2 1.3-6.6L2.5 9.3l6.6-.8z"></path></svg></span>
             </sc-if>
           </span>
           <span style="{{p.nameStyle}}">{{p.name}}</span>
+          </span>
+          <sc-if value="{{p.sel}}" hint-placeholder-val="{{ false }}">
+            <span style="display: flex; flex-direction: column; justify-content: center; gap: 4px; padding-right: 8px; text-align: left; white-space: nowrap; font-size: 13px; font-weight: 700; color: #5E2A12; line-height: 1.15">
+              <span><strong style="font-size: 15px; color: #3B1F14">12</strong> souvenirs</span>
+              <span><strong style="font-size: 15px; color: #3B1F14">4</strong> en réserve</span>
+            </span>
+          </sc-if>
         </button>
       </sc-for>
     </div>
 
-    <div style="display: flex; padding: 8px 16px 0">
-      <span style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 16px; border: 2px solid rgba(255,255,255,0.7); background: rgba(255,244,232,0.55); font-size: 14px; font-weight: 700; color: #3B1F14">
-        <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 15px">Marie</span>
-        <span>· 12 souvenirs connus · 4 en réserve</span>
-      </span>
-    </div>
 
     <sc-if value="{{isNoms}}" hint-placeholder-val="{{ true }}">
       <div style="overflow: hidden; padding: 10px 0 0">
@@ -287,8 +289,10 @@ class Component extends DCLogic {
         name: p.name,
         initial: p.name.charAt(0),
         central: !!p.central,
-        aria: 'Ajouter un souvenir sur ' + p.name,
-        wrapStyle: 'flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; width: 64px; padding: 5px 0 4px; border-radius: 18px; cursor: pointer; ' + (sel ? 'border: 3px solid #8A3A12; background: rgba(255,248,238,0.6)' : 'border: 3px solid transparent; background: transparent'),
+        sel,
+        aria: 'Ajouter un souvenir sur ' + p.name + (sel ? ' (sélectionnée : 12 souvenirs, 4 en réserve)' : ''),
+        // Personne choisie : le cadre s’élargit pour contenir ses chiffres (même hauteur de ligne).
+        wrapStyle: 'flex-shrink: 0; display: flex; flex-direction: row; align-items: center; gap: 6px; padding: 5px 0 4px 3px; border-radius: 18px; cursor: pointer; ' + (sel ? 'border: 3px solid #8A3A12; background: rgba(255,248,238,0.6)' : 'border: 3px solid transparent; background: transparent'),
         avatarStyle: 'position: relative; display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; box-sizing: border-box; border-radius: 24px; border: 3px solid #FFFFFF; background: ' + col[0] + '; color: ' + col[1] + '; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 20px; box-shadow: 0 3px 0 rgba(138,58,18,0.2)',
         nameStyle: 'font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 13px; color: #3B1F14',
       };
