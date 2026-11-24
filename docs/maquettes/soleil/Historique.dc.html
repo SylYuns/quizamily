@@ -149,7 +149,6 @@ body{margin:0}
           </span>
           <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 18px; line-height: 1.15">{{q.question}}</span>
           <span style="align-self: flex-start; padding: 4px 12px; border-radius: 12px; background: #FFD66B; font-size: 15px; font-weight: 800">{{q.answer}}</span>
-          <span style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #6E4A3A"><span style="{{q.authorRond}}">{{q.authorLetter}}</span>Souvenir de {{q.authorName}}</span>
           <span style="display: flex; align-items: center; gap: 8px; width: 100%; font-size: 14px; font-weight: 700; color: #6E4A3A">
             <sc-if value="{{q.showRonds}}" hint-placeholder-val="{{ false }}">
               <span style="display: flex">
@@ -185,7 +184,7 @@ body{margin:0}
   </main>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"moment":{"editor":"enum","default":"milieu","options":["milieu","debut"]},"$preview":{"width":390,"height":2387}}'>
+<script type="text/x-dc" data-dc-script data-props='{"moment":{"editor":"enum","default":"milieu","options":["milieu","debut"]},"$preview":{"width":390,"height":2267}}'>
 class Component extends DCLogic {
   renderVals() {
     const debut = this.props.moment === 'debut';
