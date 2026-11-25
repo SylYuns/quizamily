@@ -13,6 +13,12 @@
 #              sans ce champ, toutes les catégories de la liste sont proposées
 #   related    personne liée nécessaire (ex : "conjoint")
 #   slots      autres éléments à choisir par l'auteur du fait (ex : ["pays"])
+#   slot_options (2026-11-25) pour un élément choisi qui n'est pas un pays : liste fermée des
+#              choix proposés à l'auteur, chacun avec `label` (affiché dans le choix) et `texte`
+#              (inséré dans la question et le récapitulatif, avec son déterminant : « son bac »,
+#              « sa licence »). Ex : <diplome>. Jusqu'ici seul <pays> existe côté code : le
+#              mécanisme des éléments choisis est à généraliser (même interface : partie de la
+#              question soulignée, cliquable).
 #   condition  condition sur le sujet pour que la question soit proposée
 #   note       remarque libre
 #   formes     (2026-11-24) types de réponse entre lesquels l'AUTEUR du fait choisit, le premier
@@ -25,7 +31,7 @@
 #   [template.forme.<type>]  (avec `formes`) `text` et `recap` propres à un type autre que celui
 #              par défaut (le type par défaut utilise `text` et `recap` du template)
 #   (implicite) l'ORDRE des blocs dans ce fichier fixe `sort_order` en base (1 = premier bloc,
-#              32 = dernier) : l'ordre narratif du récapitulatif suit cet ordre, pas la date de
+#              N = dernier) : l'ordre narratif du récapitulatif suit cet ordre, pas la date de
 #              révélation. Insérer un nouveau template à sa place logique, pas à la fin.
 #   recap      phrase de récapitulatif pour la mini-biographie d'une personne (écran 11 de ecrans.md) :
 #              {réponse} = valeur formatée, <conjoint>/<pays> = mêmes substitutions que `text`,
@@ -144,6 +150,20 @@ list = "animaux"
 note = "la liste doit contenir « aucun »"
 recap = "{Sujet} a eu {réponse} comme animal de compagnie pendant son enfance."
 
+[[template]]
+id = "cadeau-bapteme-communion"
+category = "naissance-enfance"
+status = "a_trancher"
+text = "Quel cadeau <sujet> a-t-{il|elle} reçu pour <ceremonie> ?"
+kind = "free_text"
+slots = ["ceremonie"]
+slot_options.ceremonie = [
+  { label = "Baptême", texte = "son baptême" },
+  { label = "Communion", texte = "sa communion" },
+]
+recap = "Pour <ceremonie>, {sujet} a reçu {réponse}."
+note = "idée de Sylvain (2026-11-25). À TRANCHER : une question sur un baptême ou une communion peut révéler les convictions religieuses d'une personne, donnée sensible au sens de l'article 9 du RGPD (voir docs/rgpd.md, point 3) — à valider avec le juriste avant de la proposer, ou à reformuler autour d'une occasion non religieuse."
+
 
 # ---------- Jeunesse ----------
 
@@ -155,6 +175,29 @@ text = "Quel était le sport favori de <sujet> pendant son enfance ?"
 kind = "list"
 list = "sports"
 recap = "{Sujet} pratiquait {réponse} pendant son enfance."
+
+[[template]]
+id = "cadeau-diplome"
+category = "jeunesse"
+status = "mvp"
+text = "Quel cadeau <sujet> a-t-{il|elle} reçu pour <diplome> ?"
+kind = "free_text"
+slots = ["diplome"]
+slot_options.diplome = [
+  { label = "Certificat d'études", texte = "son certificat d'études" },
+  { label = "Brevet", texte = "son brevet" },
+  { label = "CAP", texte = "son CAP" },
+  { label = "BEP", texte = "son BEP" },
+  { label = "Bac", texte = "son bac" },
+  { label = "BTS", texte = "son BTS" },
+  { label = "DUT / BUT", texte = "son DUT" },
+  { label = "Licence", texte = "sa licence" },
+  { label = "Master", texte = "son master" },
+  { label = "Diplôme d'ingénieur", texte = "son diplôme d'ingénieur" },
+  { label = "Doctorat", texte = "son doctorat" },
+]
+recap = "Pour <diplome>, {sujet} a reçu {réponse}."
+note = "idée de Sylvain (2026-11-25) ; l'auteur choisit le diplôme (élément choisi, comme <pays>) ; un fait par diplôme (unicité template + sujet + élément choisi)"
 
 [[template]]
 id = "premiere-voiture-conduite"
