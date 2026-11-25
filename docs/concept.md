@@ -4,6 +4,8 @@
 
 Les joueurs (enfants, petits-enfants...) s'amusent à deviner et enrichir leur connaissance d'une ou plusieurs **personnes centrales** de la famille — typiquement des grands-parents ou arrière-grands-parents, vivants ou décédés, qui n'utilisent pas forcément l'app eux-mêmes. Le jeu produit, comme sous-produit, une archive familiale vivante.
 
+**Un prétexte pour se voir** (idée de Sylvain, 2026-11-25 — à faire ressortir dans les écrans **et** dans la présentation de l'appli) : les personnes centrales détiennent la plupart des souvenirs mais n'utilisent souvent pas l'appli. Ajouter des souvenirs devient alors **une parfaite excuse pour aller voir ses grands-parents ou organiser une réunion de famille** : leur poser des questions, récolter de nouveaux souvenirs et de nouvelles anecdotes, et surtout **passer du temps avec eux**. Le jeu ne remplace pas ces moments, il les provoque. Pistes de mise en avant : voir `roadmap.md`, « Points à décider ».
+
 ## Direction visuelle
 
 Coloré et chaleureux, pas minimaliste/froid — c'est un jeu de famille, pas un outil pro. Belles icônes, ambiance fun. Palette à dominante bleu/blanc/rouge quand c'est pertinent. Charte posée le 2026-11-10 avec la maquette de l'accueil, détaillée dans `design.md` : fond blanc chaud, bleu pour les actions, rouge réservé aux badges, alertes et liserés (jamais en grand fond, ça fait alerte), polices Fredoka (titres) et Nunito (texte). À appliquer à chaque écran au fur et à mesure qu'on le retravaille.
@@ -119,6 +121,7 @@ Le créateur de la famille (N) :
 Le pool de faits est fini (surtout avec seulement 1-4 personnes centrales), donc il faut encourager la contribution dans la durée :
 - Un petit **score de contribution** par membre (nombre de souvenirs ajoutés), affiché en parallèle du score de bonnes réponses.
 - Relances douces si un membre n'a encore rien ajouté, ou si le pool de faits disponibles devient bas (alerte sur l'accueil sous 5 faits jamais posés).
+- Les relances parlent de **rencontre** plutôt que de saisie (2026-11-25) : « Plus que 3 questions en réserve — et si tu passais voir Mamie ? » plutôt que « ajoute des souvenirs » (voir « Un prétexte pour se voir » dans le pitch).
 
 ## Terminologie
 
