@@ -388,18 +388,11 @@
       "title": "Choix de famille · menu ouvert"
     },
     "Historique.dc.html": {
-      "h": 2267,
+      "h": 1405,
       "w": 390,
-      "x": 1100,
+      "x": 2510,
       "y": 14300,
-      "title": "Historique · en cours de mois (page entière)"
-    },
-    "HistoriqueDebutMois.dc.html": {
-      "h": 2531,
-      "w": 390,
-      "x": 1570,
-      "y": 14300,
-      "title": "Historique · début de mois : les champions du mois précédent"
+      "title": "Historique · toutes les questions passées, par mois"
     },
     "RevelationDiscussion.dc.html": {
       "h": 1990,
@@ -413,7 +406,42 @@
       "w": 390,
       "x": 1570,
       "y": 17200,
-      "title": "Accueil · signal « Ça discute ! »"
+      "title": "Accueil · « Ça discute ! » sur une seule réponse (→ la question)"
+    },
+    "BilanMois.dc.html": {
+      "h": 2352,
+      "w": 390,
+      "x": 1100,
+      "y": 14300,
+      "title": "Bilan du mois · en cours de mois (page entière)"
+    },
+    "BilanMoisDebut.dc.html": {
+      "h": 2616,
+      "w": 390,
+      "x": 1570,
+      "y": 14300,
+      "title": "Bilan du mois · début de mois : champions du mois précédent"
+    },
+    "BilanMoisChoix.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 2040,
+      "y": 14300,
+      "title": "Bilan du mois · choisir un mois"
+    },
+    "HistoriqueFiltre.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 2980,
+      "y": 14300,
+      "title": "Historique · filtré sur les nouveaux commentaires"
+    },
+    "AccueilDiscussionPlusieurs.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 2040,
+      "y": 17200,
+      "title": "Accueil · « Ça discute ! » sur plusieurs réponses (→ Historique filtré)"
     }
   },
   "createdOnFiles": {
@@ -514,8 +542,8 @@
     },
     "titreHistorique": {
       "kind": "title1",
-      "maxW": 860,
-      "text": "B · Historique (podium, titres, questions passées)",
+      "maxW": 2270,
+      "text": "B · Bilan du mois et Historique",
       "x": 1100,
       "y": 14000
     },
@@ -584,9 +612,13 @@
     "ChoixFamille.dc.html",
     "ChoixFamilleMenu.dc.html",
     "Historique.dc.html",
-    "HistoriqueDebutMois.dc.html",
     "RevelationDiscussion.dc.html",
-    "AccueilDiscussion.dc.html"
+    "AccueilDiscussion.dc.html",
+    "BilanMois.dc.html",
+    "BilanMoisDebut.dc.html",
+    "BilanMoisChoix.dc.html",
+    "HistoriqueFiltre.dc.html",
+    "AccueilDiscussionPlusieurs.dc.html"
   ],
   "pages": [],
   "title": "Quizamily – Pistes chaleureuses"
