@@ -14,7 +14,7 @@ Principes :
 - **Les souvenirs restent dans la famille** : seuls les membres d'une famille voient ses souvenirs (déjà vérifié côté serveur, `is_family_member()`), et les bonnes réponses ne quittent jamais le serveur avant la révélation.
 - **Rien n'est revendu, rien n'est utilisé à d'autres fins** (pas de publicité, pas de revente, pas d'entraînement d'IA) : engagement à écrire noir sur blanc.
 - **Chacun garde la main** : exporter ses souvenirs, supprimer son compte, et (pour le créateur) supprimer la famille.
-- Détail des chantiers : `roadmap.md`, « Points à décider », « Sécurité des données et confiance ».
+- Détail des chantiers : `roadmap.md`, « Points à décider », « Sécurité des données et confiance » ; analyse RGPD : `rgpd.md`.
 
 ## Direction visuelle
 
