@@ -148,6 +148,7 @@ Pistes de Sylvain :
 Autres options payantes envisagées, à combiner ou non :
 - **Photos et enregistrements audio** sur les faits (prévus après le MVP) : coût de stockage réel, facile à justifier.
 - **Livre souvenir** (imprimé ou PDF) construit à partir du récapitulatif d'une personne : achat à l'unité (ordre d'idée 15-30 €), cadeau évident pour un anniversaire.
+- **Diaporama d'une vie** (idée de Sylvain le 2026-11-25) : quand une personne a beaucoup de souvenirs avec photos et enregistrements audio, l'appli en tire un **diaporama qui retrace sa vie** : photos, anecdotes en texte, la voix de la personne ou des proches, une petite musique de fond, dans l'ordre chronologique grâce aux dates et âges des souvenirs. Option payante (vidéo à télécharger ou à partager), dans la même veine que le livre souvenir, et **argument marketing fort** : c'est l'aboutissement visible de tout ce que la famille a récolté (cadeau pour les 80 ans de Mamie, une fête de famille, un hommage). Remplace l'idée d'un mode « veillée » de saisie collective.
 - **Paliers** au-delà d'un certain nombre de personnes centrales ou de membres.
 
 Calendrier proposé : premier test gratuit, avec au plus un lien de don sur la version web ; décider après avoir observé l'usage réel. Questions de TVA et de statut (micro-entreprise ou autre) à voir avec un comptable.
