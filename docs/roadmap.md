@@ -196,7 +196,7 @@ Ce qui reste à faire, dans un ordre logique. Le détail de chaque point est dan
 
 ### Étape 5 — Après le premier test
 
-- Réactions et commentaires sur les faits révélés (étape 10).
+- **Réactions et commentaires sur les faits révélés** (étape 10 ; **rappelé par Sylvain le 2026-11-25, à ne pas oublier**) : réagir avec des emojis et commenter après la révélation (surprise qu'untel n'ait pas trouvé, complément à l'anecdote…). Tables déjà créées (`fact_reactions`, `fact_comments`) ; reste la conception de l'écran (révélation et détail d'une question depuis l'Historique), les fonctions serveur et, plus tard, la notification d'un nouveau commentaire.
 - Score de contribution et relances des membres qui n'ont rien ajouté.
 - 2e personne quand le sujet répond lui-même (« avez-vous… »).
 - Récapitulatif enrichi : frise chronologique, photos et enregistrements audio (`fact_attachments`, déjà prévu dans le modèle).

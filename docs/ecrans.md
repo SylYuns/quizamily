@@ -437,7 +437,7 @@ Actions :
 - Question suivante de la session
 - Retour à l'accueil
 
-Hors MVP (roadmap) : réactions et commentaires.
+Hors MVP (roadmap) : réactions et commentaires. **Rappel de Sylvain le 2026-11-25 (« à ne pas oublier »)** : après la révélation, chacun doit pouvoir **réagir avec des emojis** et **commenter**, par exemple pour dire sa surprise qu'untel n'ait pas eu la bonne réponse, ou ajouter quelque chose à l'anecdote. Ouvert à toute la famille et sans limite de temps (`concept.md`, « Réactions et commentaires ») ; les tables existent déjà en base (`fact_reactions`, `fact_comments`, migration `20261106120000_init_schema.sql`, avec leurs règles d'accès), rien n'est construit côté écran. Pas encore maquetté.
 
 ### Déclenchement
 
