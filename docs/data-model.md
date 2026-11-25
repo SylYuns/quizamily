@@ -118,15 +118,27 @@ monthly_family_stats       -- une ligne par famille et par mois
   correct_total, expected_total   -- jauge « Ensemble, N bonnes réponses sur M »
   primary key (family_id, month)
 
-fact_reactions
+fact_reactions              -- existe déjà (migration init) ; à compléter (2026-11-25) :
   id, fact_id, person_id, emoji, created_at
+                           -- emoji limité aux 6 de l'appli (check : 😮 😂 ❤️ 👏 🤔 👍) ; unique (fact_id, person_id, emoji) :
+                           -- plusieurs emojis différents par personne, chacun une fois ; toucher = ajouter/retirer
 
-fact_comments
+fact_comments               -- existe déjà ; à compléter (2026-11-25) :
   id, fact_id, person_id, body, created_at
+  updated_at                -- À AJOUTER : modification de son propre commentaire (« modifié »)
+                           -- suppression : seulement son propre commentaire ; texte seul (pas de photo : les photos iront
+                           -- sur le souvenir lui-même, fact_attachments)
+
+fact_comment_reads          -- À AJOUTER (2026-11-25) : pour signaler les nouveaux commentaires (accueil, Historique)
+  person_id, fact_id, last_read_at
+  primary key (person_id, fact_id)
+                           -- mis à jour quand le joueur ouvre la discussion ; « nouveaux » = commentaires des autres
+                           -- créés après last_read_at (ou tous, s'il n'y a pas de ligne)
 ```
 
 ## Notes de conception
 
+- **Réactions et commentaires (conçu le 2026-11-25)** : réagir et commenter seulement sur un souvenir **déjà révélé** dans la famille (vérifié côté serveur : la question est dans une session `closed`), par un membre de la famille (`is_family_member`) ; pas de limite de temps. Détail de l'écran : `ecrans.md`, écran 8.
 - **Historique : stats du mois (décidé le 2026-11-24)** : mois **calendaire** (fuseau Europe/Paris), d'après `quiz_sessions.revealed_at`. Mois en cours : calculé en direct par une fonction serveur ; mois terminés : lus dans `monthly_person_stats` / `monthly_family_stats`, **figées le 1er du mois** (choix de Sylvain, plutôt que tout recalculer : le palmarès ne change plus après coup). Règles de calcul : podium = **bonnes réponses seulement** (ni souvenirs ajoutés ni participation, ni point compensatoire pour les auteurs — refusé par Sylvain : « ça n'a pas de sens ») ; comptes faits sur les **questions reçues** ; Coup de maître = seul joueur à avoir trouvé une question du mois ; Plume d'or = le plus de souvenirs ajoutés ; Toujours présent = a répondu à toutes les questions reçues ; égalités partagées partout. Lecture : membres de la famille (RLS `is_family_member`) ; écriture : seulement la tâche planifiée (fonction `security definer`).
 - **Emblème de la famille (décidé le 2026-11-24, à coder)** : `families.emblem_symbol`, `emblem_color`, `emblem_letters`, remplis à la création (tirage au hasard proposé, modifiable). Les familles existantes reçoivent un emblème au hasard dans la migration. **Seul le créateur (`families.created_by`) peut les modifier** : fonction `security definer` dédiée (ou policy `update` limitée à `created_by = auth.uid()` et à ces 3 colonnes), les autres membres ne peuvent que les lire. Voir `ecrans.md`, « Règles communes ».
 - **`answer_input_kind`** détermine le widget de saisie (date picker, dropdown pays, autocomplétion ville/prénom basée sur `SELECT DISTINCT answer_value` de la famille, etc.). Pour les types guidés, la validation est entièrement automatique.

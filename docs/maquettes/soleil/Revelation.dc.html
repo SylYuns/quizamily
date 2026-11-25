@@ -32,23 +32,13 @@ a{color:#8A3A12}a:hover{color:#5E260B}
     </div>
   </sc-if>
 
-  <header style="display: flex; align-items: center; gap: 8px; padding: 14px 16px 2px">
-    <button type="button" style="display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px; border: 2px solid rgba(255,255,255,0.75); border-radius: 24px; background: rgba(255,248,238,0.55); font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 18px; color: #3B1F14; cursor: pointer">
-      Famille Chardaire
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
-    </button>
-    <div style="flex-grow: 1"></div>
-    <button type="button" aria-label="Menu" style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border: none; border-radius: 24px; background: #FFFFFF; cursor: pointer; box-shadow: 0 3px 0 rgba(138,58,18,0.2)">
-      <svg width="24" height="22" viewBox="0 0 24 22" aria-hidden="true"><rect x="2" y="2" width="20" height="4" rx="2" fill="#2F5AA8"></rect><rect x="2.75" y="9.75" width="18.5" height="2.5" rx="1.25" fill="#FFFFFF" stroke="#C9B9A8" stroke-width="1.5"></rect><rect x="2" y="16" width="20" height="4" rx="2" fill="#C8423A"></rect></svg>
-    </button>
-  </header>
-
-  <div style="display: flex; align-items: center; gap: 4px; padding: 2px 16px 0 8px">
-    <button type="button" aria-label="Retour à l’accueil" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: none; border-radius: 22px; background: transparent; color: #3B1F14; cursor: pointer">
+  <header style="display: flex; align-items: center; gap: 4px; padding: 16px 16px 8px 8px">
+    <button type="button" aria-label="Retour à l’accueil" style="display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 44px; height: 44px; border: none; border-radius: 22px; background: transparent; color: #3B1F14; cursor: pointer">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
     </button>
-    <h1 style="margin: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 25px">Révélation</h1>
-  </div>
+    <h1 style="flex: 1; min-width: 0; margin: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 25px">Révélation</h1>
+    <dc-import name="Embleme" variante="dessus" animal="vache" lettres="CH" lisere="{{ false }}" hint-size="52px,60px"></dc-import>
+  </header>
 
   <main style="display: flex; flex-direction: column; gap: 16px; padding: 10px 16px 24px">
 
@@ -119,6 +109,14 @@ a{color:#8A3A12}a:hover{color:#5E260B}
           <span aria-hidden="true" style="position: absolute; left: 0; top: -8px; font-family: Fredoka, sans-serif; font-size: 46px; line-height: 1; color: #F7A06A">“</span>
           C’était pour aller voir son frère à Marseille, elle avait mis son plus beau chapeau.
         </blockquote>
+        <sc-if value="{{hasDiscussion}}" hint-placeholder-val="{{ false }}">
+          <!-- Réactions (2026-11-25) : 6 emojis fixes ; un toucher ajoute/retire la mienne (pastille colorée) ; appui long = qui a réagi. -->
+          <div style="display: flex; justify-content: space-between; gap: 4px; padding-top: 8px; border-top: 2px solid #F0E0CC">
+            <sc-for list="{{reactions}}" as="r" hint-placeholder-count="6">
+              <button type="button" aria-label="{{r.label}}" style="{{r.style}}"><span style="font-size: 18px; line-height: 1">{{r.emoji}}</span>{{r.count}}</button>
+            </sc-for>
+          </div>
+        </sc-if>
       </section>
 
       <section style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 28px; border: 2px solid rgba(255,255,255,0.7); background: rgba(255,244,232,0.55)">
@@ -158,6 +156,43 @@ a{color:#8A3A12}a:hover{color:#5E260B}
         </div>
       </section>
 
+      <sc-if value="{{hasDiscussion}}" hint-placeholder-val="{{ false }}">
+        <!-- Discussion (2026-11-25) : un seul fil sur la question entière, texte seul, ouvert à toute la famille sans limite de temps, seulement après la révélation. -->
+        <section style="display: flex; flex-direction: column; gap: 12px; padding: 18px 16px 16px; border-radius: 28px; background: #FFF4E8; box-shadow: 0 6px 0 rgba(138,58,18,0.22)">
+          <span style="display: flex; align-items: center; gap: 10px">
+            <span style="display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 19px; background: #8A3A12; color: #FFD66B">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1.1-4.6A8 8 0 1 1 21 12z"></path></svg>
+            </span>
+            <span style="flex: 1; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 22px">On en parle</span>
+            <span style="font-size: 14px; font-weight: 800; color: #6E4A3A">{{commentCount}}</span>
+          </span>
+          <sc-for list="{{comments}}" as="c" hint-placeholder-count="4">
+            <div style="display: flex; align-items: flex-start; gap: 10px">
+              <span style="{{c.avatar}}">{{c.initial}}</span>
+              <span style="flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0">
+                <span style="display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap">
+                  <span style="font-size: 15px; font-weight: 800">{{c.name}}</span>
+                  <sc-if value="{{c.isAuthor}}" hint-placeholder-val="{{ false }}">
+                    <span style="padding: 1px 7px; border-radius: 8px; background: #FFD66B; font-size: 11px; font-weight: 800; color: #5A3A00">auteure</span>
+                  </sc-if>
+                  <span style="font-size: 12px; font-weight: 700; color: #8A6A5A">{{c.when}}</span>
+                </span>
+                <span style="{{c.bubble}}">{{c.text}}</span>
+                <sc-if value="{{c.mine}}" hint-placeholder-val="{{ false }}">
+                  <span style="display: flex; gap: 14px; font-size: 12px; font-weight: 800; color: #8A3A12">Modifier<span>Supprimer</span></span>
+                </sc-if>
+              </span>
+            </div>
+          </sc-for>
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px">
+            <span style="flex: 1; display: flex; align-items: center; box-sizing: border-box; min-height: 48px; padding: 0 16px; border: 2px solid #EAD9BD; border-radius: 24px; background: #FFFFFF; font-size: 15px; font-weight: 700; color: #A08878">Écrire un commentaire…</span>
+            <button type="button" aria-label="Envoyer" style="display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 48px; height: 48px; border: none; border-radius: 24px; background: #8A3A12; color: #FFFFFF; cursor: pointer; box-shadow: 0 3px 0 #5E260B">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+            </button>
+          </div>
+        </section>
+      </sc-if>
+
       <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 16px; border-radius: 24px; background: #FFD9DC; color: #3B1F14; text-decoration: none; box-shadow: 0 6px 0 rgba(138,58,18,0.22)">
         <span style="display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 44px; height: 44px; box-sizing: border-box; border-radius: 22px; border: 3px solid #FFFFFF; background: #FFD66B; color: #5A3A00; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 19px">M</span>
         <span style="flex: 1; display: flex; flex-direction: column">
@@ -173,7 +208,7 @@ a{color:#8A3A12}a:hover{color:#5E260B}
   </main>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"etat":{"editor":"enum","default":"suspense","options":["suspense","trouve","rate"]},"exemple":{"editor":"enum","default":"annee","options":["annee","artiste"]},"$preview":{"width":390,"height":844}}'>
+<script type="text/x-dc" data-dc-script data-props='{"etat":{"editor":"enum","default":"suspense","options":["suspense","trouve","rate"]},"exemple":{"editor":"enum","default":"annee","options":["annee","artiste"]},"discussion":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
   renderVals() {
     const etat = this.props.etat ?? 'suspense';
@@ -220,12 +255,28 @@ class Component extends DCLogic {
       });
     }
 
+    const hasDiscussion = this.props.discussion === true || this.props.discussion === 'true';
+    // [emoji, libellé, nombre, la mienne]
+    const reactions = [['😮', 'Surpris', 2, false], ['😂', 'Drôle', 1, false], ['❤️', 'Émouvant', 4, true], ['👏', 'Bravo', 3, false], ['🤔', 'J’en doute', 0, false], ['👍', 'J’ai aimé, d’accord', 5, false]]
+      .map(([emoji, label, n, mine]) => ({
+        emoji, label: label + (n ? ' : ' + n : ''), count: n ? String(n) : '',
+        style: 'display: inline-flex; align-items: center; justify-content: center; gap: 3px; min-width: 44px; min-height: 40px; padding: 0 7px; border-radius: 20px; cursor: pointer; font-family: Nunito, sans-serif; font-size: 15px; font-weight: 800; color: #3B1F14; '
+          + (mine ? 'border: 2px solid #8A3A12; background: #FFD66B' : n ? 'border: 2px solid #EAD9BD; background: #FFFFFF' : 'border: 2px dashed #E0CDB4; background: transparent; opacity: 0.8'),
+      }));
+    const bubble = (mine) => 'align-self: flex-start; max-width: 100%; box-sizing: border-box; padding: 9px 13px; border-radius: 4px 18px 18px 18px; font-size: 15px; font-weight: 600; line-height: 1.4; ' + (mine ? 'background: #FFD66B; color: #3B1F14' : 'background: #FFFFFF; color: #3B1F14');
+    const comments = [
+      { name: 'Paul', c: 'menthe', when: 'il y a 3 h', text: 'Lucien qui trouve du premier coup, je suis bluffé ! 👏', isAuthor: false, mine: false },
+      { name: 'Odette', c: 'orange', when: 'il y a 2 h', text: 'Et elle avait gardé son billet ! Il est dans la boîte à chaussures, chez Bernard.', isAuthor: true, mine: false },
+      { name: 'Lucien', c: 'lavande', when: 'il y a 1 h', text: 'Pas de mérite, j’avais vu la photo de l’aéroport chez Mamie 😉', isAuthor: false, mine: false },
+      { name: 'Sylvain', c: 'menthe', when: 'à l’instant', text: 'Il faudra qu’on la scanne, cette photo !', isAuthor: false, mine: true },
+    ].map((x) => ({ ...x, initial: x.name.charAt(0), avatar: avatar(x.c), bubble: bubble(x.mine) }));
     return {
+      hasDiscussion, reactions, comments, commentCount: '4 commentaires',
       isSuspense,
       isRevealed,
       isWin,
       isLoss,
-      rootStyle: 'position: relative; width: 390px; height: ' + (isSuspense ? 844 : isArtist ? 1640 : 1560) + 'px; box-sizing: border-box; background: linear-gradient(180deg, #FFC98A 0%, #FFA36B 30%, #F48A86 100%); font-family: Nunito, system-ui, sans-serif; color: #3B1F14; display: flex; flex-direction: column; overflow: hidden',
+      rootStyle: 'position: relative; width: 390px; height: ' + ((isSuspense ? 844 : isArtist ? 1640 : 1560) + (hasDiscussion && !isSuspense ? 430 : 0)) + 'px; box-sizing: border-box; background: linear-gradient(180deg, #FFC98A 0%, #FFA36B 30%, #F48A86 100%); font-family: Nunito, system-ui, sans-serif; color: #3B1F14; display: flex; flex-direction: column; overflow: hidden',
       summary: (isWin ? 3 : 2) + ' joueurs sur 7 ont trouvé',
       questionText: isArtist
         ? 'Quel artiste Marie est-elle allée voir lors de son premier concert ?'

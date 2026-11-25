@@ -400,6 +400,20 @@
       "x": 1570,
       "y": 14300,
       "title": "Historique · début de mois : les champions du mois précédent"
+    },
+    "RevelationDiscussion.dc.html": {
+      "h": 1990,
+      "w": 390,
+      "x": 1100,
+      "y": 17200,
+      "title": "Révélation · réactions et discussion (page entière)"
+    },
+    "AccueilDiscussion.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 1570,
+      "y": 17200,
+      "title": "Accueil · signal « Ça discute ! »"
     }
   },
   "createdOnFiles": {
@@ -504,6 +518,13 @@
       "text": "B · Historique (podium, titres, questions passées)",
       "x": 1100,
       "y": 14000
+    },
+    "titreDiscussion": {
+      "kind": "title1",
+      "maxW": 860,
+      "text": "B · Réactions et discussion après la révélation",
+      "x": 1100,
+      "y": 16900
     }
   },
   "order": [
@@ -563,7 +584,9 @@
     "ChoixFamille.dc.html",
     "ChoixFamilleMenu.dc.html",
     "Historique.dc.html",
-    "HistoriqueDebutMois.dc.html"
+    "HistoriqueDebutMois.dc.html",
+    "RevelationDiscussion.dc.html",
+    "AccueilDiscussion.dc.html"
   ],
   "pages": [],
   "title": "Quizamily – Pistes chaleureuses"
