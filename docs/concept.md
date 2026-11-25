@@ -6,6 +6,16 @@ Les joueurs (enfants, petits-enfants...) s'amusent à deviner et enrichir leur c
 
 **Un prétexte pour se voir** (idée de Sylvain, 2026-11-25 — à faire ressortir dans les écrans **et** dans la présentation de l'appli) : les personnes centrales détiennent la plupart des souvenirs mais n'utilisent souvent pas l'appli. Ajouter des souvenirs devient alors **une parfaite excuse pour aller voir ses grands-parents ou organiser une réunion de famille** : leur poser des questions, récolter de nouveaux souvenirs et de nouvelles anecdotes, et surtout **passer du temps avec eux**. Le jeu ne remplace pas ces moments, il les provoque. Pistes de mise en avant : voir `roadmap.md`, « Points à décider ».
 
+## Confidentialité et confiance
+
+**Exigence de Sylvain (2026-11-25)** : les données doivent être **très sécurisées**. Les familles vont parfois partager des souvenirs **intimes** (sur des personnes vivantes ou disparues) ; chacun doit être **assuré que personne de malveillant ne récupérera ces informations**. Et il faut **le dire** : insister là-dessus **à la création de la famille et à la création du compte** (connexion, rejoindre une famille), pour que la personne se sente en confiance avant de raconter quoi que ce soit.
+
+Principes :
+- **Les souvenirs restent dans la famille** : seuls les membres d'une famille voient ses souvenirs (déjà vérifié côté serveur, `is_family_member()`), et les bonnes réponses ne quittent jamais le serveur avant la révélation.
+- **Rien n'est revendu, rien n'est utilisé à d'autres fins** (pas de publicité, pas de revente, pas d'entraînement d'IA) : engagement à écrire noir sur blanc.
+- **Chacun garde la main** : exporter ses souvenirs, supprimer son compte, et (pour le créateur) supprimer la famille.
+- Détail des chantiers : `roadmap.md`, « Points à décider », « Sécurité des données et confiance ».
+
 ## Direction visuelle
 
 Coloré et chaleureux, pas minimaliste/froid — c'est un jeu de famille, pas un outil pro. Belles icônes, ambiance fun. Palette à dominante bleu/blanc/rouge quand c'est pertinent. Charte posée le 2026-11-10 avec la maquette de l'accueil, détaillée dans `design.md` : fond blanc chaud, bleu pour les actions, rouge réservé aux badges, alertes et liserés (jamais en grand fond, ça fait alerte), polices Fredoka (titres) et Nunito (texte). À appliquer à chaque écran au fur et à mesure qu'on le retravaille.

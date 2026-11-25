@@ -66,6 +66,8 @@ But : démarrer une famille, ou rejoindre celle où l'on a été invité.
 
 ### Créer une famille
 
+**Confiance (exigence de Sylvain, 2026-11-25)** : insister ici sur la sécurité des souvenirs (« Vos souvenirs restent dans la famille… », lien vers la page « Confidentialité ») — message à concevoir, voir `concept.md`, « Confidentialité et confiance ». Idem à la connexion (écran 1) et sur le carton d'invitation (« Rejoindre une famille »).
+
 **Charte « Coucher de soleil » : piste A retenue le 2026-11-24, à coder** (canvas, rangée « Arrivée : créer une famille » ; sources `CreerA.dc.html`, paramètre `etape`, `CreerB.dc.html`, et `FamilleEmbleme.dc.html` avec `progression` pour l'étape 1). Les deux suppriment l'étape « Récapitulatif » (5 étapes au lieu de 6) :
 - **A « Étapes » — retenue** : barre d'avancement en 5 pastilles (la famille, toi, personnes centrales, leurs enfants, inviter) ; une carte par étape ; les personnes déjà saisies se replient en tuiles « ✎ Modifier » ; la dernière étape fête la famille créée (emblème, confettis, ronds des personnes) et met le lien en avant (« Partager », « Copier ») ;
 - B « La famille se dessine » (non retenue) : l'en-tête montre déjà le nom et l'emblème ; en haut, l'arbre se construit au fil de la saisie (le rond en cours de saisie en pointillés bruns) ; en bas, un panneau avec le formulaire de l'étape ; à la fin, les personnes pas encore inscrites restent en pointillés et le panneau devient l'invitation.
