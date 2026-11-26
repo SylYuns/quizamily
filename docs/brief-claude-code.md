@@ -30,15 +30,36 @@
 
 ## 2. Programme de demain (sans nom de domaine)
 
-Sylvain n'aura **pas de nom de domaine** demain : ni Resend ni le déploiement web pour les testeurs ne sont possibles. Programme réaliste, dans cet ordre :
+Sylvain n'aura **pas de nom de domaine** demain : ni Resend ni le déploiement web pour les testeurs ne sont possibles. Le programme est **organisé en lots**, avec **un passage de vérification à l'écran par lot** :
 
-1. **Étape 0 : `scripts/test-login.mjs`**, la connexion de test sans e-mail (spécification dans la roadmap, « Étape 0 »). C'est le prérequis de tous les tests. Créer ensuite la famille de test durable.
-2. **Réparer le calendrier** (type `date`), signalé comme ne fonctionnant pas. C'est le préalable de l'étape 6 quater.
-3. **Étape 6 quater : forme de la réponse** au choix de l'auteur : catalogue, migration, choix dans la tuile, `submit_answer`, préposition des pays, liste des communes.
-4. **Étape 6 decies : décisions de validation appliquées aux réponses identiques.** C'est petit et côté serveur. Vérifier d'abord la normalisation actuelle (`20261109200000_validate_free_text_answers.sql`).
-5. S'il reste du temps : **étape 6 quinquies, emblème de la famille**. C'est le prérequis du parcours d'arrivée.
+**Lot A : prérequis des tests**
+1. **Étape 0 : `scripts/test-login.mjs`**, la connexion de test sans e-mail (spécification dans la roadmap, « Étape 0 »). Créer ensuite la famille de test durable : 4 ou 5 comptes, des personnes centrales, quelques souvenirs.
 
-Un seul passage de vérification à l'écran pour les points 2 à 4, puis un pour le point 5.
+**Lot B : les écrans déjà codés passent aux nouvelles maquettes** (c'est la priorité de Sylvain : les changements d'écrans)
+2. **Étape 6 quinquies : emblème de la famille et nouvel en-tête sur tous les écrans d'une famille** : accueil (titre = nom de la famille), arbre (emblème à droite de « Modifier »), ajouter un souvenir, répondre, révélation, valider, mes faits, archives tant qu'elles existent. Viennent avec :
+   - le menu de la famille ;
+   - le choix de l'emblème à la création (étape 1 de `FamilleEmbleme.dc.html`) ;
+   - les symboles recolorables (vache, lézard, chien dans `Logo.dc.html`) ;
+   - les colonnes de `families`, avec la modification réservée au créateur.
+
+   Maquettes : `AccueilEmbleme`, `AccueilMenu`, `Fait`, `Revelation`, `FamilleEmbleme`, `Embleme`, `Logo`. Le bandeau partagé `src/components/family-header.tsx` est le point de départ.
+3. **Retouches rapides sur les écrans existants** :
+   - révélation : « N'ont pas répondu » **sans « compté faux »** ;
+   - alerte de réserve sur l'accueil : « Plus que 3 questions en réserve. Et si tu passais voir Mamie ? » ;
+   - accueil : le **bouton « Bilan du mois »** pleine largeur sous « Ajouter un souvenir ». Il peut mener provisoirement à une page vide si le bilan n'est pas encore codé, ou attendre le lot suivant : au choix, en le disant.
+
+**Lot C : forme de la réponse**
+4. **Réparer le calendrier** (type `date`), signalé comme ne fonctionnant pas.
+5. **Étape 6 quater : forme de la réponse** au choix de l'auteur : catalogue, migration, choix dans la tuile, `submit_answer`, préposition des pays, liste des communes. Maquettes `FaitForme*`.
+6. **Étape 6 decies : décisions de validation appliquées aux réponses identiques.** C'est petit et côté serveur. Vérifier d'abord la normalisation actuelle (`20261109200000_validate_free_text_answers.sql`).
+
+**S'il reste du temps** : commencer l'**étape 6 sexies, parcours d'arrivée**, par la connexion (`ConnexionB.dc.html`) et son intro animée (`ConnexionIntro.dc.html`, chronologie dans `ecrans.md`, écran 1).
+
+Les autres écrans redessinés suivent dans les jours d'après (section 3) :
+- le reste de l'arrivée : rejoindre, créer, choix de famille ;
+- le Bilan du mois et l'Historique ;
+- les réactions et la discussion ;
+- le rattrapage.
 
 ## 3. Ensuite, dans l'ordre (voir le récapitulatif de la roadmap)
 
