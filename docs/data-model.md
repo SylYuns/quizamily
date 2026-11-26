@@ -3,9 +3,9 @@
 ```
 families
   id, name, created_by, created_at
-  emblem_symbol           -- À AJOUTER (2026-11-24) : symbole dessiné ('vache', 'lezard'…, liste fermée côté appli)
-  emblem_color            -- À AJOUTER : une des 8 couleurs ('bleu', 'rouge', 'jaune', 'vert', 'orange', 'rose', 'violet', 'brun')
-  emblem_letters          -- À AJOUTER : 2 lettres en majuscules, par défaut les 2 premières du nom
+  emblem_symbol           -- fait le 2026-11-26 (décidé le 2026-11-24) : symbole dessiné ('vache', 'lezard', 'chien', liste fermée côté appli)
+  emblem_color            -- fait le 2026-11-26 : une des 8 couleurs ('bleu', 'rouge', 'jaune', 'vert', 'orange', 'rose', 'violet', 'brun')
+  emblem_letters          -- fait le 2026-11-26 : 2 lettres en majuscules, par défaut les 2 premières du nom
   invite_policy           -- À AJOUTER (2026-11-26) : 'admin_only' (par défaut) | 'all_members' — qui peut créer/partager le lien
   entry_question          -- À AJOUTER : question d'entrée (null = désactivée, par défaut)
   entry_answer            -- À AJOUTER : sa réponse (comparée après normalisation, comme les réponses libres) ;

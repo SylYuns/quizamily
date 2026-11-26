@@ -11,6 +11,7 @@
 // famille explicitement (menu du bandeau, ou lien contenant ?family=...).
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import type { EmblemColor, EmblemSymbol } from "@/constants/soleil";
 import { supabase } from "@/lib/supabase";
 
 export type MyFamilyMembership = {
@@ -18,6 +19,10 @@ export type MyFamilyMembership = {
   familyId: string;
   familyName: string;
   firstName: string;
+  emblemSymbol: EmblemSymbol;
+  emblemColor: EmblemColor;
+  emblemLetters: string;
+  createdBy: string | null;
 };
 
 const KEY_PREFIX = "quizamily:currentFamily:";
@@ -42,16 +47,29 @@ export async function setPersistedFamilyId(userId: string, familyId: string): Pr
 export async function listMyFamilies(userId: string): Promise<MyFamilyMembership[]> {
   const { data } = await supabase
     .from("persons")
-    .select("id, family_id, first_name, families(name)")
+    .select("id, family_id, first_name, families(name, emblem_symbol, emblem_color, emblem_letters, created_by)")
     .eq("user_id", userId)
     .eq("kind", "player");
 
-  return (data ?? []).map((row) => ({
-    personId: row.id as string,
-    familyId: row.family_id as string,
-    familyName: (row.families as unknown as { name: string } | null)?.name ?? "Famille",
-    firstName: row.first_name as string,
-  }));
+  return (data ?? []).map((row) => {
+    const family = row.families as unknown as {
+      name: string;
+      emblem_symbol: EmblemSymbol;
+      emblem_color: EmblemColor;
+      emblem_letters: string;
+      created_by: string | null;
+    } | null;
+    return {
+      personId: row.id as string,
+      familyId: row.family_id as string,
+      familyName: family?.name ?? "Famille",
+      firstName: row.first_name as string,
+      emblemSymbol: family?.emblem_symbol ?? "vache",
+      emblemColor: family?.emblem_color ?? "bleu",
+      emblemLetters: family?.emblem_letters ?? "FA",
+      createdBy: family?.created_by ?? null,
+    };
+  });
 }
 
 /**

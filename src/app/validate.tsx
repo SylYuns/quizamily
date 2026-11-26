@@ -183,19 +183,20 @@ export default function ValidateScreen() {
   return (
     <View style={[styles.screen, sunsetBackground]}>
       <FamilyHeaderBar
+        title="Valider les réponses"
+        onBack={() => router.replace("/home")}
         families={families}
         currentFamilyId={family!.familyId}
+        currentUserId={userId}
         onSwitchFamily={switchFamily}
         copied={copied}
         onCopyInvite={copyInviteLink}
+        onEmblemChanged={({ symbol, color }) =>
+          setFamilies((prev) =>
+            prev.map((f) => (f.familyId === family!.familyId ? { ...f, emblemSymbol: symbol, emblemColor: color } : f)),
+          )
+        }
       />
-
-      <View style={styles.titleRow}>
-        <Pressable accessibilityLabel="Retour à l'accueil" onPress={() => router.replace("/home")} style={styles.backButton}>
-          <Text style={styles.backArrow}>‹</Text>
-        </Pressable>
-        <Text style={styles.title}>Valider les réponses</Text>
-      </View>
 
       {!ready ? (
         <View style={styles.centered}>

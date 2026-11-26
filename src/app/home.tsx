@@ -114,7 +114,7 @@ export default function HomeScreen() {
     setKnowledgeSub(`${revealed.size} souvenir${revealed.size === 1 ? "" : "s"} sur ${revealedSubjects.size} personne${revealedSubjects.size === 1 ? "" : "s"}`);
     setReserveAlert(
       neverPosedCount < LOW_RESERVE_THRESHOLD
-        ? `Plus que ${neverPosedCount} question${neverPosedCount === 1 ? "" : "s"} en réserve : ajoutez des souvenirs !`
+        ? `Plus que ${neverPosedCount} question${neverPosedCount === 1 ? "" : "s"} en réserve. Et si tu passais voir Mamie ?`
         : null,
     );
 
@@ -313,12 +313,20 @@ export default function HomeScreen() {
   return (
     <View style={[styles.screen, sunsetBackground]}>
       <FamilyHeaderBar
+        title={currentFamily.familyName}
+        showBack={false}
         families={families}
         currentFamilyId={currentFamily.familyId}
+        currentUserId={userId}
         onSwitchFamily={switchFamily}
         copied={copied}
         onCopyInvite={copyInviteLink}
         onSessionCreated={() => loadFamilyDashboard(currentFamily.familyId, currentFamily.personId)}
+        onEmblemChanged={({ symbol, color }) =>
+          setFamilies((prev) =>
+            prev.map((f) => (f.familyId === currentFamily.familyId ? { ...f, emblemSymbol: symbol, emblemColor: color } : f)),
+          )
+        }
       />
 
       <ScrollView contentContainerStyle={styles.main}>
@@ -424,6 +432,13 @@ export default function HomeScreen() {
             </View>
           )}
         </View>
+
+        <Pressable
+          onPress={() => router.push({ pathname: "/monthly-report", params: { family: families[familyIndex]?.familyId } })}
+          style={styles.monthlyReportButton}
+        >
+          <Text style={styles.monthlyReportText}>Bilan du mois</Text>
+        </Pressable>
 
         <View style={styles.tilesRow}>
           <View style={styles.tile}>
@@ -547,6 +562,18 @@ const styles = StyleSheet.create({
   alertBanner: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 18, paddingVertical: 10, backgroundColor: S.alertBg },
   alertIcon: { fontSize: 16, color: S.alertInk },
   alertText: { fontSize: 14, fontFamily: FONTS.bodyHeavy, color: S.alertInk, flexShrink: 1 },
+
+  monthlyReportButton: {
+    minHeight: 60,
+    borderRadius: 26,
+    borderWidth: 2,
+    borderColor: S.white,
+    backgroundColor: S.creamStrong,
+    alignItems: "center",
+    justifyContent: "center",
+    ...solidShadow(undefined, 5),
+  },
+  monthlyReportText: { fontFamily: FONTS.title, fontSize: 18, color: S.ink },
 
   // ---------- Tuiles ----------
   tilesRow: { flexDirection: "row", gap: 12 },

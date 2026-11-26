@@ -78,6 +78,27 @@ export function avatarColorFor(id: string) {
   return AVATAR_COLORS[h % AVATAR_COLORS.length];
 }
 
+// Emblème de la famille (design.md, 2026-11-24 — table reprise de docs/maquettes/soleil/Logo.dc.html) :
+// [couleur franche, contour foncé, fond clair]. Liste fermée côté appli (pas en base, voir la
+// migration 20261126120000_family_emblem.sql) : vache, lézard et chien sont les seuls symboles
+// dessinés pour l'instant, une vingtaine est prévue à terme.
+export const EMBLEM_PALETTE = {
+  bleu: { main: "#2F5AA8", dark: "#1E3A6E", light: "#DCE6F7" },
+  rouge: { main: "#C8423A", dark: "#7A1F1A", light: "#F8DAD7" },
+  jaune: { main: "#F2B33D", dark: "#7A5200", light: "#FFF0C2" },
+  vert: { main: "#5E9E68", dark: "#2F5A36", light: "#DCEFDD" },
+  orange: { main: "#F07C3A", dark: "#7A3A10", light: "#FDE2D0" },
+  rose: { main: "#E58FA0", dark: "#8A3A4A", light: "#FBE3E8" },
+  violet: { main: "#8E6CC9", dark: "#4A3277", light: "#E8E0F6" },
+  brun: { main: "#8A3A12", dark: "#4A1E06", light: "#F1DCCB" },
+} as const;
+
+export type EmblemColor = keyof typeof EMBLEM_PALETTE;
+export const EMBLEM_COLORS = Object.keys(EMBLEM_PALETTE) as EmblemColor[];
+
+export const EMBLEM_SYMBOLS = ["vache", "lezard", "chien"] as const;
+export type EmblemSymbol = (typeof EMBLEM_SYMBOLS)[number];
+
 export const FONTS = {
   title: "Fredoka_600SemiBold",
   titleMedium: "Fredoka_500Medium",

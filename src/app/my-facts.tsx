@@ -337,19 +337,20 @@ export default function MyFactsScreen() {
   return (
     <View style={[styles.screen, sunsetBackground]}>
       <FamilyHeaderBar
+        title="Mes faits"
+        onBack={() => router.replace("/home")}
         families={families}
         currentFamilyId={family!.familyId}
+        currentUserId={userId}
         onSwitchFamily={switchFamily}
         copied={copied}
         onCopyInvite={copyInviteLink}
+        onEmblemChanged={({ symbol, color }) =>
+          setFamilies((prev) =>
+            prev.map((f) => (f.familyId === family!.familyId ? { ...f, emblemSymbol: symbol, emblemColor: color } : f)),
+          )
+        }
       />
-
-      <View style={styles.titleRow}>
-        <Pressable accessibilityLabel="Retour à l'accueil" onPress={() => router.replace("/home")} style={styles.backButton}>
-          <Text style={styles.backArrow}>‹</Text>
-        </Pressable>
-        <Text style={styles.title}>Mes faits</Text>
-      </View>
 
       {!ready ? (
         <View style={styles.centered}>

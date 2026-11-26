@@ -3,11 +3,17 @@ import { Redirect, router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from "react-native";
 
+import { EmblemPicker } from "@/components/emblem-picker";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { EMBLEM_COLORS, EMBLEM_SYMBOLS, type EmblemColor, type EmblemSymbol } from "@/constants/soleil";
 import { Spacing } from "@/constants/theme";
 import { setPersistedFamilyId } from "@/lib/my-family";
 import { supabase } from "@/lib/supabase";
+
+function randomOf<T>(options: readonly T[]): T {
+  return options[Math.floor(Math.random() * options.length)];
+}
 
 type Gender = "homme" | "femme" | null;
 
@@ -53,6 +59,10 @@ export default function FamilySetupScreen() {
   const [step, setStep] = useState(0);
 
   const [familyName, setFamilyName] = useState("");
+  // Tirage au hasard à l'ouverture, modifiable par le créateur (voir docs/design.md, emblème de
+  // la famille) ; une seule fois par montant de l'écran, pas à chaque frappe du nom.
+  const [emblemSymbol, setEmblemSymbol] = useState<EmblemSymbol>(() => randomOf(EMBLEM_SYMBOLS));
+  const [emblemColor, setEmblemColor] = useState<EmblemColor>(() => randomOf(EMBLEM_COLORS));
   const [myFirstName, setMyFirstName] = useState("");
   const [myLastName, setMyLastName] = useState("");
   const [myGender, setMyGender] = useState<Gender>(null);
@@ -136,7 +146,7 @@ export default function FamilySetupScreen() {
     try {
       const { data: familyRow, error: familyError } = await supabase
         .from("families")
-        .insert({ name: familyName.trim() })
+        .insert({ name: familyName.trim(), emblem_symbol: emblemSymbol, emblem_color: emblemColor })
         .select()
         .single();
       if (familyError) throw familyError;
@@ -255,6 +265,17 @@ export default function FamilySetupScreen() {
             <ThemedText type="title">Nouvelle famille</ThemedText>
             <ThemedText themeColor="textSecondary">Comment s&apos;appelle ta famille ?</ThemedText>
             <LabeledInput value={familyName} onChangeText={setFamilyName} placeholder="Nom de la famille" />
+            <ThemedText themeColor="textSecondary">
+              Son emblème (modifiable plus tard, seulement par toi) :
+            </ThemedText>
+            <EmblemPicker
+              symbol={emblemSymbol}
+              color={emblemColor}
+              onChange={({ symbol, color }) => {
+                setEmblemSymbol(symbol);
+                setEmblemColor(color);
+              }}
+            />
             <NextButton disabled={!canGoNextFromStep0} onPress={() => setStep(knownIdentity ? 2 : 1)} />
           </>
         )}

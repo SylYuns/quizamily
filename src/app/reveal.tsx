@@ -476,23 +476,20 @@ export default function RevealScreen() {
   return (
     <View style={[styles.screen, sunsetBackground]}>
       <FamilyHeaderBar
+        title="Révélation"
+        onBack={() => (fromArchive ? router.back() : router.replace("/home"))}
         families={families}
         currentFamilyId={family!.familyId}
+        currentUserId={userId}
         onSwitchFamily={switchFamily}
         copied={copied}
         onCopyInvite={copyInviteLink}
+        onEmblemChanged={({ symbol, color }) =>
+          setFamilies((prev) =>
+            prev.map((f) => (f.familyId === family!.familyId ? { ...f, emblemSymbol: symbol, emblemColor: color } : f)),
+          )
+        }
       />
-
-      <View style={styles.titleRow}>
-        <Pressable
-          accessibilityLabel={fromArchive ? "Retour aux archives" : "Retour à l'accueil"}
-          onPress={() => (fromArchive ? router.back() : router.replace("/home"))}
-          style={styles.backButton}
-        >
-          <Text style={styles.backArrow}>‹</Text>
-        </Pressable>
-        <Text style={styles.title}>Révélation</Text>
-      </View>
 
       {!ready ? (
         <View style={styles.centered}>
@@ -695,7 +692,6 @@ export default function RevealScreen() {
                       <View key={p.personId} style={styles.resultRow}>
                         <PersonAvatar personId={p.personId} firstName={p.displayName} size={38} isCentral={false} style={{ opacity: 0.5 }} />
                         <Text style={[styles.resultRowName, { flex: 1, opacity: 0.7 }]}>{p.displayName}</Text>
-                        <Text style={styles.unansweredText}>compté faux</Text>
                       </View>
                     ))}
                   </>
@@ -825,7 +821,6 @@ const styles = StyleSheet.create({
   pillWrong: { maxWidth: 200, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 14, backgroundColor: S.alertBg },
   pillWrongText: { fontSize: 14, fontFamily: FONTS.bodyHeavy, color: S.alertInk, textAlign: "right" },
   gapText: { fontSize: 12, fontFamily: FONTS.bodyBold, color: S.inkSoft },
-  unansweredText: { fontSize: 13, fontFamily: FONTS.bodyBold, color: S.inkSoft },
 
   knowledgeTile: { flexDirection: "row", alignItems: "center", gap: 14, padding: 14, borderRadius: RADIUS.card, backgroundColor: S.knowledge, ...solidShadow() },
   knowledgeTitle: { fontFamily: FONTS.title, fontSize: 17, color: S.ink },

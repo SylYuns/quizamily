@@ -779,19 +779,20 @@ export default function AddFactScreen() {
   return (
     <View style={[styles.screen, sunsetBackground]}>
       <FamilyHeaderBar
+        title="Ajouter un souvenir"
+        onBack={() => router.replace("/home")}
         families={families}
         currentFamilyId={family!.familyId}
+        currentUserId={userId}
         onSwitchFamily={switchFamily}
         copied={copied}
         onCopyInvite={copyInviteLink}
+        onEmblemChanged={({ symbol, color }) =>
+          setFamilies((prev) =>
+            prev.map((f) => (f.familyId === family!.familyId ? { ...f, emblemSymbol: symbol, emblemColor: color } : f)),
+          )
+        }
       />
-
-      <View style={styles.titleRow}>
-        <Pressable accessibilityLabel="Retour à l'accueil" onPress={() => router.replace("/home")} style={styles.backButton}>
-          <Text style={styles.backArrow}>‹</Text>
-        </Pressable>
-        <Text style={styles.title}>Ajouter un souvenir</Text>
-      </View>
 
       {!ready || !catalog || !subject ? (
         <View style={styles.centered}>

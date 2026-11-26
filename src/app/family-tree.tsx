@@ -32,6 +32,7 @@ import {
   View,
 } from "react-native";
 
+import { FamilyMenuButton } from "@/components/family-menu-button";
 import { PersonAvatar } from "@/components/soleil";
 import { FONTS, RADIUS, S, solidShadow, sunsetBackground } from "@/constants/soleil";
 import {
@@ -44,9 +45,10 @@ import {
   type RelationType,
   type RowGeometry,
 } from "@/lib/family-tree-layout";
-import { listMyFamilies, resolveMyFamily } from "@/lib/my-family";
+import { listMyFamilies, resolveMyFamily, setPersistedFamilyId, type MyFamilyMembership } from "@/lib/my-family";
 import { buildRecapByCategory, type RecapCategory, type RecapFact } from "@/lib/recap";
 import { supabase } from "@/lib/supabase";
+import { useInviteLink } from "@/lib/use-invite-link";
 
 type Person = {
   id: string;
@@ -102,6 +104,9 @@ export default function FamilyTreeScreen() {
   const [error, setError] = useState("");
 
   const [familyId, setFamilyId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [families, setFamilies] = useState<MyFamilyMembership[]>([]);
+  const { copied, copy: copyInviteLink } = useInviteLink(familyId);
   const [persons, setPersons] = useState<Person[]>([]);
   const [relationships, setRelationships] = useState<Relationship[]>([]);
   const [counts, setCounts] = useState<Map<string, FactCounts>>(new Map());
@@ -143,6 +148,8 @@ export default function FamilyTreeScreen() {
       const current = await resolveMyFamily(userId, myFamilies, paramFamily);
       if (!current || cancelled) return;
       setFamilyId(current.familyId);
+      setUserId(userId);
+      setFamilies(myFamilies);
 
       const [{ data: personsData }, { data: relsData }, { data: factsData }] = await Promise.all([
         supabase
@@ -555,6 +562,11 @@ export default function FamilyTreeScreen() {
   const focusIsInLaw = !!focusUnit && focusUnit.members[1] === focus;
   const focusCounts = focus ? counts.get(focus) : undefined;
 
+  function switchFamily(newFamilyId: string) {
+    if (userId) setPersistedFamilyId(userId, newFamilyId);
+    router.replace({ pathname: "/family-tree", params: { family: newFamilyId } });
+  }
+
   return (
     <View style={[styles.screen, sunsetBackground]}>
       <View style={styles.titleBar}>
@@ -584,6 +596,19 @@ export default function FamilyTreeScreen() {
             <Text style={styles.glassButtonText}>✎ Modifier</Text>
           </Pressable>
         )}
+        <FamilyMenuButton
+          families={families}
+          currentFamilyId={familyId ?? ""}
+          currentUserId={userId}
+          onSwitchFamily={switchFamily}
+          copied={copied}
+          onCopyInvite={copyInviteLink}
+          onEmblemChanged={({ symbol, color }) =>
+            setFamilies((prev) =>
+              prev.map((f) => (f.familyId === familyId ? { ...f, emblemSymbol: symbol, emblemColor: color } : f)),
+            )
+          }
+        />
       </View>
 
       {!editMode && unlinked.length > 0 && (
