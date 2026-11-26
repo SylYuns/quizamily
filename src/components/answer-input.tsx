@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 
-import DateInput from "@/components/date-input";
+import { CalendarPicker } from "@/components/calendar-picker";
 import { SearchableDropdown } from "@/components/searchable-dropdown";
 import { ThemedText } from "@/components/themed-text";
 import { COUNTRIES } from "@/constants/countries";
@@ -31,7 +31,7 @@ export function AnswerInput(props: {
   const kind = template.answer_input_kind;
 
   if (kind === "date") {
-    return <DateInput value={value} onChange={onChange} />;
+    return <CalendarPicker value={value} onChange={onChange} />;
   }
 
   if (kind === "year") {
