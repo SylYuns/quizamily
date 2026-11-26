@@ -15,6 +15,10 @@ MVP fonctionnel en version web (Expo + Supabase), en cours de test : création e
 - [docs/ecrans.md](docs/ecrans.md) — description fonctionnelle des écrans du MVP.
 - [docs/design.md](docs/design.md) — la charte visuelle (couleurs, polices, styles de boutons) et le lien vers les maquettes.
 - [docs/question-templates.toml](docs/question-templates.toml) — le catalogue des templates de questions.
+- [docs/brief-claude-code.md](docs/brief-claude-code.md) — **brief de reprise du code** après la conception du 24 au 26 novembre 2026 : quoi lire, comment optimiser les tests, programme par lots.
+- [docs/rgpd.md](docs/rgpd.md) — première analyse RGPD (responsabilité de l'appli, personnes sans compte, suppression du compte à deux niveaux).
+- [docs/deploiement-test.md](docs/deploiement-test.md) — faire tester l'appli à quelques proches, puis passer aux magasins d'applications (solutions, coûts, exigences).
+- [docs/maquettes/LISEZMOI.md](docs/maquettes/LISEZMOI.md) — les maquettes du canvas « Quizamily – Pistes chaleureuses » et leur correspondance avec les écrans.
 - [data/listes/LISEZMOI.md](data/listes/LISEZMOI.md) — les listes de référence (voitures, métiers, films, personnalités…) : fichiers, scripts de génération (`scripts/wikidata-listes.mjs`, `scripts/build-list-items.mjs`) et mise à jour de la base.
 
 ## Contexte

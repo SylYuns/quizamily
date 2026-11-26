@@ -8,7 +8,7 @@ Le MVP fonctionne de bout en bout en version simple, testé avec des comptes jet
 
 **Depuis le 2026-11-20** : nouvelle charte « Coucher de soleil » pour l'accueil et l'arbre (4 profils cliquables, récapitulatif en panneau du bas), vérifiée à l'écran le 2026-11-20 (voir juste en dessous pour ce qui reste à vérifier).
 
-**Conçu du 2026-11-24 au 2026-11-26 (maquettes sur le canvas, rien n'est encore codé)** — à coder dans cet ordre par Claude Code :
+**Conçu du 2026-11-24 au 2026-11-26 (maquettes sur le canvas, rien n'est encore codé)** — **pour reprendre le code, commencer par [`brief-claude-code.md`](brief-claude-code.md)** (quoi lire, optimisation des tests, programme par lots : écrans d'abord). À coder dans cet ordre par Claude Code :
 1. **Forme de la réponse** au choix de l'auteur (étape 6 quater ; revoir d'abord le calendrier, signalé comme ne fonctionnant pas).
 2. **Emblème de la famille** (étape 6 quinquies) : en-tête titre + emblème, menu de la famille, choix à la création, symboles recolorables (vache, lézard, chien dessinés).
 3. **Parcours d'arrivée** (étape 6 sexies) : connexion avec intro animée, rejoindre (carton d'invitation, « C'est moi »), créer une famille en 5 étapes, choix de famille (cartes aux couleurs des familles, actions et alertes, menu bleu-blanc-rouge). Dépend de l'emblème.
