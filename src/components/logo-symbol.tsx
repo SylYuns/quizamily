@@ -41,10 +41,10 @@ type Palette = { main: string; dark: string; light: string };
 function VacheArt({ color }: { color: Palette }) {
   return (
     <>
-      <Ellipse cx={15.5} cy={10.5} rx={2.6} ry={5} rotation={-28} origin="15.5,10.5" fill="#FFF4E8" stroke={color.dark} strokeWidth={1.4} />
-      <Ellipse cx={32.5} cy={10.5} rx={2.6} ry={5} rotation={28} origin="32.5,10.5" fill="#FFF4E8" stroke={color.dark} strokeWidth={1.4} />
-      <Ellipse cx={9.5} cy={19.5} rx={6} ry={3.4} rotation={-18} origin="9.5,19.5" fill={color.main} stroke={color.dark} strokeWidth={1.4} />
-      <Ellipse cx={38.5} cy={19.5} rx={6} ry={3.4} rotation={18} origin="38.5,19.5" fill={color.main} stroke={color.dark} strokeWidth={1.4} />
+      <Ellipse cx={15.5} cy={10.5} rx={2.6} ry={5} transform="rotate(-28 15.5 10.5)" fill="#FFF4E8" stroke={color.dark} strokeWidth={1.4} />
+      <Ellipse cx={32.5} cy={10.5} rx={2.6} ry={5} transform="rotate(28 32.5 10.5)" fill="#FFF4E8" stroke={color.dark} strokeWidth={1.4} />
+      <Ellipse cx={9.5} cy={19.5} rx={6} ry={3.4} transform="rotate(-18 9.5 19.5)" fill={color.main} stroke={color.dark} strokeWidth={1.4} />
+      <Ellipse cx={38.5} cy={19.5} rx={6} ry={3.4} transform="rotate(18 38.5 19.5)" fill={color.main} stroke={color.dark} strokeWidth={1.4} />
       <Rect x={13} y={12} width={22} height={27} rx={11} fill={color.main} stroke={color.dark} strokeWidth={1.4} />
       <Ellipse cx={29.5} cy={17} rx={4} ry={3} fill="#FFFFFF" opacity={0.85} />
       <Circle cx={19} cy={23} r={2.2} fill="#1B1F3B" />
@@ -89,8 +89,8 @@ function LezardArt({ color }: { color: Palette }) {
 function ChienArt({ color }: { color: Palette }) {
   return (
     <>
-      <Ellipse cx={12.5} cy={21} rx={5} ry={10.5} rotation={16} origin="12.5,21" fill={color.dark} stroke={color.dark} strokeWidth={1.4} />
-      <Ellipse cx={35.5} cy={21} rx={5} ry={10.5} rotation={-16} origin="35.5,21" fill={color.dark} stroke={color.dark} strokeWidth={1.4} />
+      <Ellipse cx={12.5} cy={21} rx={5} ry={10.5} transform="rotate(16 12.5 21)" fill={color.dark} stroke={color.dark} strokeWidth={1.4} />
+      <Ellipse cx={35.5} cy={21} rx={5} ry={10.5} transform="rotate(-16 35.5 21)" fill={color.dark} stroke={color.dark} strokeWidth={1.4} />
       <Ellipse cx={24} cy={24} rx={12} ry={13} fill={color.main} stroke={color.dark} strokeWidth={1.4} />
       <Ellipse cx={29} cy={15.5} rx={3.4} ry={2.3} fill="#FFFFFF" opacity={0.55} />
       <Circle cx={19.2} cy={21.5} r={2} fill="#1B1F3B" />
