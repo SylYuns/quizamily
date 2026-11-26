@@ -8,13 +8,17 @@ Le MVP fonctionne de bout en bout en version simple, testé avec des comptes jet
 
 **Depuis le 2026-11-20** : nouvelle charte « Coucher de soleil » pour l'accueil et l'arbre (4 profils cliquables, récapitulatif en panneau du bas), vérifiée à l'écran le 2026-11-20 (voir juste en dessous pour ce qui reste à vérifier).
 
-**Conçu le 2026-11-24 (maquettes sur le canvas, rien n'est encore codé)** — à coder dans cet ordre par Claude Code :
+**Conçu du 2026-11-24 au 2026-11-26 (maquettes sur le canvas, rien n'est encore codé)** — à coder dans cet ordre par Claude Code :
 1. **Forme de la réponse** au choix de l'auteur (étape 6 quater ; revoir d'abord le calendrier, signalé comme ne fonctionnant pas).
 2. **Emblème de la famille** (étape 6 quinquies) : en-tête titre + emblème, menu de la famille, choix à la création, symboles recolorables (vache, lézard, chien dessinés).
 3. **Parcours d'arrivée** (étape 6 sexies) : connexion avec intro animée, rejoindre (carton d'invitation, « C'est moi »), créer une famille en 5 étapes, choix de famille (cartes aux couleurs des familles, actions et alertes, menu bleu-blanc-rouge). Dépend de l'emblème.
 4. **Bilan du mois** et **Historique** (étape 1, point 1 ; séparés le 2026-11-25) : bilan = podium du mois, auteurs du mois, titres, « Toi », jauge de la famille, questions du mois, palmarès, choix du mois (colonne `revealed_at` et tables d'archive figées le 1er du mois) ; Historique = liste de toutes les questions passées par mois, filtre « Nouveaux commentaires ».
-5. **Réactions et discussion** après la révélation (étape 6 septies, conçu le 2026-11-25).
-Spécifications : `ecrans.md` (écrans 1, 2, 3, 5, 12 et « Règles communes ») ; données : `data-model.md` ; charte : `design.md` ; maquettes : `docs/maquettes/soleil/`. À voir plus tard : alertes sur l'arrivée des membres (« Points à décider »).
+5. **Réactions et discussion** après la révélation (étape 6 septies, conçu le 2026-11-25) : 6 emojis, un fil de commentaires par question, « Ça discute ! » sur l'accueil (une réponse → la question ; plusieurs → Historique filtré).
+6. **Validation des réponses libres** (étape 6 decies, 2026-11-26) : une décision de l'auteur s'applique à toutes les réponses identiques (normalisation commune), y compris celles qui arrivent après.
+7. **Nouvelles questions du catalogue** (étape 6 octies, 2026-11-25) : cadeau pour son diplôme (éléments choisis en liste fermée) ; baptême / communion à trancher (RGPD).
+8. **Arriver en cours de route** (étape 6 nonies, 2026-11-26) : rattraper les questions passées. Dépend de la **validation des nouveaux venus** (chantier « Sécurité des données et confiance »).
+Avant d'ouvrir l'appli au-delà des familles testeuses : **sécurité des données et RGPD** (`rgpd.md`, « Points à décider »).
+Spécifications : `ecrans.md` (écrans 1 à 3, 5, 7, 8, 12, 12 bis, « Règles communes », « Arriver en cours de route ») ; données : `data-model.md` ; charte : `design.md` ; concept (prétexte pour se voir, confidentialité, diaporama d'une vie) : `concept.md` ; maquettes : `docs/maquettes/soleil/` (canvas « Quizamily – Pistes chaleureuses »). À voir plus tard : alertes sur l'arrivée des membres, présentation de l'appli (« Points à décider »).
 
 **Corrigé le 2026-11-20, complété le 2026-11-23 — bug critique signalé par Sylvain** : avec plusieurs familles, naviguer depuis l'accueil d'une famille (ex. « Carter ») pouvait ouvrir l'arbre ou l'ajout d'un souvenir d'une **autre** famille du compte (ex. « Delatour »). Cause : chaque écran devinait sa propre famille par une requête sans tri garanti (voir « Règles communes » dans `ecrans.md`), sans lien avec la famille affichée ailleurs. Corrigé via `src/lib/my-family.ts` (famille explicite dans les liens + mémorisée sur l'appareil) :
 - **2026-11-20** : les 9 écrans liés à une famille (accueil, arbre, ajout d'un souvenir, mes faits, répondre, valider, révélation, archives). Vérifié à l'écran avec 2 familles jetables (« Carter »/« Delatour », mêmes noms que le signalement) : accueil ↔ arbre ↔ ajout d'un souvenir restent cohérents dans les deux sens.
