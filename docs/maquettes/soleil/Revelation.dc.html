@@ -106,7 +106,7 @@ a{color:#8A3A12}a:hover{color:#5E260B}
     <sc-if value="{{isCatchup}}" hint-placeholder-val="{{ false }}">
       <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 18px; background: rgba(91,35,51,0.12); border: 2px solid rgba(91,35,51,0.25); font-size: 14px; font-weight: 700; color: #5B2333">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
-        Rattrapage · question du {{catchupDate}} · ne compte pas dans les scores
+        <span>{{catchupBanner}}</span>
       </div>
     </sc-if>
 
@@ -299,7 +299,7 @@ class Component extends DCLogic {
       isLibre,
       isCatchup,
       kicker: isCatchup ? 'Rattrapage' : 'Révélation de la semaine',
-      catchupDate: isLibre ? 'dimanche 18 octobre' : 'dimanche 8 novembre',
+      catchupBanner: 'Rattrapage du ' + (isLibre ? 'dimanche 18 octobre' : 'dimanche 8 novembre'),
       myAnswer: 'Une montre en or',
       backLabel: isCatchup ? 'Question suivante à rattraper' : 'Retour à l’accueil',
       rootStyle: 'position: relative; width: 390px; height: ' + ((isSuspense ? 844 : isArtist ? 1640 : 1560) + (hasDiscussion && !isSuspense ? 430 : 0) + (isCatchup ? 70 : 0)) + 'px; box-sizing: border-box; background: linear-gradient(180deg, #FFC98A 0%, #FFA36B 30%, #F48A86 100%); font-family: Nunito, system-ui, sans-serif; color: #3B1F14; display: flex; flex-direction: column; overflow: hidden',

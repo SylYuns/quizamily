@@ -40,7 +40,6 @@ body{margin:0}
         </span>
         <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 21px; line-height: 1.15">1 trouvée sur 2 · encore 21 questions</span>
         <span style="display: block; height: 10px; border-radius: 5px; background: rgba(255,255,255,0.18); overflow: hidden"><span style="display: block; width: 12%; height: 100%; border-radius: 5px; background: #FFD66B"></span></span>
-        <span style="font-size: 13px; font-weight: 700; color: #FFD9C2">Pour le plaisir : le rattrapage ne compte pas dans les scores.</span>
       </section>
     </sc-if>
     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
@@ -80,7 +79,7 @@ body{margin:0}
             <span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
               <span style="align-self: flex-start; padding: 4px 12px; border-radius: 12px; background: #FFD66B; font-size: 15px; font-weight: 800">{{q.answer}}</span>
               <sc-if value="{{q.catchTag}}" hint-placeholder-val="{{ false }}">
-                <span style="{{q.catchStyle}}">{{q.catchTag}}</span>
+                <span title="Rattrapage" style="{{q.catchStyle}}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>{{q.catchTag}}</span>
               </sc-if>
             </span>
             <span style="display: flex; align-items: center; gap: 8px; width: 100%; font-size: 14px; font-weight: 700; color: #6E4A3A">
@@ -145,18 +144,18 @@ class Component extends DCLogic {
     ];
     // Vue rattrapage (Claire, arrivée le 18 novembre) : [question, état, étiquette de rattrapage]
     const catchupMode = this.props.mode === 'rattrapage';
-    const tag = (txt, kind) => ({ catchTag: txt, catchStyle: 'padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 800; ' + (kind === 'ok' ? 'background: #8A3A12; color: #FFFFFF' : kind === 'ko' ? 'background: #FDE3D3; color: #A33A2A' : 'background: #FFFFFF; color: #6E4A3A; border: 2px solid #EAD9BD') });
+    const tag = (txt, kind) => ({ catchTag: txt, catchStyle: 'display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px 3px 8px; border-radius: 12px; font-size: 12px; font-weight: 800; ' + (kind === 'ok' ? 'background: #8A3A12; color: #FFFFFF' : kind === 'ko' ? 'background: #FDE3D3; color: #A33A2A' : 'background: #FFFFFF; color: #6E4A3A; border: 2px solid #EAD9BD') });
     const todo = (x) => Object.assign(x, { todo: true, showAnswer: false });
     const catchupGroups = [
       { month: 'Novembre 2026', items: [
         Object.assign(q('Dimanche 22 novembre', 'Où Mamie Marie a-t-elle rencontré Papi Jean\u00a0?', 'Au bal du village', ['O', 'S', 'L', 'B'], 5, 6, 3), { showAnswer: true }),
-        Object.assign(q('Dimanche 15 novembre', 'Quel métier faisait Papi Jean à 20\u00a0ans\u00a0?', 'Charron', ['L'], 5, 2, 0), { showAnswer: true }, tag('Rattrapage · trouvé ✓', 'ok')),
+        Object.assign(q('Dimanche 15 novembre', 'Quel métier faisait Papi Jean à 20\u00a0ans\u00a0?', 'Charron', ['L'], 5, 2, 0), { showAnswer: true }, tag('trouvé ✓', 'ok')),
         todo(q('Dimanche 8 novembre', 'En quelle année Mamie Marie a-t-elle passé son permis\u00a0?', '1974', ['O', 'S', 'L'], 5, 0, 0)),
         todo(q('Dimanche 1ᵉʳ novembre', 'Quel était le premier animal de compagnie de Papi Jean\u00a0?', 'Un hamster, Caramel', [], 5, 9, 0)),
       ] },
       { month: 'Octobre 2026', items: [
-        Object.assign(q('Dimanche 25 octobre', 'Dans quelle ville Papi Jean a-t-il fait son service militaire\u00a0?', 'Briançon', ['H', 'B'], 5, 1, 0), { showAnswer: true }, tag('Rattrapage · tu avais dit Grenoble', 'ko')),
-        Object.assign(q('Dimanche 18 octobre', 'Quel était le plat préféré de Mamie Marie\u00a0?', 'Le gratin dauphinois', ['O', 'S', 'L', 'H'], 5, 4, 0), { showAnswer: true }, tag('Rattrapage · tu avais dit « sa tarte aux pommes »', 'neutre')),
+        Object.assign(q('Dimanche 25 octobre', 'Dans quelle ville Papi Jean a-t-il fait son service militaire\u00a0?', 'Briançon', ['H', 'B'], 5, 1, 0), { showAnswer: true }, tag('tu avais dit Grenoble', 'ko')),
+        Object.assign(q('Dimanche 18 octobre', 'Quel était le plat préféré de Mamie Marie\u00a0?', 'Le gratin dauphinois', ['O', 'S', 'L', 'H'], 5, 4, 0), { showAnswer: true }, tag('tu avais dit « sa tarte aux pommes »', 'neutre')),
         Object.assign(q('Dimanche 11 octobre', 'Quel était le sport favori de Claire pendant son enfance\u00a0?', 'Le judo', ['H', 'O'], 5, 3, 0), { showAnswer: true, surToi: true }),
         todo(q('Dimanche 4 octobre', 'En quelle année Papi Jean a-t-il acheté sa première voiture\u00a0?', '1961', ['H'], 5, 5, 0)),
       ] },

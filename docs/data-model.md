@@ -102,7 +102,9 @@ question_recipients
 catchup_answers
   id, quiz_question_id, person_id
   answer_given             -- nullable (null si passée)
-  result                   -- 'correct' | 'incorrect' | 'shown' (saisie libre : réponse affichée, ni gagné ni perdu)
+  result                   -- 'correct' | 'incorrect' | 'shown' (saisie libre identique à aucune réponse déjà jugée :
+                           --  réponse affichée, ni gagné ni perdu ; si elle est identique à une réponse acceptée ou
+                           --  refusée par l'auteur, même décision → 'correct' / 'incorrect')
                            -- | 'skipped' (« Passer et voir la réponse » ou « Tout dévoiler »)
   answered_at
   unique (quiz_question_id, person_id)
