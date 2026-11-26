@@ -17,7 +17,10 @@ body{margin:0}
 <!-- Historique (écran 12), redéfini le 2026-11-25 : simplement la liste de toutes les questions passées, regroupées par mois, de la plus récente à la plus ancienne.
      Le podium, les titres, etc. sont dans « Bilan du mois » (BilanMois.dc.html).
      Seul filtre : « Nouveaux commentaires » (actif quand on arrive depuis « Ça discute ! » sur l'accueil et qu'il y a du nouveau sur plusieurs réponses).
-     Toucher une question = la révélation, qui sert de détail (réponses de chacun, anecdote, réactions, discussion, correction). Paramètre filtre : false | true. -->
+     Toucher une question = la révélation, qui sert de détail (réponses de chacun, anecdote, réactions, discussion, correction). Paramètre filtre : false | true.
+     Paramètre mode = rattrapage (2026-11-26) : vue de Claire, arrivée le 18 novembre, qui rattrape les questions posées avant son arrivée :
+     questions à faire sans la réponse (« Répondre » / « Passer et voir la réponse »), rattrapages faits marqués, score de rattrapage, « Tout dévoiler »,
+     et l'étiquette « Sur toi » sur les questions qui portent sur soi (pour tout le monde, pas seulement en rattrapage). -->
 <div style="width: 390px; min-height: 844px; box-sizing: border-box; background: linear-gradient(180deg, #FFC98A 0%, #FFA36B 30%, #F48A86 100%); font-family: Nunito, system-ui, sans-serif; color: #3B1F14; display: flex; flex-direction: column; padding-bottom: 28px">
 
   <header style="display: flex; align-items: center; gap: 4px; padding: 16px 16px 8px 8px">
@@ -29,6 +32,17 @@ body{margin:0}
   </header>
 
   <main style="display: flex; flex-direction: column; gap: 12px; padding: 4px 16px 0">
+    <sc-if value="{{isCatchup}}" hint-placeholder-val="{{ false }}">
+      <section style="display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: 24px; background: #5B2333; color: #FFFFFF; box-shadow: 0 5px 0 #3D1622">
+        <span style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+          <span style="font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #FFD9C2">Ton rattrapage</span>
+          <button type="button" style="border: none; background: transparent; padding: 0; color: #FFD66B; font-family: Nunito, sans-serif; font-size: 13px; font-weight: 800; text-decoration: underline; cursor: pointer">Tout dévoiler</button>
+        </span>
+        <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 21px; line-height: 1.15">1 trouvée sur 2 · encore 21 questions</span>
+        <span style="display: block; height: 10px; border-radius: 5px; background: rgba(255,255,255,0.18); overflow: hidden"><span style="display: block; width: 12%; height: 100%; border-radius: 5px; background: #FFD66B"></span></span>
+        <span style="font-size: 13px; font-weight: 700; color: #FFD9C2">Pour le plaisir : le rattrapage ne compte pas dans les scores.</span>
+      </section>
+    </sc-if>
     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
       <button type="button" style="{{chipStyle}}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1.1-4.6A8 8 0 1 1 21 12z"></path></svg>
@@ -51,9 +65,24 @@ body{margin:0}
               <sc-if value="{{q.piege}}" hint-placeholder-val="{{ false }}">
                 <span style="padding: 2px 10px; border-radius: 10px; background: #5B2333; color: #FFD66B; font-size: 12px; font-weight: 800">La question piège !</span>
               </sc-if>
+              <sc-if value="{{q.surToi}}" hint-placeholder-val="{{ false }}">
+                <span style="display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px 2px 3px; border-radius: 12px; background: #FFFFFF; border: 2px solid #B9A3E3; color: #2E1A5C; font-size: 12px; font-weight: 800"><span style="display: flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 9px; background: #B9A3E3; color: #2E1A5C; font-family: Fredoka, sans-serif; font-size: 10px; font-weight: 600">C</span>Sur toi</span>
+              </sc-if>
             </span>
             <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 18px; line-height: 1.15">{{q.question}}</span>
-            <span style="align-self: flex-start; padding: 4px 12px; border-radius: 12px; background: #FFD66B; font-size: 15px; font-weight: 800">{{q.answer}}</span>
+            <sc-if value="{{q.todo}}" hint-placeholder-val="{{ false }}">
+              <span style="display: flex; align-items: center; gap: 12px; width: 100%">
+                <span style="display: inline-flex; align-items: center; min-height: 42px; padding: 0 20px; border-radius: 21px; background: #8A3A12; color: #FFFFFF; font-size: 15px; font-weight: 800; box-shadow: 0 3px 0 #5E260B">Répondre</span>
+                <span style="font-size: 13px; font-weight: 800; color: #8A3A12; text-decoration: underline">Passer et voir la réponse</span>
+              </span>
+            </sc-if>
+            <sc-if value="{{q.showAnswer}}" hint-placeholder-val="{{ true }}">
+            <span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+              <span style="align-self: flex-start; padding: 4px 12px; border-radius: 12px; background: #FFD66B; font-size: 15px; font-weight: 800">{{q.answer}}</span>
+              <sc-if value="{{q.catchTag}}" hint-placeholder-val="{{ false }}">
+                <span style="{{q.catchStyle}}">{{q.catchTag}}</span>
+              </sc-if>
+            </span>
             <span style="display: flex; align-items: center; gap: 8px; width: 100%; font-size: 14px; font-weight: 700; color: #6E4A3A">
               <sc-if value="{{q.showRonds}}" hint-placeholder-val="{{ false }}">
                 <span style="display: flex">
@@ -71,6 +100,7 @@ body{margin:0}
               </sc-if>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A3A12" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M9 6l6 6-6 6"></path></svg>
             </span>
+            </sc-if>
           </button>
         </sc-for>
       </section>
@@ -82,7 +112,7 @@ body{margin:0}
   </main>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"filtre":{"editor":"boolean","default":false},"$preview":{"width":390,"height":1405}}'>
+<script type="text/x-dc" data-dc-script data-props='{"filtre":{"editor":"boolean","default":false},"mode":{"editor":"enum","default":"normal","options":["normal","rattrapage"]},"$preview":{"width":390,"height":1405}}'>
 class Component extends DCLogic {
   renderVals() {
     const filtre = this.props.filtre === true || this.props.filtre === 'true';
@@ -113,10 +143,30 @@ class Component extends DCLogic {
         q('Dimanche 11 octobre', 'En quelle année Papi Jean a-t-il acheté sa première voiture ?', '1961', ['H'], 5, 5, 2),
       ] },
     ];
-    const groups = filtre
+    // Vue rattrapage (Claire, arrivée le 18 novembre) : [question, état, étiquette de rattrapage]
+    const catchupMode = this.props.mode === 'rattrapage';
+    const tag = (txt, kind) => ({ catchTag: txt, catchStyle: 'padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 800; ' + (kind === 'ok' ? 'background: #8A3A12; color: #FFFFFF' : kind === 'ko' ? 'background: #FDE3D3; color: #A33A2A' : 'background: #FFFFFF; color: #6E4A3A; border: 2px solid #EAD9BD') });
+    const todo = (x) => Object.assign(x, { todo: true, showAnswer: false });
+    const catchupGroups = [
+      { month: 'Novembre 2026', items: [
+        Object.assign(q('Dimanche 22 novembre', 'Où Mamie Marie a-t-elle rencontré Papi Jean\u00a0?', 'Au bal du village', ['O', 'S', 'L', 'B'], 5, 6, 3), { showAnswer: true }),
+        Object.assign(q('Dimanche 15 novembre', 'Quel métier faisait Papi Jean à 20\u00a0ans\u00a0?', 'Charron', ['L'], 5, 2, 0), { showAnswer: true }, tag('Rattrapage · trouvé ✓', 'ok')),
+        todo(q('Dimanche 8 novembre', 'En quelle année Mamie Marie a-t-elle passé son permis\u00a0?', '1974', ['O', 'S', 'L'], 5, 0, 0)),
+        todo(q('Dimanche 1ᵉʳ novembre', 'Quel était le premier animal de compagnie de Papi Jean\u00a0?', 'Un hamster, Caramel', [], 5, 9, 0)),
+      ] },
+      { month: 'Octobre 2026', items: [
+        Object.assign(q('Dimanche 25 octobre', 'Dans quelle ville Papi Jean a-t-il fait son service militaire\u00a0?', 'Briançon', ['H', 'B'], 5, 1, 0), { showAnswer: true }, tag('Rattrapage · tu avais dit Grenoble', 'ko')),
+        Object.assign(q('Dimanche 18 octobre', 'Quel était le plat préféré de Mamie Marie\u00a0?', 'Le gratin dauphinois', ['O', 'S', 'L', 'H'], 5, 4, 0), { showAnswer: true }, tag('Rattrapage · tu avais dit « sa tarte aux pommes »', 'neutre')),
+        Object.assign(q('Dimanche 11 octobre', 'Quel était le sport favori de Claire pendant son enfance\u00a0?', 'Le judo', ['H', 'O'], 5, 3, 0), { showAnswer: true, surToi: true }),
+        todo(q('Dimanche 4 octobre', 'En quelle année Papi Jean a-t-il acheté sa première voiture\u00a0?', '1961', ['H'], 5, 5, 0)),
+      ] },
+    ];
+    for (const g of all) for (const x of g.items) { x.showAnswer = true; }
+    const groups = catchupMode ? catchupGroups : filtre
       ? all.map((g) => ({ month: g.month, items: g.items.filter((x) => x.hasFresh) })).filter((g) => g.items.length)
       : all;
     return {
+      isCatchup: catchupMode,
       filtre,
       groups,
       chipStyle: 'display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border-radius: 20px; cursor: pointer; font-family: Nunito, sans-serif; font-size: 14px; font-weight: 800; '

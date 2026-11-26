@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Rattrapage – bienvenue</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<!-- Arriver « en cours de route » (2026-11-26) : à la première arrivée dans la famille, une fois le nouveau venu accepté.
+     Deux choix : rattraper (répondre aux questions passées, pour le plaisir : ça ne compte nulle part) ou voir directement les réponses. -->
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: linear-gradient(180deg, #FFC98A 0%, #FFA36B 46%, #F48A86 100%); font-family: Nunito, system-ui, sans-serif; color: #3B1F14; display: flex; flex-direction: column; gap: 16px; padding: 0 18px 26px; overflow: hidden">
+
+  <header style="display: flex; align-items: center; gap: 10px; padding: 16px 0 0 4px">
+    <h1 style="flex: 1; min-width: 0; margin: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 28px">Famille Chardaire</h1>
+    <dc-import name="Embleme" variante="dessus" animal="vache" lettres="CH" lisere="{{ false }}" hint-size="52px,60px"></dc-import>
+  </header>
+
+  <div style="display: flex; flex-direction: column; gap: 4px; padding: 6px 4px 0">
+    <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 30px; line-height: 1.1">Bienvenue, Claire&nbsp;!</span>
+    <span style="font-size: 16px; font-weight: 700; color: #5E2A12">Bernard t’a acceptée dans la famille.</span>
+  </div>
+
+  <section style="position: relative; display: flex; flex-direction: column; gap: 10px; padding: 22px 20px; border-radius: 30px; background: #5B2333; color: #FFFFFF; overflow: hidden; box-shadow: 0 7px 0 #3D1622">
+    <span aria-hidden="true" style="position: absolute; top: 16px; right: 26px; width: 44px; height: 44px; border-radius: 22px; background: #FFD66B; opacity: 0.9"></span>
+    <span aria-hidden="true" style="position: absolute; top: 10px; right: 14px; width: 44px; height: 44px; border-radius: 22px; background: #5B2333"></span>
+    <span style="position: relative; font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #FFD9C2">Avant ton arrivée</span>
+    <span style="position: relative; display: flex; align-items: baseline; gap: 10px">
+      <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 700; font-size: 58px; line-height: 1; color: #FFD66B">24</span>
+      <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 22px; line-height: 1.15">questions ont déjà été posées dans la famille</span>
+    </span>
+    <span style="position: relative; font-size: 15px; line-height: 1.4; color: #FFD9C2">Sur Mamie Marie, Papi Jean et les autres. Tu veux tenter ta chance, ou découvrir tout de suite leurs souvenirs&nbsp;?</span>
+  </section>
+
+  <button type="button" style="display: flex; align-items: center; gap: 14px; box-sizing: border-box; padding: 16px 18px; border: none; border-radius: 26px; background: #8A3A12; color: #FFFFFF; text-align: left; cursor: pointer; font-family: Nunito, sans-serif; box-shadow: 0 6px 0 #5E260B">
+    <span style="display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 46px; height: 46px; border-radius: 23px; background: #FFD66B; color: #8A3A12; font-family: Fredoka, sans-serif; font-weight: 700; font-size: 26px">?</span>
+    <span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+      <span style="font-size: 18px; font-weight: 800">Les rattraper</span>
+      <span style="font-size: 14px; font-weight: 700; color: #FFE3CF">Réponds à ton rythme, pour le plaisir : ça ne compte pas dans les scores.</span>
+    </span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+  </button>
+
+  <button type="button" style="display: flex; align-items: center; gap: 14px; box-sizing: border-box; padding: 16px 18px; border: 2px solid #FFFFFF; border-radius: 26px; background: #FFF4E8; color: #3B1F14; text-align: left; cursor: pointer; font-family: Nunito, sans-serif; box-shadow: 0 5px 0 rgba(138,58,18,0.2)">
+    <span style="display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 46px; height: 46px; border-radius: 23px; background: #FFD9DC; color: #8A3A12">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+    </span>
+    <span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+      <span style="font-size: 18px; font-weight: 800">Voir directement les réponses</span>
+      <span style="font-size: 14px; font-weight: 700; color: #6E4A3A">Tous les souvenirs déjà révélés s’affichent.</span>
+    </span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8A3A12" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+  </button>
+
+  <div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: 22px; background: rgba(255,244,232,0.55); border: 2px solid rgba(255,255,255,0.75); font-size: 14px; font-weight: 700; line-height: 1.4; color: #3B1F14">
+    <span>✦ La question de cette semaine t’attend déjà : elle, elle compte&nbsp;!</span>
+    <span>✦ Tu pourras tout dévoiler à tout moment si tu en as assez de rattraper.</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

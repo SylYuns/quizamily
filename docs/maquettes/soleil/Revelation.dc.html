@@ -50,7 +50,7 @@ a{color:#8A3A12}a:hover{color:#5E260B}
         <span style="position: relative; display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 44px; height: 44px; box-sizing: border-box; border-radius: 22px; border: 3px solid #FFFFFF; background: #FFD66B; color: #5A3A00; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 19px">M
           <span style="position: absolute; right: -5px; bottom: -5px; display: flex; align-items: center; justify-content: center; width: 19px; height: 19px; border-radius: 10px; border: 2px solid #FFFFFF; background: #8A3A12; color: #FFD66B; box-sizing: border-box"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.2 1.3-6.6L2.5 9.3l6.6-.8z"></path></svg></span>
         </span>
-        <span style="font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #FFD9C2">Révélation de la semaine</span>
+        <span style="font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #FFD9C2">{{kicker}}</span>
       </div>
       <p style="margin: 0; font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 25px; line-height: 1.15; color: #FFFFFF">{{questionText}}</p>
 
@@ -94,6 +94,20 @@ a{color:#8A3A12}a:hover{color:#5E260B}
           <span style="font-size: 15px; font-weight: 700; color: #6E4A3A">{{lossText}}</span>
         </span>
       </section>
+    </sc-if>
+
+    <sc-if value="{{isLibre}}" hint-placeholder-val="{{ false }}">
+      <!-- Rattrapage d'une question à réponse libre (2026-11-26) : pas de « trouvé / raté », on montre simplement sa réponse à côté de la bonne. -->
+      <section style="display: flex; flex-direction: column; gap: 6px; padding: 16px 18px; border-radius: 28px; background: #FFF4E8; border: 3px dashed #C9A27E; box-shadow: 0 6px 0 rgba(138,58,18,0.18)">
+        <span style="font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #8A3A12">Tu avais répondu</span>
+        <span style="font-family: Fredoka, Nunito, sans-serif; font-weight: 600; font-size: 24px; line-height: 1.1">{{myAnswer}}</span>
+      </section>
+    </sc-if>
+    <sc-if value="{{isCatchup}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 18px; background: rgba(91,35,51,0.12); border: 2px solid rgba(91,35,51,0.25); font-size: 14px; font-weight: 700; color: #5B2333">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+        Rattrapage · question du {{catchupDate}} · ne compte pas dans les scores
+      </div>
     </sc-if>
 
     <sc-if value="{{isRevealed}}" hint-placeholder-val="{{ false }}">
@@ -201,23 +215,25 @@ a{color:#8A3A12}a:hover{color:#5E260B}
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8A3A12" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
       </a>
 
-      <button type="button" style="min-height: 52px; border: none; border-radius: 26px; background: #8A3A12; color: #FFFFFF; font-family: Nunito, sans-serif; font-size: 16px; font-weight: 800; cursor: pointer; box-shadow: 0 5px 0 #5E260B">Retour à l’accueil</button>
+      <button type="button" style="min-height: 52px; border: none; border-radius: 26px; background: #8A3A12; color: #FFFFFF; font-family: Nunito, sans-serif; font-size: 16px; font-weight: 800; cursor: pointer; box-shadow: 0 5px 0 #5E260B">{{backLabel}}</button>
       <a href="#" style="align-self: center; padding: 8px; font-size: 14px; font-weight: 700; color: #5E260B">Une erreur dans la réponse ? Proposer une correction</a>
     </sc-if>
   </main>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"etat":{"editor":"enum","default":"suspense","options":["suspense","trouve","rate"]},"exemple":{"editor":"enum","default":"annee","options":["annee","artiste"]},"discussion":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+<script type="text/x-dc" data-dc-script data-props='{"etat":{"editor":"enum","default":"suspense","options":["suspense","trouve","rate","libre"]},"rattrapage":{"editor":"boolean","default":false},"exemple":{"editor":"enum","default":"annee","options":["annee","artiste"]},"discussion":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
   renderVals() {
     const etat = this.props.etat ?? 'suspense';
     const isSuspense = etat === 'suspense';
     const isWin = etat === 'trouve';
     const isLoss = etat === 'rate';
+    const isLibre = etat === 'libre';
+    const isCatchup = isLibre || this.props.rattrapage === true || this.props.rattrapage === 'true';
     const isRevealed = !isSuspense;
     // Exemple : question d’année (réponse courte) ou question à liste (réponse longue).
     const isArtist = (this.props.exemple ?? 'annee') === 'artiste';
-    const answerText = isArtist ? 'Les Compagnons de la chanson' : '1972';
+    const answerText = isLibre ? 'Un vélo bleu' : isArtist ? 'Les Compagnons de la chanson' : '1972';
 
     const pal = { jaune: ['#FFD66B', '#5A3A00'], menthe: ['#9FD3C7', '#134A40'], orange: ['#F7A06A', '#4A1E06'], lavande: ['#B9A3E3', '#2E1A5C'] };
     const avatar = (c) => 'display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 38px; height: 38px; box-sizing: border-box; border-radius: 19px; border: 3px solid #FFFFFF; background: ' + pal[c][0] + '; color: ' + pal[c][1] + '; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 16px; box-shadow: 0 2px 0 rgba(138,58,18,0.2)';
@@ -233,6 +249,11 @@ class Component extends DCLogic {
           { name: 'Hélène', c: 'orange', answer: 'Gilbert Bécaud', gap: '' },
           { name: 'Paul', c: 'menthe', answer: 'Georges Brassens', gap: '' },
           { name: 'Luc', c: 'jaune', answer: 'Yves Montand', gap: '' },
+        ]
+      : isLibre ? [
+          { name: 'Hélène', c: 'orange', answer: 'Une montre', gap: '' },
+          { name: 'Paul', c: 'menthe', answer: 'Un dictionnaire', gap: '' },
+          { name: 'Luc', c: 'jaune', answer: 'Un stylo plume', gap: '' },
         ]
       : [
           { name: 'Hélène', c: 'orange', answer: '1975', gap: 'à 3 ans près' },
@@ -275,13 +296,19 @@ class Component extends DCLogic {
       isRevealed,
       isWin,
       isLoss,
-      rootStyle: 'position: relative; width: 390px; height: ' + ((isSuspense ? 844 : isArtist ? 1640 : 1560) + (hasDiscussion && !isSuspense ? 430 : 0)) + 'px; box-sizing: border-box; background: linear-gradient(180deg, #FFC98A 0%, #FFA36B 30%, #F48A86 100%); font-family: Nunito, system-ui, sans-serif; color: #3B1F14; display: flex; flex-direction: column; overflow: hidden',
+      isLibre,
+      isCatchup,
+      kicker: isCatchup ? 'Rattrapage' : 'Révélation de la semaine',
+      catchupDate: isLibre ? 'dimanche 18 octobre' : 'dimanche 8 novembre',
+      myAnswer: 'Une montre en or',
+      backLabel: isCatchup ? 'Question suivante à rattraper' : 'Retour à l’accueil',
+      rootStyle: 'position: relative; width: 390px; height: ' + ((isSuspense ? 844 : isArtist ? 1640 : 1560) + (hasDiscussion && !isSuspense ? 430 : 0) + (isCatchup ? 70 : 0)) + 'px; box-sizing: border-box; background: linear-gradient(180deg, #FFC98A 0%, #FFA36B 30%, #F48A86 100%); font-family: Nunito, system-ui, sans-serif; color: #3B1F14; display: flex; flex-direction: column; overflow: hidden',
       summary: (isWin ? 3 : 2) + ' joueurs sur 7 ont trouvé',
-      questionText: isArtist
+      questionText: isLibre ? 'Quel cadeau Marie a-t-elle reçu pour son certificat d’études ?' : isArtist
         ? 'Quel artiste Marie est-elle allée voir lors de son premier concert ?'
         : 'En quelle année Marie a-t-elle pris l’avion pour la première fois ?',
       answerText,
-      answerStyle: 'font-family: Fredoka, Nunito, sans-serif; font-weight: 600; text-align: center; color: #3B1F14; ' + (isArtist ? 'font-size: 34px; line-height: 1.1' : 'font-size: 58px; line-height: 1.05'),
+      answerStyle: 'font-family: Fredoka, Nunito, sans-serif; font-weight: 600; text-align: center; color: #3B1F14; ' + (isArtist || isLibre ? 'font-size: 34px; line-height: 1.1' : 'font-size: 58px; line-height: 1.05'),
       lossText: isArtist ? 'Tu avais dit Édith Piaf' : 'Tu avais dit 1968 · à 4 ans près',
       rightRows,
       wrongRows,

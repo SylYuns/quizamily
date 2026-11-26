@@ -442,6 +442,41 @@
       "x": 2040,
       "y": 17200,
       "title": "Accueil · « Ça discute ! » sur plusieurs réponses (→ Historique filtré)"
+    },
+    "RattrapageBienvenue.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 1100,
+      "y": 19800,
+      "title": "Rattrapage · 1. bienvenue : rattraper ou voir les réponses"
+    },
+    "HistoriqueRattrapage.dc.html": {
+      "h": 1740,
+      "w": 390,
+      "x": 1570,
+      "y": 19800,
+      "title": "Rattrapage · 2. Historique : questions à faire, score, « Sur toi »"
+    },
+    "ArbreRattrapage.dc.html": {
+      "h": 844,
+      "w": 390,
+      "x": 2040,
+      "y": 19800,
+      "title": "Rattrapage · 3. avertissement en entrant dans l’arbre"
+    },
+    "RevelationRattrapage.dc.html": {
+      "h": 1630,
+      "w": 390,
+      "x": 2510,
+      "y": 19800,
+      "title": "Rattrapage · 4. révélation d’un rattrapage"
+    },
+    "RevelationRattrapageLibre.dc.html": {
+      "h": 1630,
+      "w": 390,
+      "x": 2980,
+      "y": 19800,
+      "title": "Rattrapage · 5. réponse libre : juste les deux réponses"
     }
   },
   "createdOnFiles": {
@@ -553,6 +588,13 @@
       "text": "B · Réactions et discussion après la révélation",
       "x": 1100,
       "y": 16900
+    },
+    "titreRattrapage": {
+      "kind": "title1",
+      "maxW": 2270,
+      "text": "B · Arriver en cours de route : rattraper les questions passées",
+      "x": 1100,
+      "y": 19500
     }
   },
   "order": [
@@ -618,7 +660,12 @@
     "BilanMoisDebut.dc.html",
     "BilanMoisChoix.dc.html",
     "HistoriqueFiltre.dc.html",
-    "AccueilDiscussionPlusieurs.dc.html"
+    "AccueilDiscussionPlusieurs.dc.html",
+    "RattrapageBienvenue.dc.html",
+    "HistoriqueRattrapage.dc.html",
+    "ArbreRattrapage.dc.html",
+    "RevelationRattrapage.dc.html",
+    "RevelationRattrapageLibre.dc.html"
   ],
   "pages": [],
   "title": "Quizamily – Pistes chaleureuses"

@@ -99,21 +99,23 @@ But : démarrer une famille, ou rejoindre celle où l'on a été invité.
 **Simplifié pour l'implémentation initiale** : l'étape "son lien de parenté avec chaque personne centrale" est repoussée — `relationship_label` n'est aujourd'hui qu'un champ simple posé par le créateur de la famille (sa propre perception), pas une relation par paire (créateur, joueur, personne centrale). Une vraie capture par paire attend l'étape "mini arbre familial".
 
 
-### Arriver « en cours de route » : rattraper les questions passées (décidé le 2026-11-26, pas encore maquetté)
+### Arriver « en cours de route » : rattraper les questions passées (décidé et maquetté le 2026-11-26, à coder)
 
 Un membre qui rejoint une famille qui joue déjà peut avoir envie de **jouer quand même** avec les questions posées avant son arrivée (idée et décisions de Sylvain, 2026-11-26).
 
+- **Maquettes** (`docs/maquettes/soleil/`) : `RattrapageBienvenue.dc.html` (le choix), `HistoriqueRattrapage.dc.html` (`Historique` avec `mode=rattrapage`), `ArbreRattrapage.dc.html` (l'avertissement), `RevelationRattrapage.dc.html` et `RevelationRattrapageLibre.dc.html` (`Revelation` avec `rattrapage=true` ou `etat=libre`).
 - **Quand** : à sa première arrivée dans la famille, **une fois accepté** — les nouveaux venus doivent être validés pour rejoindre réellement la famille (voir `roadmap.md`, « Sécurité des données et confiance »), le choix vient seulement après.
 - **Le choix** : « 24 questions ont déjà été posées dans la famille Chardaire avant ton arrivée » → **« Voir directement les réponses »** ou **« Y répondre pour rattraper »**.
 - **Mode rattrapage** :
   - dans l'**Historique**, les questions qu'il n'a pas encore faites montrent **la question sans la réponse**, avec un bouton « Répondre » ; il répond comme à une question normale ; ensuite il voit la **révélation comme d'habitude** (bonne réponse, sa carte trouvé/raté, anecdote, qui avait trouvé, réactions, discussion — il peut commenter) ;
-  - la révélation indique discrètement que c'était un **rattrapage** ;
+  - la révélation indique discrètement que c'était un **rattrapage** : l'étiquette de la carte devient « Rattrapage » (au lieu de « Révélation de la semaine »), un bandeau « Rattrapage · question du dimanche 8 novembre · ne compte pas dans les scores », et le bouton du bas devient « Question suivante à rattraper » ;
+  - dans l'Historique, en haut, une carte prune « Ton rattrapage » (score, barre d'avancement, « Tout dévoiler ») ; les questions à faire n'ont ni la bonne réponse ni « qui a trouvé », juste « Répondre » et « Passer et voir la réponse » ; les questions rattrapées gardent une petite étiquette (« Rattrapage · trouvé ✓ », « Rattrapage · tu avais dit Grenoble », « Rattrapage · tu avais dit « sa tarte aux pommes » » pour une réponse libre) ;
   - **réponses en saisie libre** : pas de « trouvé / raté » ni de validation par l'auteur ; on affiche simplement sa réponse à côté de la bonne ;
   - **« Passer et voir la réponse »** sur chaque question, et **« Tout dévoiler »** (dans le menu ou en haut de l'Historique) s'il en a assez de rattraper ;
   - un **score de rattrapage** pour lui seul : « Rattrapage : 8 trouvées sur 12 » (Historique, et carte « Toi » du bilan) ;
   - **les réponses de rattrapage ne comptent nulle part** : ni bilan du mois, ni podium, ni palmarès, ni titres, ni jauge de la famille (elles sont arrivées en retard) ;
   - **arbre et récapitulatifs** : il peut toujours consulter les souvenirs — c'est le cœur de l'appli, on ne bloque pas — mais on l'**avertit** en entrant dans l'arbre : « Attention, en consultant les souvenirs, tu vas voir les réponses aux questions pour lesquelles tu es en retard. » (avec « Continuer » / « Plutôt rattraper d'abord ») ; idem pour la liste des questions du bilan du mois.
-- **Questions qui portent sur lui** (il a réclamé un profil qui existait déjà) : montrées directement avec leur réponse, pas de rattrapage (il la connaît forcément). Dans l'Historique, **faire ressortir discrètement mais clairement les questions qui portent sur soi** (pour tout le monde, pas seulement en rattrapage) — à dessiner (ex. petite étiquette « Sur toi » avec son rond).
+- **Questions qui portent sur lui** (il a réclamé un profil qui existait déjà) : montrées directement avec leur réponse, pas de rattrapage (il la connaît forcément). Dans l'Historique, **les questions qui portent sur soi** ont une petite étiquette **« Sur toi »** avec son rond, en haut à droite de la carte (pour tout le monde, pas seulement en rattrapage).
 - **Question de la semaine en cours** : s'il arrive **avant sa révélation**, il la reçoit comme un vrai joueur, et sa réponse compte normalement.
 
 ## 3. Accueil - choix de famille
