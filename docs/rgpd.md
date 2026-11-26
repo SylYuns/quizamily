@@ -33,6 +33,21 @@ La santé, la religion, les opinions politiques, l'orientation sexuelle, l'origi
 - **Catalogue** : vérifié le 2026-11-25, aucun des 32 modèles de questions ne porte sur ces sujets. **À garder ainsi** : pas de question sur la cause d'un décès, une maladie, une religion, un vote…
 - **Anecdotes et commentaires** (texte libre) : ils peuvent en contenir. Prévoir une **phrase de rappel discrète** au moment de la saisie (« Pas d'informations de santé ou trop intimes sans l'accord de la personne »), l'interdiction dans les conditions d'utilisation, et le signalement et retrait (point 2).
 
+## 3 bis. Quitter l'appli et effacer ses données (décidé le 2026-11-26)
+
+Il y a **deux niveaux** de demande, dans l'appli (réglages du compte) et par la page web exigée par Google :
+
+1. **« Supprimer mon compte »** (je quitte l'appli) :
+   - **supprimés** : le compte, ses **commentaires**, ses **réactions** (emojis), ses **réponses** aux questions et ses rattrapages, ses lectures ;
+   - **bilans du mois déjà figés** : les chiffres restent, mais son nom est remplacé par **« Ancien membre »** ;
+   - **sa fiche dans l'arbre** redevient un **profil sans compte**, comme un grand-parent qui n'a pas l'appli ; les **souvenirs sur lui restent** : c'est l'histoire de la famille ;
+   - **les souvenirs qu'il a écrits** (sur les autres) **restent**, avec **« Ancien membre »** comme auteur. On lui propose, au moment de partir, de **les effacer aussi** s'il le souhaite : l'anonymat est imparfait dans une petite famille, et une anecdote écrite à la première personne peut l'identifier.
+2. **« Effacer toutes mes données »** (droit à l'effacement, article 17) : tout ce qui précède, **plus** les **souvenirs qui portent sur lui** et **sa fiche dans l'arbre**, avec ses liens de parenté.
+
+Pourquoi c'est cohérent avec le RGPD (à confirmer par le juriste) : ses commentaires, réactions, réponses et les souvenirs sur lui sont ses données personnelles. Les souvenirs qu'il a écrits sur d'autres concernent surtout ces autres, et la famille a un intérêt légitime à les garder. Ce qui le concerne, le lien d'auteur, est effacé.
+
+**Prérequis technique** : les références à `auth.users` (`persons.user_id`, colonnes `created_by`) n'ont pas de règle de suppression. Supprimer un compte échoue donc aujourd'hui dès qu'il a créé quelque chose (voir `roadmap.md`).
+
 ## 4. Ce que l'éditeur doit mettre en place (liste de travail)
 
 1. **Politique de confidentialité**, en mots simples : quelles données, pourquoi, combien de temps, où, qui y a accès, droits et contact.
