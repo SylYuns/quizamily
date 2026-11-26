@@ -97,6 +97,22 @@ question_recipients
   answered_at
   validated_by_person_id, validated_at   -- nullable ; null si validation automatique (réponse identique après normalisation)
 
+-- À AJOUTER (2026-11-26) : rattrapage des questions posées avant l'arrivée d'un membre (ecrans.md, « Arriver en
+-- cours de route »). Table à part de question_recipients pour que ces réponses ne comptent dans AUCUNE statistique.
+catchup_answers
+  id, quiz_question_id, person_id
+  answer_given             -- nullable (null si passée)
+  result                   -- 'correct' | 'incorrect' | 'shown' (saisie libre : réponse affichée, ni gagné ni perdu)
+                           -- | 'skipped' (« Passer et voir la réponse » ou « Tout dévoiler »)
+  answered_at
+  unique (quiz_question_id, person_id)
+-- et sur persons (par famille) :
+--   joined_at              -- À AJOUTER : moment où le joueur a réellement rejoint la famille (accepté) ; les questions
+--                             révélées avant cette date sont « d'avant son arrivée »
+--   catchup_mode           -- À AJOUTER : null (pas encore choisi / rien à rattraper) | 'rattrapage' | 'tout_voir'
+-- Les bonnes réponses des questions déjà révélées restent lisibles par tous les membres : le masquage en mode
+-- rattrapage est une règle de jeu côté appli, pas une protection (contrairement aux questions en cours).
+
 -- À AJOUTER (2026-11-24) : archive des stats du mois pour l'Historique (écran 12), figée le 1er de chaque mois
 -- pour le mois précédent par une tâche planifiée (pg_cron, comme la pioche et la révélation). Le mois en cours est
 -- calculé en direct ; une fois figé, un mois ne bouge plus (une correction acceptée après coup ne le modifie pas).
