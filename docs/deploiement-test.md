@@ -62,7 +62,7 @@ TestFlight et la distribution ad hoc (100 iPhone par an, en enregistrant l'ident
 
 - **Supabase gratuit se met en pause après 7 jours de faible activité.** Avec une question par semaine, une semaine calme peut suffire à l'endormir. Un e-mail prévient une semaine avant, et on le relance depuis le tableau de bord. Parade gratuite : une petite requête automatique quotidienne, par exemple une tâche GitHub Actions planifiée. L'offre payante qui supprime la pause coûte 25 $ par mois.
 - **Réactiver les tâches planifiées** (pioche du lundi, révélation), désactivées pour la phase de test (étape 11).
-- **Lien d'invitation** : réutilisable et sans expiration, et la validation des nouveaux venus n'est pas construite. Acceptable avec des proches, mais il ne faut pas publier le lien.
+- **Lien d'invitation** : réutilisable et sans expiration aujourd'hui ; l'expiration en 48 h, les réglages de l'admin, l'alerte d'arrivée et le retrait ne sont pas construits (étape 6 undecies). Acceptable avec des proches, mais il ne faut pas publier le lien.
 - **RGPD** : pour un test entre proches, une courte note d'information suffit (voir `rgpd.md`). Le gros du chantier est pour l'ouverture au public.
 
 ## Recommandation
@@ -102,7 +102,7 @@ Recherche du 2026-11-26. Les familles des amis, environ 100 personnes, qui tél�
 - **Notifications push** (`expo-notifications`, avec la clé Apple du compte développeur) : naturelles sur une vraie appli, et elles soulagent la limite d'e-mails.
 - **Mises à jour rapides** : EAS Update pour corriger le JavaScript sans repasser par la vérification des magasins.
 - **Les chantiers déjà notés** deviennent obligatoires :
-  - sécurité (validation des nouveaux venus, lien d'invitation qui expire, relecture des règles d'accès) ;
+  - sécurité (arrivée des membres : lien qui expire, réglages de l'admin, alerte, retrait et blocage ; relecture des règles d'accès) ;
   - RGPD (politique, conditions d'utilisation, export, suppression, signalement) ;
   - sauvegardes ;
   - tâches planifiées réactivées et surveillées.

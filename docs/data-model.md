@@ -6,6 +6,19 @@ families
   emblem_symbol           -- À AJOUTER (2026-11-24) : symbole dessiné ('vache', 'lezard'…, liste fermée côté appli)
   emblem_color            -- À AJOUTER : une des 8 couleurs ('bleu', 'rouge', 'jaune', 'vert', 'orange', 'rose', 'violet', 'brun')
   emblem_letters          -- À AJOUTER : 2 lettres en majuscules, par défaut les 2 premières du nom
+  invite_policy           -- À AJOUTER (2026-11-26) : 'admin_only' (par défaut) | 'all_members' — qui peut créer/partager le lien
+  entry_question          -- À AJOUTER : question d'entrée (null = désactivée, par défaut)
+  entry_answer            -- À AJOUTER : sa réponse (comparée après normalisation, comme les réponses libres) ;
+                          -- jamais renvoyée au client : vérifiée par une fonction security definer
+-- invites.expires_at : rempli à la création (48 h), plus de lien sans expiration ; « Générer un nouveau lien » expire l'ancien
+
+family_bans                -- À AJOUTER (2026-11-26) : comptes bloqués par l'admin (« Retirer et bloquer »)
+  family_id, user_id, banned_by, created_at
+  primary key (family_id, user_id)
+                          -- join_family / claim_person_with_invite refusent un compte bloqué
+
+member_joined_events       -- À AJOUTER (ou dérivé de persons.joined_at + invites.created_by) : pour l'alerte
+                          -- « Claire a rejoint la famille, invitée par Bernard » à toute la famille
 
 persons
   id, family_id

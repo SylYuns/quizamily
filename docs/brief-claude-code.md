@@ -63,7 +63,7 @@ Les autres écrans redessinés suivent dans les jours d'après (section 3) :
 
 ## 3. Ensuite, dans l'ordre (voir le récapitulatif de la roadmap)
 
-6 sexies : parcours d'arrivée (connexion avec l'intro animée, rejoindre, créer, choix de famille) → Bilan du mois et Historique (`revealed_at`, tables d'archive) → 6 septies : réactions et discussion → 6 octies : nouvelles questions du catalogue → validation des nouveaux venus par le créateur et expiration du lien → 6 nonies : arriver en cours de route.
+6 sexies : parcours d'arrivée (connexion avec l'intro animée, rejoindre, créer, choix de famille) → Bilan du mois et Historique (`revealed_at`, tables d'archive) → 6 septies : réactions et discussion → 6 octies : nouvelles questions du catalogue → 6 undecies : arrivée des membres (lien qui expire en 48 h, réglages de l'admin « Qui peut inviter ? » et « Question d'entrée », alerte, retrait et blocage ; **pas de validation par l'admin**) → 6 nonies : arriver en cours de route.
 
 Avant d'ouvrir l'appli au-delà des testeurs : sécurité et RGPD (`rgpd.md`), y compris **la suppression du compte à deux niveaux** et **les clés étrangères vers `auth.users` sans règle de suppression**.
 
