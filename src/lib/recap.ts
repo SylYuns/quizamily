@@ -6,6 +6,7 @@
 import { CATEGORY_LABELS, CATEGORY_ORDER } from "@/constants/categories";
 import { formatAnswerDisplay } from "@/lib/format-answer";
 import { resolveGenderedTokens } from "@/lib/gender";
+import { lieuPourPays, reponseLieu } from "@/lib/lieu";
 
 export type RecapFact = {
   category: string;
@@ -22,10 +23,12 @@ export type RecapCategory = { category: string; label: string; text: string };
 function resolveFactSentence(fact: RecapFact, gender: "homme" | "femme" | null): string | null {
   if (!fact.recap) return null;
   let text = resolveGenderedTokens(fact.recap, gender);
+  text = text.replace("{réponse_lieu}", reponseLieu(fact.answerInputKind, String(fact.answer)));
   text = text.replace("{réponse}", String(formatAnswerDisplay(fact.answerInputKind, fact.answer)));
   if (fact.relatedRole) {
     text = text.replace(`<${fact.relatedRole}>`, fact.relatedName ?? "son/sa conjoint·e");
   }
+  if (fact.slotValues?.pays) text = text.replace("<pays_lieu>", lieuPourPays(fact.slotValues.pays));
   for (const [slot, value] of Object.entries(fact.slotValues ?? {})) {
     text = text.replace(`<${slot}>`, value);
   }

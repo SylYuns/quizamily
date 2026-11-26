@@ -4,6 +4,7 @@
 // toujours renseignés à la création depuis add-fact.tsx) - contrairement à add-fact.tsx qui a
 // sa propre version avec un repli pour les valeurs pas encore choisies pendant la création.
 import { resolveGenderedTokens, type Gender } from "@/lib/gender";
+import { lieuPourPays } from "@/lib/lieu";
 
 export function substituteQuestionText(
   templateText: string,
@@ -17,6 +18,8 @@ export function substituteQuestionText(
   if (relatedRole && relatedName) {
     text = text.replace(`<${relatedRole}>`, relatedName);
   }
+  // <pays_lieu> précède <pays> : sinon "<pays_lieu>".replace("<pays>"...) laisserait "_lieu" traîner.
+  if (slotValues?.pays) text = text.replace("<pays_lieu>", lieuPourPays(slotValues.pays));
   for (const [slot, value] of Object.entries(slotValues ?? {})) {
     text = text.replace(`<${slot}>`, value);
   }

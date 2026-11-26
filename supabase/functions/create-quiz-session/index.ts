@@ -62,7 +62,7 @@ export default {
 
     const { data: facts, error: factsError } = await admin
       .from("facts")
-      .select("id, author_person_id, subject_person_id, answer_value, question_templates (answer_input_kind)")
+      .select("id, author_person_id, subject_person_id, answer_value, answer_kind, question_templates (answer_input_kind)")
       .eq("family_id", familyId)
       .eq("status", "active");
     if (factsError) {
@@ -110,6 +110,7 @@ export default {
       author_person_id: string;
       subject_person_id: string;
       answer_value: string | number;
+      answer_kind: string | null;
       question_templates: { answer_input_kind: string } | { answer_input_kind: string }[] | null;
     };
 
@@ -117,6 +118,12 @@ export default {
       const t = row.question_templates;
       if (Array.isArray(t)) return t[0]?.answer_input_kind ?? "";
       return t?.answer_input_kind ?? "";
+    }
+
+    // Forme de la réponse choisie par l'auteur (docs/ecrans.md, écran 5) : null = type par
+    // défaut du template. Figée ici pour toute la durée de la question (répondre, révélation).
+    function effectiveKindOf(row: FactRow): string {
+      return row.answer_kind ?? templateKindOf(row);
     }
 
     const eligibleFacts = ((facts ?? []) as FactRow[]).filter((f) => !posedByFactId.get(f.id)?.hasOpen);
@@ -153,13 +160,14 @@ export default {
       return Response.json({ error: sessionError?.message ?? "Échec de création de la session." }, { status: 500 });
     }
 
-    const kind = templateKindOf(fact);
+    const kind = effectiveKindOf(fact);
     const { data: question, error: questionError } = await admin
       .from("quiz_questions")
       .insert({
         session_id: session.id,
         fact_id: fact.id,
         answer_value_snapshot: fact.answer_value,
+        answer_kind_snapshot: kind,
         validator_person_id: kind === "free_text" ? fact.author_person_id : null,
       })
       .select()

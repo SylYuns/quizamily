@@ -19,6 +19,7 @@ import { formatAnswerDisplay } from "@/lib/format-answer";
 import { listMyFamilies, resolveMyFamily, setPersistedFamilyId, type MyFamilyMembership } from "@/lib/my-family";
 import { substituteQuestionText } from "@/lib/question-text";
 import { supabase } from "@/lib/supabase";
+import { resolveFormeText } from "@/lib/template-forme";
 import { useInviteLink } from "@/lib/use-invite-link";
 import { Template } from "@/types/question-template";
 
@@ -26,6 +27,7 @@ type QuestionState = {
   recipientId: string;
   quizQuestionId: string;
   answerInputKind: string;
+  questionText: string;
   template: Template;
   subjectPersonId: string;
   subjectFirstName: string;
@@ -160,7 +162,7 @@ export default function RespondScreen() {
       const { data: quizQuestion } = await supabase
         .from("quiz_questions")
         .select(
-          "id, facts (id, author_person_id, subject_person_id, slot_values, question_templates (*), persons:subject_person_id (first_name, display_name, gender, is_central), relatedPerson:related_person_id (display_name))",
+          "id, answer_kind_snapshot, facts (id, author_person_id, subject_person_id, slot_values, question_templates (*), persons:subject_person_id (first_name, display_name, gender, is_central), relatedPerson:related_person_id (display_name))",
         )
         .eq("session_id", session.id)
         .limit(1)
@@ -180,6 +182,9 @@ export default function RespondScreen() {
         persons: { first_name: string; display_name: string; gender: "homme" | "femme" | null; is_central: boolean } | null;
         relatedPerson: { display_name: string } | null;
       };
+      // Figée à la pioche (quiz_questions.answer_kind_snapshot) : la forme ne change plus une
+      // fois la question posée, même si l'auteur modifie son fait ensuite (facts.answer_kind).
+      const forme = resolveFormeText(facts.question_templates, quizQuestion.answer_kind_snapshot as string | null);
 
       const { data: recipient } = await supabase
         .from("question_recipients")
@@ -205,7 +210,7 @@ export default function RespondScreen() {
           const myAnswerValue = (myAnswer as { answer_value: string | number } | null)?.answer_value ?? "";
 
           const questionText = substituteQuestionText(
-            facts.question_templates.template_text,
+            forme.text,
             facts.question_templates.related_role,
             facts.persons?.display_name ?? "?",
             facts.relatedPerson?.display_name ?? null,
@@ -217,7 +222,7 @@ export default function RespondScreen() {
             quizQuestionId: quizQuestion.id,
             factId: facts.id,
             questionText,
-            answerDisplay: formatAnswerDisplay(facts.question_templates.answer_input_kind, myAnswerValue),
+            answerDisplay: formatAnswerDisplay(forme.inputKind, myAnswerValue),
             contextText: myFact.context_text,
             participants: (participants as Participant[] | null) ?? [],
             pendingValidationCount: pendingGroups.reduce((sum, g) => sum + g.count, 0),
@@ -233,7 +238,15 @@ export default function RespondScreen() {
       const q: QuestionState = {
         recipientId: recipient.id,
         quizQuestionId: quizQuestion.id,
-        answerInputKind: facts.question_templates.answer_input_kind,
+        answerInputKind: forme.inputKind,
+        questionText: substituteQuestionText(
+          forme.text,
+          facts.question_templates.related_role,
+          facts.persons?.display_name ?? "?",
+          facts.relatedPerson?.display_name ?? null,
+          facts.slot_values,
+          facts.persons?.gender ?? null,
+        ),
         template: facts.question_templates,
         subjectPersonId: facts.subject_person_id,
         subjectFirstName: facts.persons?.first_name ?? "?",
@@ -560,16 +573,7 @@ export default function RespondScreen() {
                   </Text>
                 </View>
 
-                <Text style={styles.cardQuestion}>
-                  {substituteQuestionText(
-                    question.template.template_text,
-                    question.template.related_role,
-                    question.subjectDisplayName,
-                    question.relatedName,
-                    question.slotValues,
-                    question.subjectGender,
-                  )}
-                </Text>
+                <Text style={styles.cardQuestion}>{question.questionText}</Text>
 
                 {answered ? (
                   <>
@@ -600,7 +604,7 @@ export default function RespondScreen() {
                     )}
                     <View style={styles.insetPanel}>
                       <AnswerInput
-                        template={question.template}
+                        template={{ ...question.template, answer_input_kind: question.answerInputKind }}
                         familyId={familyId!}
                         value={answerValue}
                         onChange={setAnswerValue}

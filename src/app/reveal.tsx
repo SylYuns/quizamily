@@ -393,7 +393,7 @@ export default function RevealScreen() {
     setError("");
 
     try {
-      const parsed = parseAnswerValue(template.answer_input_kind, correctionValue);
+      const parsed = parseAnswerValue(reveal?.answerInputKind ?? template.answer_input_kind, correctionValue);
       if (!parsed.ok) throw new Error(parsed.error);
 
       const { error: rpcError } = await supabase.rpc("propose_correction", {
@@ -721,7 +721,7 @@ export default function RevealScreen() {
                   {showCorrectionForm ? (
                     <View style={{ gap: 10 }}>
                       <AnswerInput
-                        template={template}
+                        template={reveal ? { ...template, answer_input_kind: reveal.answerInputKind } : template}
                         familyId={familyId}
                         value={correctionValue}
                         onChange={setCorrectionValue}

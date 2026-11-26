@@ -33,9 +33,11 @@ import { parseAnswerValue } from "@/lib/answer-value";
 import { formatAnswerDisplay } from "@/lib/format-answer";
 import { resolveGenderedTokens, type Gender } from "@/lib/gender";
 import { ensureListItemExists } from "@/lib/list-items";
+import { lieuPourPays } from "@/lib/lieu";
 import { listMyFamilies, resolveMyFamily, setPersistedFamilyId, type MyFamilyMembership } from "@/lib/my-family";
 import { substituteQuestionText } from "@/lib/question-text";
 import { supabase } from "@/lib/supabase";
+import { formeLabel, resolveFormeText } from "@/lib/template-forme";
 import { useInviteLink } from "@/lib/use-invite-link";
 import { Template } from "@/types/question-template";
 
@@ -60,6 +62,7 @@ type Fact = {
   slot_values: Record<string, string> | null;
   context_text: string | null;
   status: FactStatus;
+  answer_kind: string | null;
 };
 
 const CARD_BG: Record<string, string> = {
@@ -128,8 +131,12 @@ function previewQuestionText(
   slotValues: Record<string, string>,
   subjectGender: Gender,
 ): string {
-  let text = resolveGenderedTokens(t.template_text, subjectGender).replace("<sujet>", subjectName);
+  // Question neutre tant que l'auteur n'a pas encore choisi la forme de la réponse (liste des
+  // questions pas encore posées) — voir docs/ecrans.md, écran 5, « Forme de la réponse ».
+  const baseText = t.answer_forms ? (t.template_text_neutral ?? t.template_text) : t.template_text;
+  let text = resolveGenderedTokens(baseText, subjectGender).replace("<sujet>", subjectName);
   if (t.related_role) text = text.replace(`<${t.related_role}>`, relatedName ?? "son/sa conjoint·e");
+  text = text.replace("<pays_lieu>", slotValues.pays ? lieuPourPays(slotValues.pays) : "(pays à préciser)");
   for (const slot of t.slots ?? []) text = text.replace(`<${slot}>`, slotValues[slot] ?? `(${slot} à préciser)`);
   return text;
 }
@@ -153,7 +160,15 @@ function buildQuestionSegments(
 
   const markers: { token: string; editableKey: string; value: string | null }[] = [];
   if (t.related_role) markers.push({ token: `<${t.related_role}>`, editableKey: "related", value: relatedName });
-  for (const slot of t.slots ?? []) markers.push({ token: `<${slot}>`, editableKey: slot, value: slotValues[slot] ?? null });
+  for (const slot of t.slots ?? []) {
+    // <pays_lieu> (forme de la réponse, voir docs/question-templates.toml) : la préposition de
+    // lieu fait partie du segment affiché, mais touche toujours le même élément choisi ("pays").
+    if (slot === "pays" && base.includes("<pays_lieu>")) {
+      markers.push({ token: "<pays_lieu>", editableKey: slot, value: slotValues[slot] ? lieuPourPays(slotValues[slot]) : null });
+    } else {
+      markers.push({ token: `<${slot}>`, editableKey: slot, value: slotValues[slot] ?? null });
+    }
+  }
 
   let segments: QuestionSegment[] = [{ text: base }];
   for (const marker of markers) {
@@ -225,6 +240,7 @@ export default function AddFactScreen() {
   const [newSpouseGender, setNewSpouseGender] = useState<"homme" | "femme" | null>(null);
   const [creatingSpouse, setCreatingSpouse] = useState(false);
   const [slotValues, setSlotValues] = useState<Record<string, string>>({});
+  const [chosenForme, setChosenForme] = useState<string | null>(null);
   const [answerValue, setAnswerValue] = useState("");
   const [contextText, setContextText] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -341,7 +357,7 @@ export default function AddFactScreen() {
       const [{ data: factsData }, siblingResult] = await Promise.all([
         supabase
           .from("facts")
-          .select("id, template_id, author_person_id, related_person_id, slot_values, context_text")
+          .select("id, template_id, author_person_id, related_person_id, slot_values, context_text, answer_kind")
           .eq("family_id", familyId)
           .eq("subject_person_id", subjectId)
           .eq("status", "active"),
@@ -374,6 +390,7 @@ export default function AddFactScreen() {
           slot_values: f.slot_values as Record<string, string> | null,
           context_text: f.context_text,
           status: statusByFact.get(f.id) === "revealed" ? "revealed" : statusByFact.has(f.id) ? "open" : "not_posed",
+          answer_kind: f.answer_kind,
         })),
       );
       setHasSibling(siblingResult);
@@ -474,6 +491,7 @@ export default function AddFactScreen() {
     setAnswerValue("");
     setContextText("");
     setSlotValues({});
+    setChosenForme(template.answer_forms?.[0] ?? null);
     setRelatedPersonId(related);
     setOpenTile({ kind: "new", template, initial: { answerValue: "", contextText: "", relatedPersonId: related, slotValues: {} } });
   }
@@ -489,6 +507,7 @@ export default function AddFactScreen() {
     setAnswerValue(answerStr);
     setContextText(fact.context_text ?? "");
     setSlotValues(slots);
+    setChosenForme(fact.answer_kind ?? template.answer_forms?.[0] ?? null);
     setRelatedPersonId(fact.related_person_id);
     setOpenTile({
       kind: "edit",
@@ -583,11 +602,12 @@ export default function AddFactScreen() {
     setError("");
 
     try {
-      const parsed = parseAnswerValue(template.answer_input_kind, answerValue);
+      const effectiveKind = resolveFormeText(template, chosenForme).inputKind;
+      const parsed = parseAnswerValue(effectiveKind, answerValue);
       if (!parsed.ok) throw new Error(parsed.error);
       const finalAnswer = parsed.value;
 
-      if (template.answer_input_kind === "list" && template.list_name) {
+      if (effectiveKind === "list" && template.list_name) {
         await ensureListItemExists({
           listName: template.list_name,
           category: template.list_category ?? null,
@@ -618,6 +638,7 @@ export default function AddFactScreen() {
           slot_values: Object.keys(slotValues).length > 0 ? slotValues : null,
           author_person_id: myPersonId,
           answer_value: finalAnswer,
+          answer_kind: chosenForme === template.answer_input_kind ? null : chosenForme,
           context_text: contextText.trim().length > 0 ? contextText.trim() : null,
         })
         .select("id")
@@ -647,11 +668,12 @@ export default function AddFactScreen() {
     setError("");
 
     try {
-      const parsed = parseAnswerValue(template.answer_input_kind, answerValue);
+      const effectiveKind = resolveFormeText(template, chosenForme).inputKind;
+      const parsed = parseAnswerValue(effectiveKind, answerValue);
       if (!parsed.ok) throw new Error(parsed.error);
       const finalAnswer = parsed.value;
 
-      if (template.answer_input_kind === "list" && template.list_name) {
+      if (effectiveKind === "list" && template.list_name) {
         await ensureListItemExists({
           listName: template.list_name,
           category: template.list_category ?? null,
@@ -665,6 +687,7 @@ export default function AddFactScreen() {
         .from("facts")
         .update({
           answer_value: finalAnswer,
+          answer_kind: chosenForme === template.answer_input_kind ? null : chosenForme,
           context_text: contextText.trim().length > 0 ? contextText.trim() : null,
         })
         .eq("id", fact.id);
@@ -749,6 +772,8 @@ export default function AddFactScreen() {
         onAnswerChange={setAnswerValue}
         onContextChange={setContextText}
         onSlotChange={(slot, value) => setSlotValues((v) => ({ ...v, [slot]: value }))}
+        chosenForme={chosenForme}
+        onChooseForme={setChosenForme}
         onEditSlot={(key) => {
           if (key === "related") {
             setRelatedPersonId(null);
@@ -945,14 +970,15 @@ export default function AddFactScreen() {
                       const t = templatesById.get(f.template_id);
                       if (!t) return null;
                       const answer = myAnswers.get(f.id);
+                      const forme = resolveFormeText(t, f.answer_kind);
                       return (
                         <Pressable key={`m-${f.id}`} onPress={() => openEditTile(f)} style={styles.mineTile}>
                           <Text style={styles.mineTileText}>
-                            {substituteQuestionText(t.template_text, t.related_role, subject.display_name, relatedNameFor(f.related_person_id), f.slot_values, subject.gender)}
+                            {substituteQuestionText(forme.text, t.related_role, subject.display_name, relatedNameFor(f.related_person_id), f.slot_values, subject.gender)}
                           </Text>
                           <View style={styles.mineTileFooter}>
                             <Text style={styles.mineAnswerPill} numberOfLines={1}>
-                              Ta réponse : {answer != null ? formatAnswerDisplay(t.answer_input_kind, answer) : "…"}
+                              Ta réponse : {answer != null ? formatAnswerDisplay(forme.inputKind, answer) : "…"}
                             </Text>
                             <Text style={styles.modifyLink}>✎ Modifier</Text>
                           </View>
@@ -965,10 +991,11 @@ export default function AddFactScreen() {
                     {othersVisible.map((f) => {
                       const t = templatesById.get(f.template_id);
                       if (!t) return null;
+                      const forme = resolveFormeText(t, f.answer_kind);
                       return (
                         <View key={`o-${f.id}`} style={styles.otherTile}>
                           <Text style={styles.otherTileText}>
-                            {substituteQuestionText(t.template_text, t.related_role, subject.display_name, relatedNameFor(f.related_person_id), f.slot_values, subject.gender)}
+                            {substituteQuestionText(forme.text, t.related_role, subject.display_name, relatedNameFor(f.related_person_id), f.slot_values, subject.gender)}
                           </Text>
                         </View>
                       );
@@ -1021,6 +1048,10 @@ function OpenTileEditor(props: {
   /** L'utilisateur a touché un élément déjà choisi (conjoint ou pays) dans le texte de la
    * question : reprend juste ce choix-là, sans toucher au reste de la saisie en cours. */
   onEditSlot: (key: string) => void;
+  /** Forme de la réponse choisie par l'auteur (date/année/âge…, null = type par défaut du
+   * template) : voir docs/ecrans.md, écran 5, « Forme de la réponse ». */
+  chosenForme: string | null;
+  onChooseForme: (forme: string) => void;
   onPickExistingSpouse: (id: string) => void;
   onShowSpouseCreator: () => void;
   onNewSpouseFirstName: (v: string) => void;
@@ -1041,31 +1072,60 @@ function OpenTileEditor(props: {
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const needsRelated = !!template.related_role && (!props.relatedPersonId || editingKey === "related");
   const missingSlots = (template.slots ?? []).filter((s) => !props.slotValues[s] || editingKey === s);
-  const readyForAnswer = !needsRelated && missingSlots.length === 0;
+  const hasFormes = !!template.answer_forms;
+  const forme = resolveFormeText(template, props.chosenForme);
+  const showFormePicker = hasFormes && editingKey === "forme";
+  const readyForAnswer = !needsRelated && missingSlots.length === 0 && !showFormePicker;
+  const effectiveTemplateText = hasFormes ? forme.text : template.template_text;
+
+  function chooseForme(f: string) {
+    props.onChooseForme(f);
+    props.onAnswerChange("");
+    setEditingKey(null);
+  }
 
   return (
     <View style={styles.openTile}>
       {openTile.kind === "edit" ? (
         <Text style={styles.openTileQuestion}>
-          {substituteQuestionText(template.template_text, template.related_role, subject.display_name, props.relatedName, props.slotValues, subject.gender)}
+          {substituteQuestionText(effectiveTemplateText, template.related_role, subject.display_name, props.relatedName, props.slotValues, subject.gender)}
         </Text>
       ) : (
         <Text style={styles.openTileQuestion}>
-          {buildQuestionSegments(template, subject.display_name, props.relatedName, props.slotValues, subject.gender).map((seg, i) =>
-            seg.editableKey ? (
-              <Text
-                key={i}
-                onPress={() => props.onEditSlot(seg.editableKey!)}
-                suppressHighlighting
-                style={styles.editableSegment}
-              >
-                {seg.text}
-              </Text>
-            ) : (
-              <Text key={i}>{seg.text}</Text>
-            ),
+          {buildQuestionSegments({ ...template, template_text: effectiveTemplateText }, subject.display_name, props.relatedName, props.slotValues, subject.gender).map(
+            (seg, i) =>
+              seg.editableKey ? (
+                <Text
+                  key={i}
+                  onPress={() => props.onEditSlot(seg.editableKey!)}
+                  suppressHighlighting
+                  style={styles.editableSegment}
+                >
+                  {seg.text}
+                </Text>
+              ) : (
+                <Text key={i}>{seg.text}</Text>
+              ),
           )}
         </Text>
+      )}
+
+      {hasFormes && (
+        <Pressable onPress={() => setEditingKey(editingKey === "forme" ? null : "forme")}>
+          <Text suppressHighlighting style={styles.editableSegment}>
+            Forme : {formeLabel(forme.inputKind)}
+          </Text>
+        </Pressable>
+      )}
+
+      {showFormePicker && (
+        <View style={styles.chipsRow}>
+          {template.answer_forms!.map((f) => (
+            <Pressable key={f} onPress={() => chooseForme(f)} style={[styles.chip, forme.inputKind === f && styles.chipSelected]}>
+              <Text style={[styles.chipText, forme.inputKind === f && styles.chipTextSelected]}>{formeLabel(f)}</Text>
+            </Pressable>
+          ))}
+        </View>
       )}
 
       {needsRelated && (
@@ -1136,7 +1196,12 @@ function OpenTileEditor(props: {
 
       {readyForAnswer && (
         <>
-          <AnswerInput template={template} familyId={props.familyId} value={props.answerValue} onChange={props.onAnswerChange} />
+          <AnswerInput
+            template={hasFormes ? { ...template, answer_input_kind: forme.inputKind } : template}
+            familyId={props.familyId}
+            value={props.answerValue}
+            onChange={props.onAnswerChange}
+          />
 
           <Text style={styles.fieldLabel}>Anecdote (facultatif)</Text>
           <TextInput

@@ -17,6 +17,7 @@ import { ensureListItemExists } from "@/lib/list-items";
 import { listMyFamilies, resolveMyFamily, setPersistedFamilyId, type MyFamilyMembership } from "@/lib/my-family";
 import { substituteQuestionText } from "@/lib/question-text";
 import { supabase } from "@/lib/supabase";
+import { resolveFormeText } from "@/lib/template-forme";
 import { useInviteLink } from "@/lib/use-invite-link";
 import { Template } from "@/types/question-template";
 
@@ -33,6 +34,7 @@ type Fact = {
   relatedName: string | null;
   slotValues: Record<string, string> | null;
   postedStatus: PostedStatus;
+  answerKind: string | null;
 };
 
 type PendingCorrection = {
@@ -134,7 +136,7 @@ export default function MyFactsScreen() {
     const { data, error: factsError } = await supabase
       .from("facts")
       .select(
-        "id, context_text, created_at, slot_values, question_templates (*), subject:persons!subject_person_id (display_name, gender), related:persons!related_person_id (display_name)",
+        "id, context_text, created_at, slot_values, answer_kind, question_templates (*), subject:persons!subject_person_id (display_name, gender), related:persons!related_person_id (display_name)",
       )
       .eq("author_person_id", myPersonId)
       .eq("status", "active")
@@ -185,6 +187,7 @@ export default function MyFactsScreen() {
         relatedName: (row.related as unknown as { display_name: string } | null)?.display_name ?? null,
         slotValues: (row.slot_values as Record<string, string> | null) ?? null,
         postedStatus: statusByFactId.get(row.id) ?? "not_posed",
+        answerKind: row.answer_kind as string | null,
       })),
     );
   }, [familyId, myPersonId]);
@@ -265,11 +268,12 @@ export default function MyFactsScreen() {
     setError("");
 
     try {
-      const parsed = parseAnswerValue(fact.template.answer_input_kind, editAnswerValue);
+      const effectiveKind = resolveFormeText(fact.template, fact.answerKind).inputKind;
+      const parsed = parseAnswerValue(effectiveKind, editAnswerValue);
       if (!parsed.ok) throw new Error(parsed.error);
       const finalAnswer = parsed.value;
 
-      if (fact.template.answer_input_kind === "list" && fact.template.list_name) {
+      if (effectiveKind === "list" && fact.template.list_name) {
         await ensureListItemExists({
           listName: fact.template.list_name,
           value: finalAnswer as string,
@@ -412,8 +416,9 @@ export default function MyFactsScreen() {
 
           {facts.map((fact) => {
             const isEditing = editingFactId === fact.id;
+            const forme = resolveFormeText(fact.template, fact.answerKind);
             const questionText = substituteQuestionText(
-              fact.template.template_text,
+              forme.text,
               fact.template.related_role,
               fact.subjectName,
               fact.relatedName,
@@ -433,9 +438,7 @@ export default function MyFactsScreen() {
 
                 {!isEditing ? (
                   <>
-                    <Text style={styles.factAnswer}>
-                      Réponse : {formatAnswerDisplay(fact.template.answer_input_kind, fact.answer_value)}
-                    </Text>
+                    <Text style={styles.factAnswer}>Réponse : {formatAnswerDisplay(forme.inputKind, fact.answer_value)}</Text>
                     {fact.context_text && <Text style={styles.factContext}>{fact.context_text}</Text>}
 
                     {fact.postedStatus === "not_posed" &&
@@ -462,7 +465,12 @@ export default function MyFactsScreen() {
                   </>
                 ) : (
                   <View style={{ gap: 10 }}>
-                    <AnswerInput template={fact.template} familyId={familyId!} value={editAnswerValue} onChange={setEditAnswerValue} />
+                    <AnswerInput
+                      template={{ ...fact.template, answer_input_kind: forme.inputKind }}
+                      familyId={familyId!}
+                      value={editAnswerValue}
+                      onChange={setEditAnswerValue}
+                    />
                     <TextInput
                       value={editContextText}
                       onChangeText={setEditContextText}
