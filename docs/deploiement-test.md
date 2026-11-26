@@ -69,6 +69,49 @@ TestFlight et la distribution ad hoc (100 iPhone par an, en enregistrant l'ident
 
 **Version web + nom de domaine (pour les e-mails, et le site) : environ 6 à 10 € TTC en tout.** Tout le monde l'utilise, iPhone comme Android, sans rien installer depuis un magasin. Si un testeur Android tient à une vraie appli, on lui fait un APK gratuit (B). On garde Google Play (C) et Apple (D) pour plus tard.
 
+## Étape suivante : environ 100 utilisateurs, sur l'App Store et Google Play
+
+Recherche du 2026-11-26. Les familles des amis, environ 100 personnes, qui téléchargent l'appli depuis les magasins d'applications.
+
+### Comptes et coûts
+
+| Poste | Coût | Remarque |
+|---|---|---|
+| Apple Developer Program | 99 € par an | obligatoire pour l'App Store (et TestFlight) |
+| Google Play | 25 $ une fois | compte personnel : **test fermé avec au moins 12 testeurs pendant 14 jours** avant la mise en production (les familles d'amis peuvent servir de testeurs) ; un compte « organisation » en est dispensé mais demande une structure juridique et un numéro D-U-N-S |
+| Nom de domaine | ~5 à 15 € par an | déjà acheté pour la phase de test |
+| Expo (EAS Build, Submit, Update) | 0 € | 15 constructions iOS et 15 Android par mois, mises à jour jusqu'à 1 000 utilisateurs actifs par mois |
+| Supabase | 0 € ou 25 $ par mois | le gratuit suffit en volume (50 000 utilisateurs actifs par mois, 500 Mo de base) mais **n'a pas de sauvegardes** ; avec des souvenirs de familles réelles, l'offre Pro (sauvegardes quotidiennes, jamais de pause) est fortement conseillée |
+| Resend | 0 € ou ~20 $ par mois | gratuit : 3 000 e-mails par mois et **100 par jour** ; l'envoi du lundi (« nouvelle question ») à 100 personnes atteint déjà la limite du jour : étaler les envois, ou passer aux notifications push |
+| Suivi des plantages (Sentry) | 0 € | offre gratuite suffisante |
+
+**Total minimal la première année : environ 130 €** (Apple + Google + domaine). **Avec Supabase Pro, environ 400 €.**
+
+### Ce qu'exigent les magasins (à construire)
+
+- **Suppression du compte dans l'appli** : Apple (règle 5.1.1(v)) et Google l'exigent. Google veut en plus **une page web** pour demander la suppression sans passer par l'appli, et l'effacement des données associées. Ça rejoint le chantier RGPD (`rgpd.md`).
+- **Contenus des utilisateurs** (souvenirs, anecdotes, commentaires) : Apple (règle 1.2) demande un moyen de **filtrer les contenus choquants**, de **signaler** un contenu, avec une réponse rapide, de **bloquer** un utilisateur abusif, et des **coordonnées de contact publiées**. Le cercle familial fermé limite le risque, mais la vérification passera par ces points : prévoir « Signaler » sur un souvenir ou un commentaire, le retrait par le créateur de la famille, et le retrait d'un membre.
+- **Politique de confidentialité** accessible par une adresse web, **« étiquettes de confidentialité »** côté Apple et **formulaire « Sécurité des données »** côté Google, plus le questionnaire d'âge.
+- **Connexion** : avec seulement un e-mail, pas besoin de « Se connecter avec Apple » (règle 4.8 : obligatoire seulement si on propose Google ou Facebook). En revanche, **les vérificateurs d'Apple et de Google doivent pouvoir se connecter sans recevoir d'e-mail** : prévoir un compte de démonstration, avec un code fixe ou un mot de passe réservé à la vérification.
+- **Fiche de l'appli** : nom, description, captures d'écran, icône. Pour un compte personnel, **ton nom apparaît comme développeur**. Si l'appli devient payante (options du concept), il faudra déclarer un statut de professionnel, avec une adresse publique.
+
+### Ce qui change dans le code
+
+- **Configuration des versions natives** : identifiants (`ios.bundleIdentifier`, `android.package`), icônes, écran de démarrage, textes des autorisations, profils `eas.json`, puis `eas build` et `eas submit`.
+- **Retour du lien de connexion dans l'appli** : liens universels (fichiers à publier sur le domaine) ou, plus simple, **le code à 6 chiffres**, déjà conseillé pour la version web.
+- **Notifications push** (`expo-notifications`, avec la clé Apple du compte développeur) : naturelles sur une vraie appli, et elles soulagent la limite d'e-mails.
+- **Mises à jour rapides** : EAS Update pour corriger le JavaScript sans repasser par la vérification des magasins.
+- **Les chantiers déjà notés** deviennent obligatoires :
+  - sécurité (validation des nouveaux venus, lien d'invitation qui expire, relecture des règles d'accès) ;
+  - RGPD (politique, conditions d'utilisation, export, suppression, signalement) ;
+  - sauvegardes ;
+  - tâches planifiées réactivées et surveillées.
+- **La version web peut rester** en parallèle, pour ceux qui ne veulent rien installer.
+
+### Délais
+
+La vérification Apple prend en général un à deux jours par version, et la première soumission est souvent refusée une fois pour un détail. Chez Google, il faut compter les **14 jours de test fermé** du compte personnel, puis l'examen. Prévoir environ un mois entre la décision et l'appli publiée sur les deux magasins.
+
 ## Sources
 
 - Expo, offres et limites gratuites (EAS Build, Update, Hosting) : https://expo.dev/pricing
@@ -82,3 +125,7 @@ TestFlight et la distribution ad hoc (100 iPhone par an, en enregistrant l'ident
 - Resend, tarifs : https://resend.com/docs/knowledge-base/what-is-resend-pricing
 - Resend, configurer Supabase avec son domaine : https://resend.com/blog/how-to-configure-supabase-to-send-emails-from-your-domain
 - OVHcloud, prix des noms de domaine : https://www.ovhcloud.com/fr/domains/cheap-domain-name/
+- Apple, App Review Guidelines (1.2, 4.8, 5.1.1) : https://developer.apple.com/app-store/review/guidelines/
+- Apple, suppression du compte dans l'appli : https://developer.apple.com/support/offering-account-deletion-in-your-app
+- Google Play, suppression du compte : https://support.google.com/googleplay/android-developer/answer/13327111
+- Supabase, tarifs : https://supabase.com/pricing
