@@ -179,7 +179,7 @@ Ce qui reste à faire, dans un ordre logique. Le détail de chaque point est dan
 
 ### Étape 0 — Sur l'ordinateur relié à Supabase
 
-- **Script de connexion pour les tests à plusieurs comptes** (décidé le 2026-11-26, à écrire) : permettre à Sylvain de tester seul avec plusieurs comptes, par exemple plusieurs auteurs de souvenirs, **sans aucune modification de l'appli** ni porte dérobée en production.
+- ~~**Script de connexion pour les tests à plusieurs comptes**~~ : **fait le 2026-11-26** (décidé le 2026-11-26, à écrire) : permettre à Sylvain de tester seul avec plusieurs comptes, par exemple plusieurs auteurs de souvenirs, **sans aucune modification de l'appli** ni porte dérobée en production.
   - `scripts/test-login.mjs` (Node, `@supabase/supabase-js`), usage : `node scripts/test-login.mjs <nom>`, par exemple `mamie`, `lucien`. Le script :
     1. crée le compte `test-<nom>@quizamily.test` s'il n'existe pas, déjà confirmé (`auth.admin.createUser({ email, email_confirm: true })`) ;
     2. génère un lien de connexion **sans envoyer d'e-mail** (`auth.admin.generateLink({ type: 'magiclink', email, options: { redirectTo } })`) ;
@@ -192,6 +192,7 @@ Ce qui reste à faire, dans un ordre logique. Le détail de chaque point est dan
   - Les futurs envois d'e-mails de l'appli (notifications) devront ignorer les adresses `@quizamily.test`.
   - Plus tard, si besoin : un script de remplissage d'une famille de test (`seed-famille.mjs`). Écarté pour l'instant.
   - Pistes écartées : un bouton de connexion par mot de passe caché dans l'appli (risque de porte d'entrée en production), des adresses Gmail en « + » (lent), Supabase en local avec Docker (trop lourd pour l'instant).
+  - **Famille de test durable** (créée le 2026-11-26, pour regrouper les tests du jour — voir `docs/brief-claude-code.md`) : 3 comptes joueurs (`test-suzanne`, `test-luc`, `test-claire`) + 2 profils centraux sans compte (Henri et Marguerite, couple) + 6 souvenirs variés (date, année avec `<conjoint>`, élément choisi `<pays>`, commune, adresse libre, liste). Identifiants dans `travail/test-family.json` (gitignoré, jamais commité). **Vérifié à l'écran** : connexion par lien de test, accueil affichant bien la famille, les 3 joueurs et les 6 souvenirs. **Pas vérifié** : un lien de connexion ouvert par simple changement d'URL dans un onglet déjà chargé ne déclenche pas la session (le hash `#access_token=...` n'est traité qu'au chargement complet de la page/un rechargement) — à garder en tête pour les futurs tests, pas un bug de l'appli.
 
 - La checklist du 2026-11-18 en haut de cette page (migration de l'accord au féminin, `tsc`, lint, tests, vérification à l'écran).
 - Tests manuels jamais faits :
