@@ -172,6 +172,18 @@ Ce qui reste à faire, dans un ordre logique. Le détail de chaque point est dan
 
 ### Étape 0 — Sur l'ordinateur relié à Supabase
 
+- **Script de connexion pour les tests à plusieurs comptes** (décidé le 2026-11-26, à écrire) : permettre à Sylvain de tester seul avec plusieurs comptes, par exemple plusieurs auteurs de souvenirs, **sans aucune modification de l'appli** ni porte dérobée en production.
+  - `scripts/test-login.mjs` (Node, `@supabase/supabase-js`), usage : `node scripts/test-login.mjs <nom>`, par exemple `mamie`, `lucien`. Le script :
+    1. crée le compte `test-<nom>@quizamily.test` s'il n'existe pas, déjà confirmé (`auth.admin.createUser({ email, email_confirm: true })`) ;
+    2. génère un lien de connexion **sans envoyer d'e-mail** (`auth.admin.generateLink({ type: 'magiclink', email, options: { redirectTo } })`) ;
+    3. affiche le lien (`properties.action_link`). `redirectTo` vaut par défaut l'adresse locale de l'appli web (`http://localhost:8081`) et peut être passé en option (`--url`).
+  - Avec `--list`, il liste les comptes de test ; avec `--delete <nom>`, il supprime un compte de test (`auth.admin.deleteUser`). Un compte de test se reconnaît à son adresse `test-…@quizamily.test` : le domaine `.test` est réservé et ne reçoit jamais d'e-mail.
+  - **Clé « service_role »** : lue depuis un `.env` local (variables `SUPABASE_URL` et `SUPABASE_SERVICE_ROLE_KEY`), **jamais dans l'appli ni dans le dépôt** (`.env` est déjà dans `.gitignore`). Le script refuse de tourner si la clé manque.
+  - Pour avoir plusieurs comptes ouverts en même temps : un espace de navigateur par compte (profils Chrome, conteneurs Firefox, fenêtre privée, autre navigateur), car la session est gardée par le navigateur.
+  - Les futurs envois d'e-mails de l'appli (notifications) devront ignorer les adresses `@quizamily.test`.
+  - Plus tard, si besoin : un script de remplissage d'une famille de test (`seed-famille.mjs`). Écarté pour l'instant.
+  - Pistes écartées : un bouton de connexion par mot de passe caché dans l'appli (risque de porte d'entrée en production), des adresses Gmail en « + » (lent), Supabase en local avec Docker (trop lourd pour l'instant).
+
 - La checklist du 2026-11-18 en haut de cette page (migration de l'accord au féminin, `tsc`, lint, tests, vérification à l'écran).
 - Tests manuels jamais faits :
   - gestes de l'arbre sur téléphone, et avec une grande fratrie (8-9 enfants avec conjoints et enfants) ;
