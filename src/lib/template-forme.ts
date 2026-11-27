@@ -29,3 +29,17 @@ export function resolveFormeText(template: Template, kind: string | null): { tex
   }
   return { text: forme.text, recap: forme.recap, inputKind: kind };
 }
+
+/**
+ * Coupe le texte d'une forme juste avant <sujet> : la partie qui précède (« En quelle année »,
+ * « À quelle date », « À quel âge »…) est le repère interrogatif propre à la forme choisie —
+ * c'est cette partie, et seulement elle, qui est soulignée en pointillés et cliquable dans la
+ * tuile ouverte (docs/maquettes/soleil/Fait.dc.html, état "forme" : qPhrase/qAfter). Chaque
+ * template du catalogue est rédigé sous la forme "<repère> <sujet> ...", ce qui rend la coupe
+ * générique plutôt que propre à chaque template.
+ */
+export function splitLeadIn(text: string): { leadIn: string; rest: string } {
+  const idx = text.indexOf("<sujet>");
+  if (idx <= 0) return { leadIn: "", rest: text };
+  return { leadIn: text.slice(0, idx).trim(), rest: text.slice(idx) };
+}

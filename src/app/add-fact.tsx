@@ -37,7 +37,7 @@ import { lieuPourPays } from "@/lib/lieu";
 import { listMyFamilies, resolveMyFamily, setPersistedFamilyId, type MyFamilyMembership } from "@/lib/my-family";
 import { substituteQuestionText } from "@/lib/question-text";
 import { supabase } from "@/lib/supabase";
-import { formeLabel, resolveFormeText } from "@/lib/template-forme";
+import { formeLabel, resolveFormeText, splitLeadIn } from "@/lib/template-forme";
 import { useInviteLink } from "@/lib/use-invite-link";
 import { Template } from "@/types/question-template";
 
@@ -491,7 +491,9 @@ export default function AddFactScreen() {
     setAnswerValue("");
     setContextText("");
     setSlotValues({});
-    setChosenForme(template.answer_forms?.[0] ?? null);
+    // null = pas encore choisie (porte d'entrée affichée tant que l'auteur n'a rien choisi,
+    // voir docs/ecrans.md écran 5) ; sans objet "formes", la valeur ne sert à rien.
+    setChosenForme(null);
     setRelatedPersonId(related);
     setOpenTile({ kind: "new", template, initial: { answerValue: "", contextText: "", relatedPersonId: related, slotValues: {} } });
   }
@@ -507,7 +509,9 @@ export default function AddFactScreen() {
     setAnswerValue(answerStr);
     setContextText(fact.context_text ?? "");
     setSlotValues(slots);
-    setChosenForme(fact.answer_kind ?? template.answer_forms?.[0] ?? null);
+    // Un fait déjà créé a toujours sa forme déjà connue (jamais la porte d'entrée) : null =
+    // celle par défaut du template (docs/data-model.md, facts.answer_kind).
+    setChosenForme(fact.answer_kind ?? template.answer_input_kind);
     setRelatedPersonId(fact.related_person_id);
     setOpenTile({
       kind: "edit",
@@ -1073,10 +1077,12 @@ function OpenTileEditor(props: {
   const needsRelated = !!template.related_role && (!props.relatedPersonId || editingKey === "related");
   const missingSlots = (template.slots ?? []).filter((s) => !props.slotValues[s] || editingKey === s);
   const hasFormes = !!template.answer_forms;
-  const forme = resolveFormeText(template, props.chosenForme);
-  const showFormePicker = hasFormes && editingKey === "forme";
-  const readyForAnswer = !needsRelated && missingSlots.length === 0 && !showFormePicker;
-  const effectiveTemplateText = hasFormes ? forme.text : template.template_text;
+  // null = l'auteur n'a pas encore choisi la forme (porte d'entrée, docs/maquettes/soleil/Fait.dc.html,
+  // état "forme" avec forme="aucune") : un fait en cours d'édition a toujours déjà sa forme.
+  const isChoix = hasFormes && props.chosenForme === null;
+  const forme = isChoix ? null : resolveFormeText(template, props.chosenForme);
+  const showFormePicker = hasFormes && (isChoix || editingKey === "forme");
+  const readyForAnswer = !needsRelated && missingSlots.length === 0 && !isChoix && editingKey !== "forme";
 
   function chooseForme(f: string) {
     props.onChooseForme(f);
@@ -1084,45 +1090,53 @@ function OpenTileEditor(props: {
     setEditingKey(null);
   }
 
+  // Le texte de la question tant que la forme n'est pas choisie : neutre, pas de partie
+  // soulignée (qParts.aucune dans la maquette). Une fois choisie, seul le repère interrogatif
+  // en tête ("En quelle année", "À quelle date"…) est soulignée et cliquable pour en changer —
+  // jamais toute la phrase, ni une étiquette séparée (voir docs/ecrans.md, écran 5).
+  const questionTextSource = isChoix ? (template.template_text_neutral ?? template.template_text) : (forme?.text ?? template.template_text);
+  const { leadIn, rest } = isChoix ? { leadIn: "", rest: questionTextSource } : splitLeadIn(questionTextSource);
+  const segmentsTemplate = { ...template, template_text: rest };
+
   return (
     <View style={styles.openTile}>
-      {openTile.kind === "edit" ? (
-        <Text style={styles.openTileQuestion}>
-          {substituteQuestionText(effectiveTemplateText, template.related_role, subject.display_name, props.relatedName, props.slotValues, subject.gender)}
-        </Text>
-      ) : (
-        <Text style={styles.openTileQuestion}>
-          {buildQuestionSegments({ ...template, template_text: effectiveTemplateText }, subject.display_name, props.relatedName, props.slotValues, subject.gender).map(
-            (seg, i) =>
-              seg.editableKey ? (
-                <Text
-                  key={i}
-                  onPress={() => props.onEditSlot(seg.editableKey!)}
-                  suppressHighlighting
-                  style={styles.editableSegment}
-                >
-                  {seg.text}
-                </Text>
-              ) : (
-                <Text key={i}>{seg.text}</Text>
-              ),
-          )}
-        </Text>
-      )}
-
-      {hasFormes && (
-        <Pressable onPress={() => setEditingKey(editingKey === "forme" ? null : "forme")}>
-          <Text suppressHighlighting style={styles.editableSegment}>
-            Forme : {formeLabel(forme.inputKind)}
+      <Text style={styles.openTileQuestion}>
+        {leadIn.length > 0 && (
+          <Text
+            onPress={() => setEditingKey(editingKey === "forme" ? null : "forme")}
+            suppressHighlighting
+            style={styles.editableSegment}
+          >
+            {leadIn}{" "}
           </Text>
-        </Pressable>
-      )}
+        )}
+        {openTile.kind === "edit" ? (
+          substituteQuestionText(rest, template.related_role, subject.display_name, props.relatedName, props.slotValues, subject.gender)
+        ) : (
+          buildQuestionSegments(segmentsTemplate, subject.display_name, props.relatedName, props.slotValues, subject.gender).map((seg, i) =>
+            seg.editableKey ? (
+              <Text key={i} onPress={() => props.onEditSlot(seg.editableKey!)} suppressHighlighting style={styles.editableSegment}>
+                {seg.text}
+              </Text>
+            ) : (
+              <Text key={i}>{seg.text}</Text>
+            ),
+          )
+        )}
+      </Text>
 
       {showFormePicker && (
         <View style={styles.chipsRow}>
+          <Text style={styles.formeChoiceLabel}>Répondre par :</Text>
           {template.answer_forms!.map((f) => (
-            <Pressable key={f} onPress={() => chooseForme(f)} style={[styles.chip, forme.inputKind === f && styles.chipSelected]}>
-              <Text style={[styles.chipText, forme.inputKind === f && styles.chipTextSelected]}>{formeLabel(f)}</Text>
+            <Pressable
+              key={f}
+              onPress={() => chooseForme(f)}
+              style={[isChoix ? styles.formeChipDashed : styles.chip, !isChoix && forme?.inputKind === f && styles.chipSelected]}
+            >
+              <Text style={[isChoix ? styles.formeChipDashedText : styles.chipText, !isChoix && forme?.inputKind === f && styles.chipTextSelected]}>
+                {formeLabel(f)}
+              </Text>
             </Pressable>
           ))}
         </View>
@@ -1192,17 +1206,26 @@ function OpenTileEditor(props: {
         ) : null,
       )}
 
-      {!readyForAnswer && props.error.length > 0 && <Text style={styles.errorText}>{props.error}</Text>}
-
-      {readyForAnswer && (
-        <>
+      {isChoix ? (
+        <View style={{ gap: 5 }}>
+          <Text style={styles.fieldLabel}>Ta réponse</Text>
+          <View style={styles.formePlaceholder}>
+            <Text style={styles.formePlaceholderText}>Choisis d&apos;abord la forme de la réponse</Text>
+          </View>
+        </View>
+      ) : (
+        readyForAnswer && (
           <AnswerInput
-            template={hasFormes ? { ...template, answer_input_kind: forme.inputKind } : template}
+            template={hasFormes ? { ...template, answer_input_kind: forme!.inputKind } : template}
             familyId={props.familyId}
             value={props.answerValue}
             onChange={props.onAnswerChange}
           />
+        )
+      )}
 
+      {(readyForAnswer || isChoix) && (
+        <>
           <Text style={styles.fieldLabel}>Anecdote (facultatif)</Text>
           <TextInput
             value={props.contextText}
@@ -1211,42 +1234,42 @@ function OpenTileEditor(props: {
             multiline
             style={[styles.textarea]}
           />
-
-          {props.error.length > 0 && <Text style={styles.errorText}>{props.error}</Text>}
-
-          {openTile.kind === "edit" &&
-            (props.confirmDelete ? (
-              <View style={styles.confirmRow}>
-                <Text style={styles.confirmText}>Supprimer ce fait ?</Text>
-                <Pressable onPress={props.onDelete} disabled={props.deleting}>
-                  <Text style={styles.deleteConfirmLink}>{props.deleting ? "Suppression…" : "Oui, supprimer"}</Text>
-                </Pressable>
-                <Pressable onPress={props.onCancelDelete}>
-                  <Text style={styles.cancelLink}>Annuler</Text>
-                </Pressable>
-              </View>
-            ) : (
-              <Pressable onPress={props.onConfirmDelete}>
-                <Text style={styles.deleteLink}>Supprimer ce fait</Text>
-              </Pressable>
-            ))}
-
-          <View style={styles.openTileActions}>
-            {!props.isDirty && <Text style={styles.closeHint}>Touche ailleurs pour refermer</Text>}
-            <View style={{ flex: 1 }} />
-            <Pressable onPress={props.onCancel} style={styles.cancelButton}>
-              <Text style={styles.cancelButtonText}>Annuler</Text>
-            </Pressable>
-            <Pressable
-              onPress={props.onSubmit}
-              disabled={props.submitting || props.answerValue.trim().length === 0}
-              style={[styles.saveButton, (props.submitting || props.answerValue.trim().length === 0) && { opacity: 0.6 }]}
-            >
-              <Text style={styles.saveButtonText}>{props.submitting ? "Enregistrement…" : "Enregistrer"}</Text>
-            </Pressable>
-          </View>
         </>
       )}
+
+      {props.error.length > 0 && <Text style={styles.errorText}>{props.error}</Text>}
+
+      {openTile.kind === "edit" &&
+        (props.confirmDelete ? (
+          <View style={styles.confirmRow}>
+            <Text style={styles.confirmText}>Supprimer ce fait ?</Text>
+            <Pressable onPress={props.onDelete} disabled={props.deleting}>
+              <Text style={styles.deleteConfirmLink}>{props.deleting ? "Suppression…" : "Oui, supprimer"}</Text>
+            </Pressable>
+            <Pressable onPress={props.onCancelDelete}>
+              <Text style={styles.cancelLink}>Annuler</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <Pressable onPress={props.onConfirmDelete}>
+            <Text style={styles.deleteLink}>Supprimer ce fait</Text>
+          </Pressable>
+        ))}
+
+      <View style={styles.openTileActions}>
+        {!props.isDirty && <Text style={styles.closeHint}>Touche ailleurs pour refermer</Text>}
+        <View style={{ flex: 1 }} />
+        <Pressable onPress={props.onCancel} style={styles.cancelButton}>
+          <Text style={styles.cancelButtonText}>Annuler</Text>
+        </Pressable>
+        <Pressable
+          onPress={props.onSubmit}
+          disabled={props.submitting || props.answerValue.trim().length === 0}
+          style={[styles.saveButton, (props.submitting || props.answerValue.trim().length === 0) && { opacity: 0.6 }]}
+        >
+          <Text style={styles.saveButtonText}>{props.submitting ? "Enregistrement…" : "Enregistrer"}</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -1438,6 +1461,29 @@ const styles = StyleSheet.create({
   chipSelected: { backgroundColor: S.action, borderColor: S.action },
   chipText: { fontFamily: FONTS.bodyBold, fontSize: 14, color: S.ink },
   chipTextSelected: { color: S.white },
+  formeChoiceLabel: { fontFamily: FONTS.bodyHeavy, fontSize: 13, color: S.inkSoft, alignSelf: "center" },
+  formeChipDashed: {
+    minHeight: 36,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderWidth: 2,
+    borderStyle: "dashed",
+    borderColor: S.action,
+    borderRadius: 18,
+    backgroundColor: S.white,
+    justifyContent: "center",
+  },
+  formeChipDashedText: { fontFamily: FONTS.bodyHeavy, fontSize: 14, color: S.action },
+  formePlaceholder: {
+    height: 46,
+    justifyContent: "center",
+    paddingHorizontal: 14,
+    borderWidth: 2,
+    borderColor: "#EAD9BD",
+    borderRadius: 14,
+    backgroundColor: S.white,
+  },
+  formePlaceholderText: { fontFamily: FONTS.body, fontSize: 14, color: "#9A8070" },
   input: { height: 46, paddingHorizontal: 14, borderWidth: 2, borderColor: "#EAD9BD", borderRadius: 14, backgroundColor: S.white, fontFamily: FONTS.body, fontSize: 16, color: S.ink },
   textarea: { minHeight: 56, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 2, borderColor: "#EAD9BD", borderRadius: 14, backgroundColor: S.white, fontFamily: FONTS.body, fontSize: 15, color: S.ink },
   errorText: { fontSize: 14, fontFamily: FONTS.bodyBold, color: S.alertInk },
