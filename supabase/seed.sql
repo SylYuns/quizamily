@@ -24,10 +24,10 @@ insert into question_templates (id, category, status, template_text, answer_inpu
 ('depart-domicile-age', 'couple-installation', 'mvp', 'À quel âge <sujet> a-t-{il|elle} quitté le domicile de ses parents ?', 'age', null, null, null, null, null, '{Sujet} a quitté le domicile de ses parents à {réponse} ans.', 14),
 ('rencontre-annee', 'couple-installation', 'mvp', 'En quelle année <sujet> a-t-{il|elle} rencontré <conjoint> ?', 'year', null, 'conjoint', null, null, null, '{Sujet} a rencontré <conjoint> en {réponse}.', 15),
 ('mariage-date', 'couple-installation', 'mvp', 'Quelle est la date de mariage de <sujet> ?', 'date', null, 'conjoint', null, null, null, '{Sujet} {s''est marié|s''est mariée} avec <conjoint> le {réponse}.', 16),
-('mariage-commune', 'couple-installation', 'mvp', 'Dans quelle commune <sujet> s''est-{il|elle} {marié|mariée} ?', 'city', null, 'conjoint', null, null, null, '{Sujet} {s''est marié|s''est mariée} à {réponse}.', 17),
-('voyage-noces', 'couple-installation', 'mvp', 'Où <sujet> et <conjoint> sont-ils partis en voyage de noces ?', 'place', null, 'conjoint', null, null, null, 'Leur voyage de noces les a menés à {réponse}.', 18),
+('mariage-commune', 'couple-installation', 'mvp', 'Dans quelle commune <sujet> s''est-{il|elle} {marié|mariée} ?', 'city', null, 'conjoint', null, null, null, '{Sujet} {s''est marié|s''est mariée} {réponse_lieu}.', 17),
+('voyage-noces', 'couple-installation', 'mvp', 'Où <sujet> et <conjoint> sont-ils partis en voyage de noces ?', 'place', null, 'conjoint', null, null, null, 'Leur voyage de noces les a menés {réponse_lieu}.', 18),
 ('mariage-voiture', 'couple-installation', 'mvp', 'Quelle voiture a conduit les mariés le jour du mariage de <sujet> ?', 'list', 'voitures', 'conjoint', null, null, null, 'Le jour du mariage, les mariés sont arrivés en {réponse}.', 19),
-('service-militaire-ville', 'couple-installation', 'mvp', 'Où <sujet> a-t-{il|elle} fait son service militaire ?', 'place', null, null, null, 'homme', null, '{Sujet} a fait son service militaire à {réponse}.', 20),
+('service-militaire-ville', 'couple-installation', 'mvp', 'Où <sujet> a-t-{il|elle} fait son service militaire ?', 'place', null, null, null, 'homme', null, '{Sujet} a fait son service militaire {réponse_lieu}.', 20),
 ('adresse-actuelle-annee', 'couple-installation', 'mvp', 'En quelle année <sujet> a-t-{il|elle} emménagé à son adresse actuelle ?', 'year', null, null, null, 'vivant', null, '{Sujet} a emménagé à son adresse actuelle en {réponse}.', 21),
 
 -- ---------- Culture et premières fois ----------
@@ -41,7 +41,7 @@ insert into question_templates (id, category, status, template_text, answer_inpu
 ('retraite-date', 'retraite-voyages-loisirs', 'mvp', 'À quelle date <sujet> a-t-{il|elle} officiellement pris sa retraite ?', 'date', null, null, null, null, null, '{Sujet} a pris sa retraite le {réponse}.', 27),
 ('premier-pays-etranger', 'retraite-voyages-loisirs', 'mvp', 'Quel pays étranger <sujet> a-t-{il|elle} visité lors de son premier voyage hors de France ?', 'country', null, null, null, null, null, 'Le premier pays étranger visité par {sujet} a été {réponse}.', 28),
 ('avion-annee', 'retraite-voyages-loisirs', 'mvp', 'En quelle année <sujet> a-t-{il|elle} pris l''avion pour la première fois ?', 'year', null, null, null, null, null, '{Sujet} a pris l''avion pour la première fois en {réponse}.', 29),
-('voyage-pays-annee', 'retraite-voyages-loisirs', 'mvp', 'En quelle année <sujet> a-t-{il|elle} effectué son voyage en <pays> ?', 'year', null, null, '["pays"]', null, 'l''auteur choisit le pays au moment d''ajouter le fait', '{Sujet} a voyagé en <pays> en {réponse}.', 30),
+('voyage-pays-annee', 'retraite-voyages-loisirs', 'mvp', 'En quelle année <sujet> a-t-{il|elle} effectué son voyage <pays_lieu> ?', 'year', null, null, '["pays"]', null, 'l''auteur choisit le pays au moment d''ajouter le fait', '{Sujet} a voyagé <pays_lieu> en {réponse}.', 30),
 ('dernier-pays-etranger', 'retraite-voyages-loisirs', 'mvp', 'Quel est le dernier pays étranger que <sujet> a visité ?', 'country', null, null, null, null, null, 'Le dernier pays étranger visité par {sujet} est {réponse}.', 31),
 ('club-associatif', 'retraite-voyages-loisirs', 'mvp', 'Quel est le nom du club associatif dont <sujet> fait partie ?', 'free_text', null, null, null, null, null, '{Sujet} fait partie de {réponse}.', 32)
 
