@@ -53,12 +53,13 @@ question_templates         -- catalogue global, édité par nous (pas par les fa
   -- 'place' : l'auteur du fait choisit entre pays et commune ; 'list' : liste de référence enrichissable
   -- list_category : catégorie de list_items proposée (ex : 'musique' pour premier-concert-artiste) ; null = toutes
   -- catalogue source : docs/question-templates.toml
-  -- À AJOUTER (décidé le 2026-11-24, « forme de la réponse », voir ecrans.md écran 5) :
+  -- fait le 2026-11-26 (décidé le 2026-11-24, « forme de la réponse », voir ecrans.md écran 5) :
   --   answer_forms   text[] : types entre lesquels l'auteur choisit, le premier = answer_input_kind
   --                  (null = un seul type) ; ex : {date,year,age}
   --   template_text_neutral  question sans présumer du type (« Quand… », « Où… »), pour la liste
   --   form_texts     jsonb : {"year": {"text": "...", "recap": "..."}, ...} pour les types autres
   --                  que celui par défaut (TOML : formes, text_neutre, [template.forme.<type>])
+  --                  remplis pour les 17 templates concernés par scripts/build-question-templates.mjs
 
 list_items                 -- valeurs des listes de référence enrichissables (animaux, sports, voitures, metiers, films, personnalites)
   id, list_name, value
@@ -76,7 +77,7 @@ facts
   slot_values                             -- jsonb nullable : éléments choisis par l'auteur (ex : {"pays": "Italie"})
   author_person_id
   answer_value, answer_history           -- jsonb: historique des corrections
-  answer_kind                             -- À AJOUTER (2026-11-24) : type de réponse choisi par l'auteur parmi
+  answer_kind                             -- fait le 2026-11-26 (2026-11-24) : type de réponse choisi par l'auteur parmi
                                           -- question_templates.answer_forms ; null = answer_input_kind du template.
                                           -- Modifiable tant que le fait n'est pas posé (comme la réponse).
   pending_correction                      -- jsonb nullable: proposition en attente de validation
@@ -98,7 +99,7 @@ quiz_sessions
 quiz_questions
   id, session_id, fact_id
   answer_value_snapshot    -- valeur correcte au moment de la pioche (sert au recalcul si correction ultérieure)
-  -- À AJOUTER (2026-11-24) : answer_kind_snapshot, le type de réponse du fait au moment de la pioche
+  -- fait le 2026-11-26 (2026-11-24) : answer_kind_snapshot, le type de réponse du fait au moment de la pioche
   -- (sert à submit_answer pour comparer, à Répondre pour afficher le bon champ, à la révélation)
   validator_person_id      -- free_text : auteur du fait, ou membre ayant pris la main
   validation_completed_at  -- nullable ; free_text : la question n'est révélée qu'une fois rempli

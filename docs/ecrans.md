@@ -256,7 +256,7 @@ Actions :
 
 ### Nouveau fait
 
-#### Forme de la réponse choisie par l'auteur (décidé le 2026-11-24, pas encore codé)
+#### Forme de la réponse choisie par l'auteur (décidé le 2026-11-24, **fait le 2026-11-26** — communes françaises non construites, voir `roadmap.md`)
 
 Pour certaines questions, c'est **l'auteur du fait qui choisit la forme de la réponse** : une date précise ou juste l'année, un âge ou une année, une commune ou un pays (ou une adresse ou une commune). Exemple : « Quand Marie a-t-elle pris sa retraite ? » → date précise, année ou âge, selon ce que l'auteur sait.
 
@@ -276,6 +276,8 @@ Pour certaines questions, c'est **l'auteur du fait qui choisit la forme de la r�
   - Une question avec un élément choisi **et** une forme (voyage dans un pays : `<pays>` + année/âge) a deux parties soulignées, chacune modifiable séparément.
   - Choisir une forme ne compte pas comme « saisie commencée » (la tuile reste « ouverte pour voir » tant qu'aucune valeur n'est saisie).
   - Dans « Mes questions modifiables », la question s'ouvre directement avec sa forme enregistrée (partie soulignée, modifiable tant que le fait n'est pas posé).
+
+**Écart signalé (code du 2026-11-26) :** par manque de temps dans la journée, l'implémentation s'écarte de ce qui précède sur un point — à revoir avec Sylvain si ce n'est pas acceptable : la forme **par défaut est déjà choisie à l'ouverture** (la première de `formes`), pas de champ grisé/bloqué en attendant un choix explicite ; le changement de forme se fait via une **étiquette « Forme : <libellé> » sous la question** (pas une partie soulignée de la phrase elle-même, pour éviter d'avoir à découper automatiquement la phrase entre partie « forme » et reste), cliquable pour rouvrir une rangée de pastilles de choix. Pour une question avec un élément choisi **et** une forme (voyage dans un pays), l'élément choisi reste souligné et cliquable séparément dans la phrase, comme prévu.
 
 - **⚠ Calendrier (type « date ») à revoir** (signalé par Sylvain le 2026-11-24) : la dernière fois qu'il l'a testé, le sélecteur de date **ne fonctionnait pas**. À vérifier et corriger avec Claude Code avant ou avec ce chantier, puisque la forme « date précise » va être proposée pour bien plus de questions (dans « Ajouter un souvenir », « Mes faits », « Répondre » et les corrections, tous via `AnswerInput`). Tester sur web et sur téléphone.
 - **Pour les joueurs** : ils répondent avec le **même type** que celui choisi par l'auteur (champ adapté dans « Répondre »), et la comparaison juste/faux se fait dans ce type. Pas d'écart affiché pour une date précise (décision du 2026-11-24 ; l'écart « à N ans près » reste pour les années, et les nombres/âges).
@@ -412,7 +414,7 @@ Affiche :
 - les réponses à valider, **regroupées par valeur identique** (« Durant » : 3 réponses), pour ne valider qu'une fois
 - les réponses déjà validées automatiquement, pour information
 
-**Décisions appliquées aux réponses identiques** (décidé le 2026-11-26, à coder) : quand l'auteur accepte ou refuse une réponse, **la même décision s'applique automatiquement à toutes les réponses identiques**, y compris celles qui arrivent **après** sa décision (et aux rattrapages, voir « Arriver en cours de route »). Moins de travail pour l'auteur. « Identique » = après normalisation : **sans tenir compte des majuscules, des accents, des espaces en trop, de la ponctuation ni des articles en début de réponse** (« Un vélo bleu » = « vélo bleu » = « Le vélo bleu ») ; **pas de tolérance aux fautes de frappe** (« velo bleux » ≠ « vélo bleu ») pour ne jamais valider une mauvaise réponse proche. Le regroupement de l'écran de validation utilise la même normalisation.
+**Décisions appliquées aux réponses identiques** (décidé le 2026-11-26, **fait le même jour**) : quand l'auteur accepte ou refuse une réponse, **la même décision s'applique automatiquement à toutes les réponses identiques**, y compris celles qui arrivent **après** sa décision (et aux rattrapages, voir « Arriver en cours de route » — pas encore codé). Moins de travail pour l'auteur. « Identique » = après normalisation : **sans tenir compte des majuscules, des accents, des espaces en trop, de la ponctuation ni des articles en début de réponse** (« Un vélo bleu » = « vélo bleu » = « Le vélo bleu ») ; **pas de tolérance aux fautes de frappe** (« velo bleux » ≠ « vélo bleu ») pour ne jamais valider une mauvaise réponse proche. Le regroupement de l'écran de validation utilise la même normalisation. **Vérifié à l'écran** (famille de test durable, 2 destinataires) : une première réponse libre part en attente, l'auteur l'accepte ; une seconde réponse du second destinataire, identique après normalisation (casse/accents différents), est acceptée automatiquement sans repasser par l'écran de validation.
 
 Actions :
 - Accepter ou refuser chaque réponse (ou groupe de réponses)
